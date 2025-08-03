@@ -256,11 +256,11 @@ Comprehensive documentation is available in the `Documentation/` folder:
 
 Check out the `Examples/` folder for complete sample applications:
 
-- [Basic Networking](Examples/BasicNetworking/)
-- [Advanced Caching](Examples/AdvancedCaching/)
-- [Real-Time Sync](Examples/RealTimeSync/)
-- [Request Interceptors](Examples/RequestInterceptors/)
-- [Network Analytics](Examples/NetworkAnalytics/)
+- [Basic Networking](Examples/BasicNetworking/BasicNetworkingExample.swift)
+- [Advanced Caching](Examples/AdvancedCaching/AdvancedCachingExample.swift)
+- [Real-Time Sync](Examples/RealTimeSync/RealTimeSyncExample.swift)
+- [Request Interceptors](Examples/RequestInterceptors/RequestInterceptorsExample.swift)
+- [Network Analytics](Examples/NetworkAnalytics/NetworkAnalyticsExample.swift)
 
 ---
 
