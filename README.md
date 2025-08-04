@@ -290,6 +290,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 📊 Project Statistics
+
+<div align="center">
+
+[![GitHub stars](https://img.shields.io/github/stars/muhittincamdali/iOS-Networking-Architecture-Pro?style=social)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/muhittincamdali/iOS-Networking-Architecture-Pro?style=social)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/network)
+[![GitHub issues](https://img.shields.io/github/issues/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/pulls)
+
+</div>
+
+## 🌟 Stargazers
+
+[![Stargazers repo roster for @muhittincamdali/iOS-Networking-Architecture-Pro](https://reporoster.com/stars/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/stargazers)
+
 ## 🙏 Acknowledgments
 
 - Apple for Swift and iOS development tools
