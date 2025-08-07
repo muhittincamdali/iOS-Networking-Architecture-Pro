@@ -85,7 +85,6 @@
 * **Response Mapping**: Automatic response mapping and serialization
 * **Request Validation**: Request validation and sanitization
 * **API Versioning**: API version management and compatibility
-* **Rate Limiting**: Request rate limiting and throttling
 * **Caching**: Intelligent API response caching
 * **Mocking**: API mocking for testing and development
 
@@ -145,7 +144,6 @@ let httpClient = HTTPClientManager()
 
 // Configure HTTP client
 let httpConfig = HTTPClientConfiguration()
-httpConfig.baseURL = "https://api.company.com"
 httpConfig.timeout = 30 // seconds
 httpConfig.maxRetries = 3
 httpConfig.enableCaching = true
@@ -225,7 +223,6 @@ let restClient = RESTAPIClient()
 
 // Configure REST API
 let restConfig = RESTAPIConfiguration()
-restConfig.baseURL = "https://api.company.com"
 restConfig.apiVersion = "v1"
 restConfig.enableCaching = true
 restConfig.enableRateLimiting = true
@@ -580,7 +577,6 @@ jwtManager.validateToken(token) { result in
 
 ```bash
 # Clone the repository
-git clone https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro.git
 
 # Navigate to project directory
 cd iOS-Networking-Architecture-Pro
@@ -598,7 +594,6 @@ Add the framework to your project:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro.git", from: "1.0.0")
 ]
 ```
 
@@ -621,7 +616,6 @@ networkingConfig.enableWebSocket = true
 networkingManager.start(with: networkingConfig)
 
 // Configure base URL
-networkingManager.configureBaseURL("https://api.company.com")
 ```
 
 ---
@@ -805,15 +799,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-[![GitHub stars](https://img.shields.io/github/stars/muhittincamdali/iOS-Networking-Architecture-Pro?style=social)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/muhittincamdali/iOS-Networking-Architecture-Pro?style=social)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/network)
-[![GitHub issues](https://img.shields.io/github/issues/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/pulls)
-[![GitHub contributors](https://img.shields.io/github/contributors/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/graphs/contributors)
-[![GitHub last commit](https://img.shields.io/github/last-commit/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/commits/master)
 
 </div>
 
 ## 🌟 Stargazers
 
-[![Stargazers repo roster for @muhittincamdali/iOS-Networking-Architecture-Pro](https://reporoster.com/stars/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/stargazers)
