@@ -1,5 +1,42 @@
 # Getting Started Guide
 
+<!-- TOC START -->
+## Table of Contents
+- [Getting Started Guide](#getting-started-guide)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Installation](#-installation)
+  - [Swift Package Manager (Recommended)](#swift-package-manager-recommended)
+  - [CocoaPods](#cocoapods)
+  - [Carthage](#carthage)
+- [⚡ Basic Setup](#-basic-setup)
+  - [1. Import the Framework](#1-import-the-framework)
+  - [2. Configure the Network Manager](#2-configure-the-network-manager)
+  - [3. Optional: Configure Advanced Settings](#3-optional-configure-advanced-settings)
+- [📡 Making Your First Request](#-making-your-first-request)
+  - [Simple GET Request](#simple-get-request)
+  - [POST Request with Body](#post-request-with-body)
+  - [Using the Builder Pattern](#using-the-builder-pattern)
+- [🏗️ Understanding the Architecture](#-understanding-the-architecture)
+  - [Core Components](#core-components)
+    - [1. NetworkManager](#1-networkmanager)
+    - [2. APIRequest](#2-apirequest)
+    - [3. CacheManager](#3-cachemanager)
+    - [4. Request Interceptors](#4-request-interceptors)
+    - [5. Network Analytics](#5-network-analytics)
+  - [Design Patterns](#design-patterns)
+- [🔧 Advanced Features](#-advanced-features)
+  - [Caching](#caching)
+  - [Request Interceptors](#request-interceptors)
+  - [Real-Time Synchronization](#real-time-synchronization)
+  - [Analytics](#analytics)
+- [🧪 Testing](#-testing)
+  - [Unit Tests](#unit-tests)
+- [📚 Next Steps](#-next-steps)
+  - [Examples](#examples)
+- [🤝 Getting Help](#-getting-help)
+<!-- TOC END -->
+
+
 Welcome to iOS Networking Architecture Pro! This guide will help you get started with the framework and understand its core concepts.
 
 ## 📋 Table of Contents

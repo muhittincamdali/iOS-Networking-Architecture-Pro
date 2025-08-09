@@ -1,5 +1,42 @@
 # 🛡️ Security API Reference
 
+<!-- TOC START -->
+## Table of Contents
+- [🛡️ Security API Reference](#-security-api-reference)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Components](#-key-components)
+- [📦 SecurityManager](#-securitymanager)
+  - [Class Definition](#class-definition)
+  - [Initialization](#initialization)
+  - [Configuration Methods](#configuration-methods)
+  - [Security Methods](#security-methods)
+- [🔐 EncryptionManager](#-encryptionmanager)
+  - [Class Definition](#class-definition)
+  - [Encryption Algorithms](#encryption-algorithms)
+  - [Encryption Methods](#encryption-methods)
+- [🔑 KeychainManager](#-keychainmanager)
+  - [Class Definition](#class-definition)
+  - [Keychain Methods](#keychain-methods)
+- [⚙️ SecurityConfiguration](#-securityconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Hash Algorithms](#hash-algorithms)
+  - [Certificate Validation](#certificate-validation)
+  - [Default Configuration](#default-configuration)
+- [❌ SecurityError](#-securityerror)
+  - [Error Types](#error-types)
+  - [Error Properties](#error-properties)
+- [📱 Usage Examples](#-usage-examples)
+  - [Basic Security Usage](#basic-security-usage)
+  - [Advanced Security Usage](#advanced-security-usage)
+  - [Keychain Usage](#keychain-usage)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

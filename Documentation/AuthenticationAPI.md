@@ -1,5 +1,46 @@
 # 🔐 Authentication API Reference
 
+<!-- TOC START -->
+## Table of Contents
+- [🔐 Authentication API Reference](#-authentication-api-reference)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Components](#-key-components)
+- [📦 OAuthManager](#-oauthmanager)
+  - [Class Definition](#class-definition)
+  - [Initialization](#initialization)
+  - [Configuration Methods](#configuration-methods)
+  - [Authentication Methods](#authentication-methods)
+  - [Token Management](#token-management)
+- [🔑 JWTAuthenticationManager](#-jwtauthenticationmanager)
+  - [Class Definition](#class-definition)
+  - [Initialization](#initialization)
+  - [Configuration Methods](#configuration-methods)
+  - [Token Methods](#token-methods)
+  - [Claims Management](#claims-management)
+- [🛡️ SecurityManager](#-securitymanager)
+  - [Class Definition](#class-definition)
+  - [Initialization](#initialization)
+  - [Configuration Methods](#configuration-methods)
+  - [Security Methods](#security-methods)
+- [⚙️ AuthenticationConfiguration](#-authenticationconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Authentication Types](#authentication-types)
+  - [Default Configuration](#default-configuration)
+- [❌ AuthenticationError](#-authenticationerror)
+  - [Error Types](#error-types)
+  - [Error Properties](#error-properties)
+- [📱 Usage Examples](#-usage-examples)
+  - [OAuth Authentication](#oauth-authentication)
+  - [JWT Authentication](#jwt-authentication)
+  - [Security Features](#security-features)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

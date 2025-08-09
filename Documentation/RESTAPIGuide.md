@@ -1,5 +1,48 @@
 # 📡 REST API Guide
 
+<!-- TOC START -->
+## Table of Contents
+- [📡 REST API Guide](#-rest-api-guide)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Features](#-key-features)
+- [⚡ Quick Start](#-quick-start)
+  - [Basic REST API Setup](#basic-rest-api-setup)
+  - [Simple REST API Usage](#simple-rest-api-usage)
+- [🔧 Configuration](#-configuration)
+  - [REST API Configuration](#rest-api-configuration)
+  - [Advanced Configuration](#advanced-configuration)
+- [📤 Making Requests](#-making-requests)
+  - [API Endpoint Definition](#api-endpoint-definition)
+  - [Request Methods](#request-methods)
+  - [Request with Parameters](#request-with-parameters)
+- [📥 Handling Responses](#-handling-responses)
+  - [Response Parsing](#response-parsing)
+  - [Response Validation](#response-validation)
+- [🛠️ API Endpoints](#-api-endpoints)
+  - [Endpoint Management](#endpoint-management)
+  - [Endpoint Configuration](#endpoint-configuration)
+- [📊 Error Handling](#-error-handling)
+  - [Error Types](#error-types)
+  - [Error Recovery](#error-recovery)
+- [🔐 Authentication](#-authentication)
+  - [Bearer Token Authentication](#bearer-token-authentication)
+  - [OAuth Authentication](#oauth-authentication)
+- [📦 Caching](#-caching)
+  - [Cache Configuration](#cache-configuration)
+  - [Cache Implementation](#cache-implementation)
+- [🔄 Rate Limiting](#-rate-limiting)
+  - [Rate Limiting Configuration](#rate-limiting-configuration)
+  - [Rate Limiting Implementation](#rate-limiting-implementation)
+- [📱 Examples](#-examples)
+  - [REST API Client Implementation](#rest-api-client-implementation)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

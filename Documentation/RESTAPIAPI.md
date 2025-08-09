@@ -1,5 +1,49 @@
 # 📡 REST API API Reference
 
+<!-- TOC START -->
+## Table of Contents
+- [📡 REST API API Reference](#-rest-api-api-reference)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Components](#-key-components)
+- [📦 RESTAPIClient](#-restapiclient)
+  - [Class Definition](#class-definition)
+  - [Initialization](#initialization)
+  - [Configuration Methods](#configuration-methods)
+  - [Endpoint Management](#endpoint-management)
+  - [Request Methods](#request-methods)
+  - [Utility Methods](#utility-methods)
+- [🔗 APIEndpoint](#-apiendpoint)
+  - [Structure Definition](#structure-definition)
+  - [Endpoint Configuration](#endpoint-configuration)
+  - [Usage Examples](#usage-examples)
+- [📤 APIRequest](#-apirequest)
+  - [Structure Definition](#structure-definition)
+  - [Request Builder](#request-builder)
+  - [Usage Examples](#usage-examples)
+- [📥 APIResponse](#-apiresponse)
+  - [Structure Definition](#structure-definition)
+  - [Response Parsing](#response-parsing)
+- [⚙️ RESTAPIConfiguration](#-restapiconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [🛠️ APIMapper](#-apimapper)
+  - [Class Definition](#class-definition)
+  - [Mapping Methods](#mapping-methods)
+- [❌ RESTAPIError](#-restapierror)
+  - [Error Types](#error-types)
+- [📊 APIStatistics](#-apistatistics)
+  - [Structure Definition](#structure-definition)
+- [📱 Usage Examples](#-usage-examples)
+  - [Basic REST API Usage](#basic-rest-api-usage)
+  - [Advanced REST API Usage](#advanced-rest-api-usage)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

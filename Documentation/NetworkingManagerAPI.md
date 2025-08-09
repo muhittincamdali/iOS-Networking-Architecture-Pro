@@ -1,5 +1,43 @@
 # 🌐 Networking Manager API Reference
 
+<!-- TOC START -->
+## Table of Contents
+- [🌐 Networking Manager API Reference](#-networking-manager-api-reference)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Features](#-key-features)
+- [📦 NetworkingManager](#-networkingmanager)
+  - [Class Definition](#class-definition)
+  - [Initialization](#initialization)
+  - [Configuration Methods](#configuration-methods)
+  - [Lifecycle Methods](#lifecycle-methods)
+  - [Utility Methods](#utility-methods)
+- [⚙️ NetworkingConfiguration](#-networkingconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [🔧 NetworkMonitor](#-networkmonitor)
+  - [Class Definition](#class-definition)
+  - [Network Status](#network-status)
+  - [Network Type](#network-type)
+  - [Connection Quality](#connection-quality)
+  - [Monitor Methods](#monitor-methods)
+- [📊 NetworkStatistics](#-networkstatistics)
+  - [Structure Definition](#structure-definition)
+  - [Statistics Calculation](#statistics-calculation)
+- [❌ NetworkingError](#-networkingerror)
+  - [Error Types](#error-types)
+  - [Error Properties](#error-properties)
+- [📱 Usage Examples](#-usage-examples)
+  - [Basic Networking Manager Usage](#basic-networking-manager-usage)
+  - [Advanced Networking Manager Usage](#advanced-networking-manager-usage)
+  - [Network Monitoring](#network-monitoring)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

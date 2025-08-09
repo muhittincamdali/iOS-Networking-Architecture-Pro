@@ -1,5 +1,55 @@
 # Caching Guide
 
+<!-- TOC START -->
+## Table of Contents
+- [Caching Guide](#caching-guide)
+- [📋 Table of Contents](#-table-of-contents)
+- [Overview](#overview)
+  - [Key Features](#key-features)
+- [Cache Levels](#cache-levels)
+  - [1. Memory Cache (L1)](#1-memory-cache-l1)
+  - [2. Disk Cache (L2)](#2-disk-cache-l2)
+  - [3. Network Cache (L3)](#3-network-cache-l3)
+- [Cache Policies](#cache-policies)
+  - [1. LRU (Least Recently Used)](#1-lru-least-recently-used)
+  - [2. LFU (Least Frequently Used)](#2-lfu-least-frequently-used)
+  - [3. FIFO (First In, First Out)](#3-fifo-first-in-first-out)
+  - [4. TTL (Time To Live)](#4-ttl-time-to-live)
+- [Configuration](#configuration)
+  - [Basic Configuration](#basic-configuration)
+  - [Advanced Configuration](#advanced-configuration)
+  - [Per-Request Configuration](#per-request-configuration)
+- [Best Practices](#best-practices)
+  - [1. Cache Key Strategy](#1-cache-key-strategy)
+  - [2. TTL Configuration](#2-ttl-configuration)
+  - [3. Memory Management](#3-memory-management)
+  - [4. Cache Invalidation](#4-cache-invalidation)
+  - [5. Error Handling](#5-error-handling)
+- [Performance Optimization](#performance-optimization)
+  - [1. Cache Hit Rate Optimization](#1-cache-hit-rate-optimization)
+  - [2. Memory Optimization](#2-memory-optimization)
+  - [3. Compression](#3-compression)
+  - [4. Background Cleanup](#4-background-cleanup)
+- [Advanced Features](#advanced-features)
+  - [1. Custom Cache Policies](#1-custom-cache-policies)
+  - [2. Cache Analytics](#2-cache-analytics)
+  - [3. Cache Warming](#3-cache-warming)
+  - [4. Cache Synchronization](#4-cache-synchronization)
+- [Troubleshooting](#troubleshooting)
+  - [Common Issues](#common-issues)
+    - [1. High Memory Usage](#1-high-memory-usage)
+    - [2. Low Cache Hit Rate](#2-low-cache-hit-rate)
+    - [3. Cache Corruption](#3-cache-corruption)
+    - [4. Disk Space Issues](#4-disk-space-issues)
+  - [Debugging](#debugging)
+    - [Enable Debug Logging](#enable-debug-logging)
+    - [Monitor Cache Statistics](#monitor-cache-statistics)
+- [Examples](#examples)
+  - [Basic Caching](#basic-caching)
+  - [Advanced Caching](#advanced-caching)
+<!-- TOC END -->
+
+
 Complete guide to caching strategies and implementation in iOS Networking Architecture Pro.
 
 ## 📋 Table of Contents

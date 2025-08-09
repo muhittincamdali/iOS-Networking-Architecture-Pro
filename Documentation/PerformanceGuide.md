@@ -1,5 +1,48 @@
 # Performance Guide
 
+<!-- TOC START -->
+## Table of Contents
+- [Performance Guide](#performance-guide)
+- [📋 Table of Contents](#-table-of-contents)
+- [Overview](#overview)
+  - [Performance Targets](#performance-targets)
+- [Performance Metrics](#performance-metrics)
+  - [1. Response Time](#1-response-time)
+  - [2. Throughput](#2-throughput)
+  - [3. Memory Usage](#3-memory-usage)
+- [Optimization Strategies](#optimization-strategies)
+  - [1. Connection Pooling](#1-connection-pooling)
+  - [2. Request Batching](#2-request-batching)
+  - [3. Compression](#3-compression)
+- [Caching Optimization](#caching-optimization)
+  - [1. Multi-Level Caching](#1-multi-level-caching)
+  - [2. Cache Warming](#2-cache-warming)
+  - [3. Cache Invalidation](#3-cache-invalidation)
+- [Network Optimization](#network-optimization)
+  - [1. Request Optimization](#1-request-optimization)
+  - [2. Response Optimization](#2-response-optimization)
+  - [3. Background Processing](#3-background-processing)
+- [Memory Management](#memory-management)
+  - [1. Memory Optimization](#1-memory-optimization)
+  - [2. Image Optimization](#2-image-optimization)
+  - [3. Lazy Loading](#3-lazy-loading)
+- [Monitoring](#monitoring)
+  - [1. Performance Monitoring](#1-performance-monitoring)
+  - [2. Real-Time Monitoring](#2-real-time-monitoring)
+  - [3. Performance Alerts](#3-performance-alerts)
+- [Best Practices](#best-practices)
+  - [1. Request Optimization](#1-request-optimization)
+  - [2. Response Optimization](#2-response-optimization)
+  - [3. Memory Optimization](#3-memory-optimization)
+- [Performance Checklist](#performance-checklist)
+  - [✅ Optimization Checklist](#-optimization-checklist)
+  - [✅ Configuration Checklist](#-configuration-checklist)
+- [Examples](#examples)
+  - [Basic Performance Setup](#basic-performance-setup)
+  - [Advanced Performance Implementation](#advanced-performance-implementation)
+<!-- TOC END -->
+
+
 Complete performance optimization guide for iOS Networking Architecture Pro.
 
 ## 📋 Table of Contents

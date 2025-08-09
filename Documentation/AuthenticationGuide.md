@@ -1,5 +1,41 @@
 # 🔐 Authentication Guide
 
+<!-- TOC START -->
+## Table of Contents
+- [🔐 Authentication Guide](#-authentication-guide)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Features](#-key-features)
+- [⚡ Quick Start](#-quick-start)
+  - [Basic Authentication Setup](#basic-authentication-setup)
+  - [Simple Authentication Usage](#simple-authentication-usage)
+- [🔧 Configuration](#-configuration)
+  - [Authentication Configuration](#authentication-configuration)
+  - [Advanced Configuration](#advanced-configuration)
+- [🔑 OAuth 2.0](#-oauth-20)
+  - [OAuth Configuration](#oauth-configuration)
+  - [OAuth Flow](#oauth-flow)
+  - [OAuth Token Management](#oauth-token-management)
+- [🎫 JWT Authentication](#-jwt-authentication)
+  - [JWT Configuration](#jwt-configuration)
+  - [JWT Token Operations](#jwt-token-operations)
+  - [JWT Claims Management](#jwt-claims-management)
+- [🛡️ Security Features](#-security-features)
+  - [Biometric Authentication](#biometric-authentication)
+  - [Multi-Factor Authentication](#multi-factor-authentication)
+  - [Certificate Authentication](#certificate-authentication)
+- [📊 Error Handling](#-error-handling)
+  - [Authentication Error Types](#authentication-error-types)
+  - [Error Recovery](#error-recovery)
+- [📱 Examples](#-examples)
+  - [Authentication Manager Implementation](#authentication-manager-implementation)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

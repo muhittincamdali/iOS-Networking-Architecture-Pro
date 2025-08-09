@@ -1,5 +1,46 @@
 # 🔍 GraphQL API Reference
 
+<!-- TOC START -->
+## Table of Contents
+- [🔍 GraphQL API Reference](#-graphql-api-reference)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Components](#-key-components)
+- [📦 GraphQLClient](#-graphqlclient)
+  - [Class Definition](#class-definition)
+  - [Initialization](#initialization)
+  - [Configuration Methods](#configuration-methods)
+  - [Query Methods](#query-methods)
+  - [Schema Methods](#schema-methods)
+  - [Utility Methods](#utility-methods)
+- [📤 GraphQLQuery](#-graphqlquery)
+  - [Structure Definition](#structure-definition)
+  - [Operation Types](#operation-types)
+  - [Query Builder](#query-builder)
+  - [Usage Examples](#usage-examples)
+- [📥 GraphQLResponse](#-graphqlresponse)
+  - [Structure Definition](#structure-definition)
+  - [Response Parsing](#response-parsing)
+- [⚙️ GraphQLConfiguration](#-graphqlconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [🛠️ GraphQLSchema](#-graphqlschema)
+  - [Class Definition](#class-definition)
+  - [Schema Methods](#schema-methods)
+- [❌ GraphQLError](#-graphqlerror)
+  - [Error Types](#error-types)
+- [📊 GraphQLStatistics](#-graphqlstatistics)
+  - [Structure Definition](#structure-definition)
+- [📱 Usage Examples](#-usage-examples)
+  - [Basic GraphQL Usage](#basic-graphql-usage)
+  - [Advanced GraphQL Usage](#advanced-graphql-usage)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

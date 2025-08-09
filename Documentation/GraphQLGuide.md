@@ -1,5 +1,47 @@
 # 🔍 GraphQL Guide
 
+<!-- TOC START -->
+## Table of Contents
+- [🔍 GraphQL Guide](#-graphql-guide)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Features](#-key-features)
+- [⚡ Quick Start](#-quick-start)
+  - [Basic GraphQL Setup](#basic-graphql-setup)
+  - [Simple GraphQL Usage](#simple-graphql-usage)
+- [🔧 Configuration](#-configuration)
+  - [GraphQL Configuration](#graphql-configuration)
+  - [Advanced Configuration](#advanced-configuration)
+- [📤 Making Queries](#-making-queries)
+  - [Query Builder](#query-builder)
+  - [Query Methods](#query-methods)
+  - [Mutation Queries](#mutation-queries)
+- [📥 Handling Responses](#-handling-responses)
+  - [Response Parsing](#response-parsing)
+  - [Error Handling](#error-handling)
+- [🛠️ Schema Introspection](#-schema-introspection)
+  - [Introspect Schema](#introspect-schema)
+  - [Schema Validation](#schema-validation)
+- [📊 Error Handling](#-error-handling)
+  - [Error Types](#error-types)
+  - [Error Recovery](#error-recovery)
+- [🔐 Authentication](#-authentication)
+  - [Bearer Token Authentication](#bearer-token-authentication)
+- [📦 Caching](#-caching)
+  - [Cache Configuration](#cache-configuration)
+  - [Cache Implementation](#cache-implementation)
+- [🔄 Subscriptions](#-subscriptions)
+  - [Subscription Setup](#subscription-setup)
+  - [Subscription Management](#subscription-management)
+- [📱 Examples](#-examples)
+  - [GraphQL Client Implementation](#graphql-client-implementation)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

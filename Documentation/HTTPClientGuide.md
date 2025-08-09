@@ -1,5 +1,48 @@
 # 🔗 HTTP Client Guide
 
+<!-- TOC START -->
+## Table of Contents
+- [🔗 HTTP Client Guide](#-http-client-guide)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Features](#-key-features)
+- [⚡ Quick Start](#-quick-start)
+  - [Basic HTTP Client Setup](#basic-http-client-setup)
+  - [Simple GET Request](#simple-get-request)
+- [🔧 Configuration](#-configuration)
+  - [HTTP Client Configuration](#http-client-configuration)
+  - [Advanced Configuration](#advanced-configuration)
+- [📤 Making Requests](#-making-requests)
+  - [Request Builder](#request-builder)
+  - [Request Methods](#request-methods)
+  - [Request with Parameters](#request-with-parameters)
+- [📥 Handling Responses](#-handling-responses)
+  - [Response Parsing](#response-parsing)
+  - [Response Validation](#response-validation)
+- [🛠️ Request Interceptors](#-request-interceptors)
+  - [Authentication Interceptor](#authentication-interceptor)
+  - [Custom Interceptors](#custom-interceptors)
+- [📊 Error Handling](#-error-handling)
+  - [Error Types](#error-types)
+  - [Error Recovery](#error-recovery)
+- [🔐 Authentication](#-authentication)
+  - [Bearer Token Authentication](#bearer-token-authentication)
+  - [OAuth Authentication](#oauth-authentication)
+- [📦 Caching](#-caching)
+  - [Cache Configuration](#cache-configuration)
+  - [Cache Implementation](#cache-implementation)
+- [🔄 Retry Logic](#-retry-logic)
+  - [Retry Configuration](#retry-configuration)
+  - [Custom Retry Logic](#custom-retry-logic)
+- [📱 Examples](#-examples)
+  - [REST API Client](#rest-api-client)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)

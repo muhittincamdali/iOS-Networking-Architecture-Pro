@@ -1,5 +1,36 @@
 # Synchronization Guide
 
+<!-- TOC START -->
+## Table of Contents
+- [Synchronization Guide](#synchronization-guide)
+- [📋 Table of Contents](#-table-of-contents)
+- [Overview](#overview)
+  - [Synchronization Features](#synchronization-features)
+- [WebSocket Integration](#websocket-integration)
+  - [Basic WebSocket Setup](#basic-websocket-setup)
+  - [Message Handling](#message-handling)
+- [Conflict Resolution](#conflict-resolution)
+  - [Conflict Detection](#conflict-detection)
+  - [Conflict Resolution Strategies](#conflict-resolution-strategies)
+- [Delta Synchronization](#delta-synchronization)
+  - [Delta Calculation](#delta-calculation)
+  - [Delta Application](#delta-application)
+- [Multi-Device Sync](#multi-device-sync)
+  - [Device Registration](#device-registration)
+  - [Cross-Device Synchronization](#cross-device-synchronization)
+- [Sync Analytics](#sync-analytics)
+  - [Sync Performance Monitoring](#sync-performance-monitoring)
+  - [Real-Time Sync Monitoring](#real-time-sync-monitoring)
+- [Best Practices](#best-practices)
+  - [1. Efficient Sync Strategy](#1-efficient-sync-strategy)
+  - [2. Conflict Prevention](#2-conflict-prevention)
+  - [3. Sync Reliability](#3-sync-reliability)
+- [Examples](#examples)
+  - [Basic Sync Setup](#basic-sync-setup)
+  - [Advanced Sync Implementation](#advanced-sync-implementation)
+<!-- TOC END -->
+
+
 Complete real-time synchronization implementation guide for iOS Networking Architecture Pro.
 
 ## 📋 Table of Contents

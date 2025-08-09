@@ -1,5 +1,51 @@
 # ⚙️ Configuration API Reference
 
+<!-- TOC START -->
+## Table of Contents
+- [⚙️ Configuration API Reference](#-configuration-api-reference)
+- [📋 Table of Contents](#-table-of-contents)
+- [🚀 Overview](#-overview)
+  - [🎯 Key Components](#-key-components)
+- [📦 ConfigurationManager](#-configurationmanager)
+  - [Class Definition](#class-definition)
+  - [Initialization](#initialization)
+  - [Configuration Methods](#configuration-methods)
+  - [Validation Methods](#validation-methods)
+- [⚙️ NetworkingConfiguration](#-networkingconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [🔧 HTTPClientConfiguration](#-httpclientconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [📡 RESTAPIConfiguration](#-restapiconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [🔍 GraphQLConfiguration](#-graphqlconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [⚡ WebSocketConfiguration](#-websocketconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [🔐 AuthenticationConfiguration](#-authenticationconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Authentication Types](#authentication-types)
+  - [Default Configuration](#default-configuration)
+- [🛡️ SecurityConfiguration](#-securityconfiguration)
+  - [Structure Definition](#structure-definition)
+  - [Default Configuration](#default-configuration)
+- [❌ ConfigurationError](#-configurationerror)
+  - [Error Types](#error-types)
+  - [Error Properties](#error-properties)
+- [📱 Usage Examples](#-usage-examples)
+  - [Basic Configuration Usage](#basic-configuration-usage)
+  - [Advanced Configuration Usage](#advanced-configuration-usage)
+- [🧪 Testing](#-testing)
+  - [Unit Testing](#unit-testing)
+  - [Integration Testing](#integration-testing)
+- [📞 Support](#-support)
+<!-- TOC END -->
+
+
 ## 📋 Table of Contents
 
 - [🚀 Overview](#-overview)
