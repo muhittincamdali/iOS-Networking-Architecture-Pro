@@ -1,4 +1,5 @@
 # 🌐 iOS Networking Architecture Pro
+[![CI](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/actions/workflows/ci.yml)
 
 <!-- TOC START -->
 ## Table of Contents
