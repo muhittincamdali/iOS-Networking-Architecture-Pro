@@ -816,4 +816,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🌟 Stargazers
 
-[![Stargazers repo roster for @muhittincamdali/iOS-Networking-Architecture-Pro](https://reporoster.com/stars/muhittincamdali/iOS-Networking-Architecture-Pro)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/stargazers)
+[![Stargazers repo roster for @muhittincamdali/iOS-Networking-Architecture-Pro](https://starchart.cc/muhittincamdali/iOS-Networking-Architecture-Pro.svg)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/stargazers)
