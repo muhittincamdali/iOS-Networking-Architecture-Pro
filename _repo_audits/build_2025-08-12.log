@@ -1,0 +1,119 @@
+Building for debugging...
+[0/4] Write sources
+[3/4] Write swift-version--58304C5D6DBC2206.txt
+[5/73] Compiling Logging Locks.swift
+[6/73] Compiling Logging LogHandler.swift
+[7/73] Compiling Logging MetadataProvider.swift
+[8/73] Emitting module Logging
+[9/73] Compiling Logging Logging.swift
+[10/73] Emitting module Crypto
+[11/73] Compiling Crypto AESWrap.swift
+[12/73] Compiling Crypto AESWrap_boring.swift
+[13/73] Compiling Crypto Ed25519_boring.swift
+[14/73] Compiling Crypto EllipticCurvePoint_boring.swift
+[15/77] Compiling Crypto FiniteFieldArithmeticContext_boring.swift
+[16/77] Compiling Crypto RNG_boring.swift
+[17/77] Compiling Crypto SafeCompare_boring.swift
+[18/77] Compiling Crypto Zeroization_boring.swift
+[19/77] Compiling Crypto AES-GCM.swift
+[20/77] Compiling Crypto AES-GCM_boring.swift
+[21/77] Compiling Crypto ChaChaPoly_boring.swift
+[22/77] Compiling Crypto ChaChaPoly.swift
+[23/77] Compiling Crypto Cipher.swift
+[24/77] Compiling Crypto ECDSASignature_boring.swift
+[25/77] Compiling Crypto ECDSA_boring.swift
+[26/77] Compiling Crypto EdDSA_boring.swift
+[27/77] Compiling Crypto ECDSA.swift
+[28/77] Compiling Crypto ASN1Identifier.swift
+[29/77] Compiling Crypto ASN1Integer.swift
+[30/77] Compiling Crypto ASN1Null.swift
+[31/77] Compiling Crypto ASN1OctetString.swift
+[32/77] Compiling Crypto ASN1Strings.swift
+[33/77] Compiling Crypto CryptoKitErrors.swift
+[34/77] Compiling Crypto Digest_boring.swift
+[35/77] Compiling Crypto Digest.swift
+[36/77] Compiling Crypto Digests.swift
+[37/77] Compiling Crypto Nonces.swift
+[38/77] Compiling Crypto ASN1.swift
+[39/77] Compiling Crypto ASN1Any.swift
+[40/77] Compiling Crypto ASN1BitString.swift
+[41/77] Compiling Crypto ASN1Boolean.swift
+[42/77] Compiling Crypto HashFunctions.swift
+[43/77] Compiling Crypto HashFunctions_SHA2.swift
+[44/77] Compiling Crypto Insecure.swift
+[45/77] Compiling Crypto Insecure_HashFunctions.swift
+[46/77] Compiling Crypto EdDSA.swift
+[47/77] Compiling Crypto Signature.swift
+[48/77] Compiling Crypto ArbitraryPrecisionInteger_boring.swift
+[49/77] Compiling Crypto CryptoKitErrors_boring.swift
+[50/77] Compiling Crypto ECDH_boring.swift
+[51/77] Compiling Crypto DH.swift
+[52/77] Compiling Crypto ECDH.swift
+[53/77] Compiling Crypto HKDF.swift
+[54/77] Compiling Crypto PEMDocument.swift
+[55/77] Compiling Crypto PKCS8PrivateKey.swift
+[56/77] Compiling Crypto SEC1PrivateKey.swift
+[57/77] Compiling Crypto SubjectPublicKeyInfo.swift
+[58/77] Compiling Crypto ArraySliceBigint.swift
+[59/77] Compiling Crypto GeneralizedTime.swift
+[60/77] Compiling Crypto ObjectIdentifier.swift
+[61/77] Compiling Crypto ECDSASignature.swift
+[62/77] Compiling Crypto Ed25519.swift
+[63/77] Compiling Crypto NISTCurvesKeys.swift
+[64/77] Compiling Crypto X25519Keys.swift
+[65/77] Compiling Crypto SymmetricKeys.swift
+[66/77] Compiling Crypto HMAC.swift
+[67/77] Compiling Crypto MACFunctions.swift
+[68/77] Compiling Crypto MessageAuthenticationCode.swift
+[69/77] Compiling Crypto AES.swift
+[70/77] Compiling Crypto EllipticCurve_boring.swift
+[71/77] Compiling Crypto NISTCurvesKeys_boring.swift
+[72/77] Compiling Crypto X25519Keys_boring.swift
+[73/77] Compiling Crypto Curve25519.swift
+[74/77] Compiling Crypto PrettyBytes.swift
+[75/77] Compiling Crypto SafeCompare.swift
+[76/77] Compiling Crypto SecureBytes.swift
+[77/77] Compiling Crypto Zeroization.swift
+error: emit-module command failed with exit code 1 (use -v to see invocation)
+[78/83] Emitting module NetworkingArchitecture
+/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/Core/MainFramework.swift:2:8: error: no such module 'UIKit'
+  1 | import Foundation
+  2 | import UIKit
+    |        `- error: no such module 'UIKit'
+  3 | 
+  4 | /**
+[79/83] Compiling NetworkingArchitecture MainFramework.swift
+/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/Core/MainFramework.swift:2:8: error: no such module 'UIKit'
+  1 | import Foundation
+  2 | import UIKit
+    |        `- error: no such module 'UIKit'
+  3 | 
+  4 | /**
+[80/83] Compiling NetworkingArchitecture iOS-Networking-Architecture-Pro.swift
+/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/Core/MainFramework.swift:2:8: error: no such module 'UIKit'
+  1 | import Foundation
+  2 | import UIKit
+    |        `- error: no such module 'UIKit'
+  3 | 
+  4 | /**
+[81/83] Compiling NetworkingArchitecture APIRequest.swift
+/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/Core/MainFramework.swift:2:8: error: no such module 'UIKit'
+  1 | import Foundation
+  2 | import UIKit
+    |        `- error: no such module 'UIKit'
+  3 | 
+  4 | /**
+[82/83] Compiling NetworkingArchitecture CacheManager.swift
+/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/Core/MainFramework.swift:2:8: error: no such module 'UIKit'
+  1 | import Foundation
+  2 | import UIKit
+    |        `- error: no such module 'UIKit'
+  3 | 
+  4 | /**
+[83/83] Compiling NetworkingArchitecture NetworkManager.swift
+/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/Core/MainFramework.swift:2:8: error: no such module 'UIKit'
+  1 | import Foundation
+  2 | import UIKit
+    |        `- error: no such module 'UIKit'
+  3 | 
+  4 | /**
