@@ -1,0 +1,4 @@
+module CryptoBoringWrapper {
+    header "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/CryptoBoringWrapper.build/CryptoBoringWrapper-Swift.h"
+    requires objc
+}

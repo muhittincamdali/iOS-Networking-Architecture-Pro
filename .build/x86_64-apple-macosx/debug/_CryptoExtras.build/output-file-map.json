@@ -1,0 +1,89 @@
+{
+  "": {
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/master.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/AES/AES_GCM_SIV.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/AES_GCM_SIV.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/AES_GCM_SIV.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/AES_GCM_SIV~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/AES_GCM_SIV.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/AES/Block Function.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/Block Function.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/Block Function.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/Block Function~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/Block Function.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/AES/BoringSSL/AES_GCM_SIV_boring.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/AES_GCM_SIV_boring.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/AES_GCM_SIV_boring.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/AES_GCM_SIV_boring~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/AES_GCM_SIV_boring.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/ChaCha20CTR_boring.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/ChaCha20CTR_boring.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/ChaCha20CTR_boring~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/ChaCha20CTR_boring.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/ChaCha20CTR/ChaCha20CTR.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/ChaCha20CTR.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/ChaCha20CTR.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/ChaCha20CTR~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/ChaCha20CTR.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/RSA/RSA.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/RSA/RSA_boring.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA_boring.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA_boring.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA_boring~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA_boring.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/RSA/RSA_security.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA_security.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA_security.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA_security~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RSA_security.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/Util/BoringSSLHelpers.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/BoringSSLHelpers.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/BoringSSLHelpers.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/BoringSSLHelpers~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/BoringSSLHelpers.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/Util/CryptoKitErrors_boring.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/CryptoKitErrors_boring.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/CryptoKitErrors_boring.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/CryptoKitErrors_boring~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/CryptoKitErrors_boring.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/Util/DigestType.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/DigestType.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/DigestType.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/DigestType~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/DigestType.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/Util/Error.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/Error.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/Error.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/Error~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/Error.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/Util/PEMDocument.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/PEMDocument.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/PEMDocument.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/PEMDocument~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/PEMDocument.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-crypto/Sources/_CryptoExtras/Util/RandomBytes.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RandomBytes.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RandomBytes.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RandomBytes~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/_CryptoExtras.build/RandomBytes.swiftdeps"
+  }
+}

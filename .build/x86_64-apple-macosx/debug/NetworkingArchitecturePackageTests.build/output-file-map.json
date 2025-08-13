@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecturePackageTests.build/master.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecturePackageTests.derived/runner.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecturePackageTests.build/runner.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecturePackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecturePackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecturePackageTests.build/runner.swiftdeps"
+  }
+}

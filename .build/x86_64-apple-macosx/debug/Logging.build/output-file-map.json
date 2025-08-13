@@ -1,0 +1,29 @@
+{
+  "": {
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/master.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-log/Sources/Logging/Locks.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Locks.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Locks.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Locks~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Locks.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-log/Sources/Logging/LogHandler.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/LogHandler.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/LogHandler.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/LogHandler~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/LogHandler.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-log/Sources/Logging/Logging.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Logging.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Logging.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Logging~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Logging.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/checkouts/swift-log/Sources/Logging/MetadataProvider.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/MetadataProvider.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/MetadataProvider.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/MetadataProvider~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/MetadataProvider.swiftdeps"
+  }
+}

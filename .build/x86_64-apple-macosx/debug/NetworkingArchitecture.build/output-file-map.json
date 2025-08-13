@@ -1,0 +1,35 @@
+{
+  "": {
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/master.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/Core/MainFramework.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/MainFramework.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/MainFramework.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/MainFramework~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/MainFramework.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/APIRequest.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/APIRequest.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/APIRequest.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/APIRequest~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/APIRequest.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/CacheManager.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/CacheManager.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/CacheManager.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/CacheManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/CacheManager.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkManager.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/NetworkManager.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/NetworkManager.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/NetworkManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/NetworkManager.swiftdeps"
+  },
+  "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/Sources/iOS-Networking-Architecture-Pro.swift": {
+    "dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/iOS-Networking-Architecture-Pro.d",
+    "object": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/iOS-Networking-Architecture-Pro.swift.o",
+    "swiftmodule": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/iOS-Networking-Architecture-Pro~partial.swiftmodule",
+    "swift-dependencies": "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecture.build/iOS-Networking-Architecture-Pro.swiftdeps"
+  }
+}
