@@ -1,0 +1,4 @@
+module NetworkingArchitecturePackageTests {
+    header "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/NetworkingArchitecturePackageTests.build/NetworkingArchitecturePackageTests-Swift.h"
+    requires objc
+}

@@ -1,0 +1,4 @@
+module Logging {
+    header "/Users/muhittincamdali/Desktop/Cursor Projects/GitHub/iOS-Networking-Architecture-Pro/.build/x86_64-apple-macosx/debug/Logging.build/Logging-Swift.h"
+    requires objc
+}
