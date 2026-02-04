@@ -25,6 +25,20 @@
 
 ---
 
+## 📋 Table of Contents
+
+- [Why This Framework?](#why-this-framework)
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Documentation](#-documentation)
+- [Contributing](#-contributing)
+- [License](#license)
+- [Star History](#-star-history)
+
+---
+
 ## Why This Framework?
 
 Built from real production experience. No bloat, no magic—just clean networking that scales from MVP to millions of users.
