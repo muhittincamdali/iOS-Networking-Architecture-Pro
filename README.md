@@ -1,353 +1,421 @@
-```
-███╗   ██╗███████╗████████╗██╗    ██╗ ██████╗ ██████╗ ██╗  ██╗
-████╗  ██║██╔════╝╚══██╔══╝██║    ██║██╔═══██╗██╔══██╗██║ ██╔╝
-██╔██╗ ██║█████╗     ██║   ██║ █╗ ██║██║   ██║██████╔╝█████╔╝ 
-██║╚██╗██║██╔══╝     ██║   ██║███╗██║██║   ██║██╔══██╗██╔═██╗ 
-██║ ╚████║███████╗   ██║   ╚███╔███╔╝╚██████╔╝██║  ██║██║  ██╗
-╚═╝  ╚═══╝╚══════╝   ╚═╝    ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝
-```
+# iOS-Networking-Architecture-Pro
 
-<div align="center">
+[![Swift](https://img.shields.io/badge/Swift-5.9+-orange.svg)](https://swift.org)
+[![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20macOS%20%7C%20tvOS%20%7C%20watchOS-blue.svg)](https://developer.apple.com)
+[![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)](https://swift.org/package-manager)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
+[![CI](https://github.com/muhittincamli/iOS-Networking-Architecture-Pro/workflows/CI/badge.svg)](https://github.com/muhittincamli/iOS-Networking-Architecture-Pro/actions)
 
-# iOS Networking Architecture Pro
+A **production-ready**, **type-safe** networking architecture for iOS applications. Built with modern Swift concurrency (async/await), Clean Architecture principles, and support for multiple protocols including REST, GraphQL, WebSocket, Server-Sent Events, and gRPC.
 
-**Production-ready networking layer for iOS apps**
+## ✨ Features
 
-[![Swift](https://img.shields.io/badge/Swift-5.9+-F05138?style=flat-square&logo=swift&logoColor=white)](https://swift.org)
-[![iOS](https://img.shields.io/badge/iOS-15.0+-000000?style=flat-square&logo=apple&logoColor=white)](https://developer.apple.com/ios/)
-[![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen?style=flat-square)](https://swift.org/package-manager/)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
-[![CI](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/actions/workflows/ci.yml/badge.svg)](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/actions/workflows/ci.yml)
+### Core Architecture
+- 🏗️ **Clean Architecture** - Separation of concerns with Repository pattern
+- 🔒 **Type-Safe Endpoints** - Compile-time safety with protocol-based design
+- ⚡ **Modern Async/Await** - Native Swift concurrency support
+- 🎯 **Actor-Based** - Thread-safe by design
 
-[Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
+### Multi-Protocol Support
+| Protocol | Description | Use Case |
+|----------|-------------|----------|
+| 🌐 REST | Full RESTful API support | Standard API calls |
+| 📊 GraphQL | Query & Mutation support | Flexible data fetching |
+| 🔌 WebSocket | Real-time bidirectional | Chat, live updates |
+| 📡 SSE | Server-Sent Events | Live feeds, notifications |
+| ⚡ gRPC | High-performance RPC | Microservices |
 
-</div>
-
----
-
-## 📋 Table of Contents
-
-- [Why This Framework?](#why-this-framework)
-- [Features](#-features)
-- [Architecture](#-architecture)
-- [Installation](#-installation)
-- [Quick Start](#-quick-start)
-- [Documentation](#-documentation)
-- [Contributing](#-contributing)
-- [License](#license)
-- [Star History](#-star-history)
-
----
-
-## Why This Framework?
-
-Built from real production experience. No bloat, no magic—just clean networking that scales from MVP to millions of users.
-
-```swift
-// That's it. Seriously.
-let users: [User] = try await network.get("/users")
-```
-
----
-
-## ⚡ Features
-
-| Feature | Description |
-|:--------|:------------|
-| **Async/Await** | Native Swift concurrency with structured error handling |
-| **Multi-Level Caching** | Memory + Disk cache with configurable TTL and LRU eviction |
-| **Retry Logic** | Exponential backoff with jitter for resilient requests |
-| **Offline Support** | Request queuing with automatic sync when back online |
-| **Interceptors** | Middleware chain for auth, logging, and custom transforms |
-| **Type-Safe Builder** | Fluent API that prevents runtime errors at compile time |
-| **Analytics** | Built-in request metrics and cache hit rate monitoring |
-
----
-
-## 🏗️ Architecture
-
-```mermaid
-graph TD
-    A[NetworkManager] --> B[RequestBuilder]
-    A --> C[ResponseHandler]
-    A --> D[CacheManager]
-    A --> E[SyncManager]
-    
-    B --> F[Interceptors]
-    F --> F1[Auth]
-    F --> F2[Logging]
-    F --> F3[Retry]
-    
-    C --> G[JSONDecoder]
-    C --> H[Error Mapping]
-    
-    D --> I[Memory Cache]
-    D --> J[Disk Cache]
-    
-    E --> K[Offline Queue]
-    E --> L[Conflict Resolution]
-    
-    style A fill:#007AFF,stroke:#005BB5,color:#fff
-    style D fill:#34C759,stroke:#248A3D,color:#fff
-    style F fill:#FF9500,stroke:#C93400,color:#fff
-```
-
----
-
-## 📊 Framework Comparison
-
-| Feature | NetworkArchitecture Pro | Alamofire | URLSession |
-|:--------|:-----------------------:|:---------:|:----------:|
-| Async/Await | ✅ Native | ✅ Added | ✅ Native |
-| Built-in Caching | ✅ Memory + Disk | ⚠️ Manual | ❌ None |
-| Offline Queue | ✅ Built-in | ❌ None | ❌ None |
-| Retry with Backoff | ✅ Configurable | ⚠️ Basic | ❌ None |
-| Request Interceptors | ✅ Chain-based | ✅ Adapters | ❌ None |
-| Analytics | ✅ Built-in | ❌ None | ❌ None |
-| Zero Dependencies | ✅ Pure Swift | ❌ Foundation+ | ✅ Native |
-| Bundle Size | ~50KB | ~180KB | 0KB |
-
----
+### Enterprise Features
+- 🔐 **Authentication** - Bearer, OAuth2, API Key, Basic Auth
+- 💾 **Caching** - Memory, Disk, and Hybrid caching with LRU eviction
+- 🔄 **Retry Policies** - Exponential backoff with jitter
+- 🔌 **Interceptors** - Request/Response transformation pipeline
+- 📴 **Offline Queue** - Queue requests for later execution
+- 📊 **Metrics** - Performance monitoring and analytics
+- 📝 **Logging** - Structured logging with privacy controls
 
 ## 📦 Installation
 
 ### Swift Package Manager
 
+Add to your `Package.swift`:
+
 ```swift
 dependencies: [
-    .package(url: "https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro.git", from: "1.0.0")
+    .package(url: "https://github.com/muhittincamli/iOS-Networking-Architecture-Pro.git", from: "2.0.0")
 ]
 ```
 
-### CocoaPods
+Choose your modules:
 
-```ruby
-pod 'iOS-Networking-Architecture-Pro', '~> 1.0'
+```swift
+// Core only
+.product(name: "NetworkingArchitecture", package: "iOS-Networking-Architecture-Pro")
+
+// With REST
+.product(name: "NetworkingREST", package: "iOS-Networking-Architecture-Pro")
+
+// Full bundle (all protocols)
+.product(name: "NetworkingArchitectureFull", package: "iOS-Networking-Architecture-Pro")
 ```
-
----
 
 ## 🚀 Quick Start
 
-### 1. Configure
+### Basic REST Request
 
 ```swift
 import NetworkingArchitecture
+import NetworkingREST
 
-// One-time setup in AppDelegate or SceneDelegate
-NetworkManager.shared.configure(
-    baseURL: "https://api.example.com/v1",
-    configuration: NetworkConfiguration(
-        timeoutInterval: 30,
-        retryCount: 3,
-        enableCertificatePinning: true
-    )
-)
-```
-
-### 2. Define Your Models
-
-```swift
-struct User: Codable {
+// Define your model
+struct User: Codable, Sendable, Identifiable {
     let id: Int
     let name: String
     let email: String
 }
+
+// Create client
+let client = await RESTClient(
+    baseURL: URL(string: "https://api.example.com")!
+)
+
+// Make request
+let user: User = try await client.get("/users/1")
+print("User: \(user.name)")
 ```
 
-### 3. Make Requests
+### Type-Safe Endpoints
 
 ```swift
-// Simple GET
-let request = APIRequest<[User]>.get("/users")
-NetworkManager.shared.execute(request) { result in
+import NetworkingArchitecture
+
+// Define endpoint
+struct GetUserEndpoint: Endpoint {
+    let userId: Int
+    
+    var baseURL: URL { URL(string: "https://api.example.com")! }
+    var path: String { "/users/\(userId)" }
+    var method: HTTPMethod { .get }
+    var requiresAuthentication: Bool { true }
+}
+
+// Execute
+let client = NetworkClient()
+let request = Request<User>(endpoint: GetUserEndpoint(userId: 1))
+let response = try await client.execute(request)
+print("User: \(response.data.name)")
+```
+
+### With Authentication
+
+```swift
+// Bearer token
+let authenticator = BearerTokenAuthenticator(
+    token: "your-access-token",
+    refreshHandler: {
+        // Return refreshed token
+        return TokenResponse(accessToken: "new-token")
+    }
+)
+
+let client = NetworkClient(authenticator: authenticator)
+
+// OAuth2
+let oauth = OAuth2Authenticator(configuration: .init(
+    clientId: "your-client-id",
+    authorizeURL: URL(string: "https://auth.example.com/authorize")!,
+    tokenURL: URL(string: "https://auth.example.com/token")!,
+    redirectURL: URL(string: "yourapp://callback")!
+))
+```
+
+### Caching
+
+```swift
+// Memory cache
+let memoryCache = InMemoryCache(maxSize: 10 * 1024 * 1024) // 10 MB
+
+// Disk cache
+let diskCache = try DiskCache(maxSize: 100 * 1024 * 1024) // 100 MB
+
+// Hybrid (memory + disk)
+let hybridCache = try HybridCache(
+    memoryCacheSize: 10 * 1024 * 1024,
+    diskCacheSize: 100 * 1024 * 1024
+)
+
+// Use with client
+let client = NetworkClient(cache: hybridCache)
+
+// Endpoint with cache policy
+struct CachedEndpoint: Endpoint {
+    var cachePolicy: CachePolicy { .longLived } // 1 hour TTL
+}
+```
+
+### Retry with Exponential Backoff
+
+```swift
+// Default retry policy
+let policy = RetryPolicy.default // 3 attempts with exponential backoff
+
+// Custom policy
+let customPolicy = RetryPolicy(
+    maxAttempts: 5,
+    strategy: .exponential(base: 1.0, multiplier: 2.0),
+    retryableStatusCodes: [429, 500, 502, 503, 504]
+)
+
+// Endpoint with retry
+struct ReliableEndpoint: Endpoint {
+    var retryPolicy: RetryPolicy { .aggressive }
+}
+```
+
+### Interceptors
+
+```swift
+// Add logging
+let loggingInterceptor = LoggingInterceptor(
+    logLevel: .debug,
+    logBody: true,
+    logHeaders: true
+)
+
+// Add custom headers
+let headerInterceptor = HeaderInterceptor(headers: [
+    "X-App-Version": "2.0.0",
+    "X-Platform": "iOS"
+])
+
+// Compose interceptors
+let client = NetworkClient(
+    interceptors: [
+        loggingInterceptor,
+        headerInterceptor,
+        RequestIdInterceptor(),
+        CompressionInterceptor()
+    ]
+)
+```
+
+### GraphQL
+
+```swift
+import NetworkingGraphQL
+
+let graphQL = GraphQLClient(
+    endpoint: URL(string: "https://api.example.com/graphql")!
+)
+
+// Query
+struct UserQuery: GraphQLQuery {
+    typealias Response = UserData
+    
+    let userId: Int
+    
+    var queryString: String {
+        """
+        query GetUser($id: ID!) {
+            user(id: $id) {
+                id
+                name
+                email
+            }
+        }
+        """
+    }
+    
+    var variables: [String: Any]? {
+        ["id": userId]
+    }
+}
+
+let userData = try await graphQL.query(UserQuery(userId: 1))
+```
+
+### WebSocket
+
+```swift
+import NetworkingWebSocket
+
+let ws = WebSocketClient(
+    url: URL(string: "wss://api.example.com/ws")!,
+    configuration: .init(
+        autoReconnect: true,
+        maxReconnectAttempts: 5
+    )
+)
+
+try await ws.connect()
+
+// Send message
+try await ws.send("Hello, server!")
+
+// Receive messages
+for await message in ws.messages() {
+    switch message {
+    case .text(let text):
+        print("Received: \(text)")
+    case .data(let data):
+        print("Received \(data.count) bytes")
+    }
+}
+```
+
+### Server-Sent Events
+
+```swift
+import NetworkingSSE
+
+let sse = SSEClient(url: URL(string: "https://api.example.com/events")!)
+
+try await sse.connect()
+
+// Subscribe to specific event
+await sse.on("notification") { event in
+    print("Notification: \(event.data ?? "")")
+}
+
+// Or use AsyncStream
+for await event in sse.events(ofType: "update") {
+    let update = try event.decode(as: SystemUpdate.self)
+    print("Update: \(update)")
+}
+```
+
+### Repository Pattern
+
+```swift
+// Define repository
+let userRepository = NetworkRepository<User>(
+    client: client,
+    baseEndpoint: "https://api.example.com/users"
+)
+
+// CRUD operations
+let users = try await userRepository.getAll()
+let user = try await userRepository.get(id: 1)
+let created = try await userRepository.create(newUser)
+let updated = try await userRepository.update(modifiedUser)
+try await userRepository.delete(id: 1)
+
+// Pagination
+let page = try await userRepository.getPage(page: 1, pageSize: 20)
+```
+
+### Offline Queue
+
+```swift
+let offlineQueue = OfflineQueue(maxSize: 100)
+
+// Queue request when offline
+try offlineQueue.enqueue(urlRequest, priority: 1)
+
+// Process when back online
+await offlineQueue.processQueue(using: client) { request, result in
     switch result {
-    case .success(let users):
-        print("Fetched \(users.count) users")
+    case .success:
+        print("Request succeeded")
     case .failure(let error):
-        print("Error: \(error.localizedDescription)")
+        print("Request failed: \(error)")
     }
 }
-
-// POST with body
-let createRequest = APIRequest<User>.post(
-    "/users",
-    body: ["name": "John", "email": "john@example.com"]
-)
 ```
 
----
+## 🏗️ Architecture
 
-## 🔧 Advanced Usage
-
-### Request Builder Pattern
-
-```swift
-let request = APIRequestBuilder<User>()
-    .endpoint("/users/123")
-    .method(.put)
-    .header("X-Custom-Header", value: "value")
-    .body([
-        "name": "Updated Name",
-        "email": "updated@example.com"
-    ])
-    .cacheTTL(3600)
-    .retryCount(5)
-    .timeout(60)
-    .build()
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Application Layer                         │
+├─────────────────────────────────────────────────────────────────┤
+│  Repository      │  Use Cases      │  View Models               │
+├─────────────────────────────────────────────────────────────────┤
+│                        Domain Layer                              │
+├─────────────────────────────────────────────────────────────────┤
+│  Entities        │  Protocols      │  Business Logic            │
+├─────────────────────────────────────────────────────────────────┤
+│                        Data Layer                                │
+├─────────────────────────────────────────────────────────────────┤
+│                    NetworkingArchitecture                        │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐            │
+│  │   REST   │ │ GraphQL  │ │WebSocket │ │   SSE    │ │  gRPC   │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘            │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                    Core Module                           │    │
+│  │  Client │ Cache │ Auth │ Interceptor │ Retry │ Queue    │    │
+│  └─────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Custom Interceptors
-
-```swift
-class CustomAuthInterceptor: RequestInterceptor {
-    func intercept(_ request: APIRequest<Any>) -> APIRequest<Any> {
-        var headers = request.headers
-        headers["Authorization"] = "Bearer \(TokenManager.accessToken)"
-        
-        return APIRequest(
-            endpoint: request.endpoint,
-            method: request.method,
-            headers: headers,
-            body: request.body
-        )
-    }
-}
-
-NetworkManager.shared.addInterceptor(CustomAuthInterceptor())
-```
-
-### Cache Configuration
-
-```swift
-let cacheConfig = CacheConfiguration(
-    memoryCapacity: 50 * 1024 * 1024,  // 50 MB
-    diskCapacity: 100 * 1024 * 1024,   // 100 MB
-    ttl: 3600,                          // 1 hour
-    policy: .lru,
-    enableCompression: true
-)
-
-NetworkManager.shared.configureCaching(cacheConfig)
-```
-
-### Offline Support
-
-```swift
-let syncConfig = SyncConfiguration(
-    enableWebSocket: true,
-    syncInterval: 5.0,
-    enableConflictResolution: true
-)
-
-NetworkManager.shared.enableSync(syncConfig)
-
-// Requests made offline are automatically queued
-let request = APIRequest<Order>(
-    endpoint: "/orders",
-    method: .post,
-    body: orderData,
-    shouldSync: true  // Queue for later sync
-)
-```
-
-### Analytics & Monitoring
-
-```swift
-let analytics = NetworkManager.shared.getAnalytics()
-
-print("Total Requests: \(analytics.totalRequests)")
-print("Success Rate: \(Double(analytics.successfulRequests) / Double(analytics.totalRequests) * 100)%")
-print("Avg Response Time: \(analytics.averageResponseTime)ms")
-print("Cache Hit Rate: \(analytics.cacheHitRate * 100)%")
-```
-
----
-
-## 📁 Project Structure
+## 📁 Module Structure
 
 ```
 Sources/
-├── NetworkingArchitecture/
-│   ├── NetworkManager.swift      # Core manager with singleton
-│   ├── APIRequest.swift          # Request model & builder
-│   └── CacheManager.swift        # Multi-level caching
 ├── Core/
-│   └── MainFramework.swift       # Public API exports
-└── iOS-Networking-Architecture-Pro.swift
+│   ├── Client/          # NetworkClient, metrics
+│   ├── Request/         # Endpoint, Request, HTTPMethod
+│   ├── Response/        # Response, pagination
+│   ├── Cache/           # Memory, Disk, Hybrid cache
+│   ├── Auth/            # Authenticators (Bearer, OAuth2, etc)
+│   ├── Interceptor/     # Request/Response interceptors
+│   ├── Retry/           # Retry policies, circuit breaker
+│   ├── Queue/           # Offline queue, sync manager
+│   ├── Repository/      # Repository pattern implementation
+│   ├── Error/           # NetworkError types
+│   └── Logging/         # Structured logging
+├── REST/                # RESTClient, RESTResource
+├── GraphQL/             # GraphQLClient, queries, mutations
+├── WebSocket/           # WebSocketClient, channels
+├── SSE/                 # SSEClient, EventSource
+└── gRPC/                # GRPCClient, messages
 ```
-
----
 
 ## 🧪 Testing
 
-```bash
+```swift
+// Use testing configuration
+let client = NetworkClient(configuration: .testing)
+
+// Mock endpoint
+struct MockEndpoint: Endpoint {
+    var baseURL: URL { URL(string: "https://mock.local")! }
+    var path: String { "/test" }
+    var method: HTTPMethod { .get }
+}
+
+// Run tests
 swift test
 ```
 
-Mock support included:
+## ⚡ Performance
 
-```swift
-#if DEBUG
-class MockNetworkManager: NetworkManager {
-    var mockResponse: Any?
-    
-    override func execute<T>(_ request: APIRequest<T>, completion: @escaping (Result<T, NetworkError>) -> Void) {
-        if let response = mockResponse as? T {
-            completion(.success(response))
-        }
-    }
-}
-#endif
-```
+- **Zero-copy data handling** where possible
+- **Connection pooling** via URLSession
+- **Efficient caching** with LRU eviction
+- **Request batching** for high-throughput scenarios
+- **Memory-efficient** streaming for large responses
 
----
+## 📋 Requirements
 
-## 📚 Documentation
-
-Full documentation available in the [Documentation](./Documentation) folder:
-
-- [Getting Started Guide](./Documentation/GettingStarted.md)
-- [API Reference](./Documentation/APIReference.md)
-- [Best Practices](./Documentation/BestPractices.md)
-- [Migration Guide](./Documentation/Migration.md)
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
-
-1. Fork it
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
+- iOS 15.0+ / macOS 12.0+ / tvOS 15.0+ / watchOS 8.0+
+- Swift 5.9+
+- Xcode 15.0+
 
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
+## 🤝 Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+
+## 📮 Support
+
+- 📖 [Documentation](Documentation/)
+- 🐛 [Issues](https://github.com/muhittincamli/iOS-Networking-Architecture-Pro/issues)
+- 💬 [Discussions](https://github.com/muhittincamli/iOS-Networking-Architecture-Pro/discussions)
+
 ---
 
-<div align="center">
-
-**If this helped you, consider giving it a ⭐**
-
-Built with ❤️ for the iOS community
-
-</div>
-
----
-
-## 📈 Star History
-
-<a href="https://star-history.com/#muhittincamdali/iOS-Networking-Architecture-Pro&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=muhittincamdali/iOS-Networking-Architecture-Pro&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=muhittincamdali/iOS-Networking-Architecture-Pro&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=muhittincamdali/iOS-Networking-Architecture-Pro&type=Date" />
- </picture>
-</a>
+**Built with ❤️ for the iOS community**
