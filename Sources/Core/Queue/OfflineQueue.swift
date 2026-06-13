@@ -107,7 +107,7 @@ public actor OfflineQueue {
         queue.sort { $0.priority > $1.priority }
         
         // Persist
-        Task { await saveToDisk() }
+        Task { saveToDisk() }
     }
     
     /// Add a URLRequest to the queue
@@ -124,7 +124,7 @@ public actor OfflineQueue {
         guard !queue.isEmpty else { return nil }
         
         let request = queue.removeFirst()
-        Task { await saveToDisk() }
+        Task { saveToDisk() }
         return request
     }
     
@@ -136,13 +136,13 @@ public actor OfflineQueue {
     /// Remove a specific request
     public func remove(id: UUID) {
         queue.removeAll { $0.id == id }
-        Task { await saveToDisk() }
+        Task { saveToDisk() }
     }
     
     /// Clear all queued requests
     public func clear() {
         queue.removeAll()
-        Task { await saveToDisk() }
+        Task { saveToDisk() }
     }
     
     /// Number of queued requests

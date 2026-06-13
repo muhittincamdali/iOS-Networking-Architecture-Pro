@@ -66,7 +66,7 @@ public actor NetworkRepository<Entity: Codable & Sendable & Identifiable>: Repos
             method: .get
         )
         
-        let response = try await client.execute(Request(endpoint: endpoint))
+        let response = try await client.execute(Request<Entity>(endpoint: endpoint))
         localCache[id] = response.data
         return response.data
     }
@@ -78,11 +78,11 @@ public actor NetworkRepository<Entity: Codable & Sendable & Identifiable>: Repos
             method: .get
         )
         
-        let response = try await client.execute(Request(endpoint: endpoint))
+        let response = try await client.execute(Request<[Entity]>(endpoint: endpoint))
         
         // Update local cache
         for entity in response.data {
-            localCache[entity.id as! ID] = entity
+            localCache[entity.id] = entity
         }
         
         return response.data
@@ -96,8 +96,8 @@ public actor NetworkRepository<Entity: Codable & Sendable & Identifiable>: Repos
             body: .json(entity)
         )
         
-        let response = try await client.execute(Request(endpoint: endpoint))
-        localCache[response.data.id as! ID] = response.data
+        let response = try await client.execute(Request<Entity>(endpoint: endpoint))
+        localCache[response.data.id] = response.data
         return response.data
     }
     
@@ -109,8 +109,8 @@ public actor NetworkRepository<Entity: Codable & Sendable & Identifiable>: Repos
             body: .json(entity)
         )
         
-        let response = try await client.execute(Request(endpoint: endpoint))
-        localCache[response.data.id as! ID] = response.data
+        let response = try await client.execute(Request<Entity>(endpoint: endpoint))
+        localCache[response.data.id] = response.data
         return response.data
     }
     
@@ -121,7 +121,7 @@ public actor NetworkRepository<Entity: Codable & Sendable & Identifiable>: Repos
             method: .delete
         )
         
-        _ = try await client.execute(Request(endpoint: endpoint))
+        _ = try await client.execute(Request<EmptyResponse>(endpoint: endpoint))
         localCache.removeValue(forKey: id)
     }
     
@@ -133,11 +133,11 @@ public actor NetworkRepository<Entity: Codable & Sendable & Identifiable>: Repos
             queryParameters: ["page": page, "page_size": pageSize]
         )
         
-        let response = try await client.execute(Request(endpoint: endpoint))
+        let response = try await client.execute(Request<PaginatedResponse<Entity>>(endpoint: endpoint))
         
         // Update local cache
         for entity in response.data.items {
-            localCache[entity.id as! ID] = entity
+            localCache[entity.id] = entity
         }
         
         return response.data
@@ -167,7 +167,7 @@ public struct GenericEndpoint<Response>: Endpoint {
     public let path: String
     public let method: HTTPMethod
     public let headers: [String: String]
-    public let queryParameters: [String: Any]?
+    public let queryParameters: [String: Sendable]?
     public let body: RequestBody?
     public let timeoutInterval: TimeInterval?
     public let cachePolicy: CachePolicy
@@ -181,7 +181,7 @@ public struct GenericEndpoint<Response>: Endpoint {
         path: String,
         method: HTTPMethod = .get,
         headers: [String: String] = [:],
-        queryParameters: [String: Any]? = nil,
+        queryParameters: [String: Sendable]? = nil,
         body: RequestBody? = nil,
         timeoutInterval: TimeInterval? = nil,
         cachePolicy: CachePolicy = .default,
@@ -339,7 +339,7 @@ public protocol LocalStorage<Entity>: Actor where Entity: Codable & Sendable & I
 // MARK: - Sync Operation
 
 /// Operation to sync
-public enum SyncOperation<Entity: Codable & Sendable & Identifiable>: Sendable {
+public enum SyncOperation<Entity: Codable & Sendable & Identifiable>: Sendable where Entity.ID: Sendable {
     case create(Entity)
     case update(Entity)
     case delete(Entity.ID)
@@ -375,5 +375,5 @@ public enum ConflictResolution: Sendable {
     case serverWins
     case clientWins
     case lastWriteWins
-    case merge(@Sendable (Any, Any) -> Any)
+    case merge(@Sendable (Sendable, Sendable) -> Sendable)
 }

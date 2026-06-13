@@ -115,7 +115,7 @@ public actor WebSocketClient {
         AsyncStream { continuation in
             let id = UUID()
             Task {
-                await addMessageHandler(id: id) { message in
+                addMessageHandler(id: id) { message in
                     continuation.yield(message)
                 }
             }
@@ -133,7 +133,7 @@ public actor WebSocketClient {
         AsyncThrowingStream { continuation in
             let id = UUID()
             Task {
-                await addMessageHandler(id: id) { message in
+                addMessageHandler(id: id) { message in
                     switch message {
                     case .text(let string):
                         if let data = string.data(using: .utf8),
@@ -374,7 +374,7 @@ public actor WebSocketChannel<Incoming: Decodable, Outgoing: Encodable> {
     }
     
     /// Receive typed messages
-    public func receive() -> AsyncThrowingStream<Incoming, Error> {
-        client.messages(as: Incoming.self)
+    public func receive() async -> AsyncThrowingStream<Incoming, Error> {
+        await client.messages(as: Incoming.self)
     }
 }
