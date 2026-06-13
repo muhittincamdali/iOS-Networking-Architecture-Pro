@@ -12,6 +12,7 @@
 public let NetworkingArchitectureVersion = "2.0.0"
 
 /// Primary namespace for the networking architecture framework
+@MainActor
 public enum NetworkingArchitecture {
     /// Framework configuration
     public static var configuration = NetworkingConfiguration.default

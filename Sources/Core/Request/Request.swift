@@ -7,7 +7,7 @@
 import Foundation
 
 /// Type-safe network request with generics
-public struct Request<Response: Decodable>: Sendable {
+public struct Request<Response: Decodable>: @unchecked Sendable {
     
     // MARK: - Properties
     
@@ -157,8 +157,8 @@ public struct QueryComponent: RequestComponent {
 public struct BodyComponent: RequestComponent {
     let data: Data
     
-    public init(_ encodable: Encodable) throws {
-        self.data = try JSONEncoder.networkingDefault.encode(AnyEncodable(encodable as! (Sendable & Encodable)))
+    public init(_ encodable: Encodable & Sendable) throws {
+        self.data = try JSONEncoder.networkingDefault.encode(AnyEncodable(encodable))
     }
     
     public init(data: Data) {

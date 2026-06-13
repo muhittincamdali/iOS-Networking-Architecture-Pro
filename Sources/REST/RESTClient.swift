@@ -78,7 +78,7 @@ public final class RESTClient: Sendable {
             body: .json(body)
         )
         
-        _ = try await client.execute(Request(endpoint: endpoint))
+        _ = try await client.execute(Request<EmptyResponse>(endpoint: endpoint))
     }
     
     /// Perform PUT request
@@ -127,7 +127,7 @@ public final class RESTClient: Sendable {
             headers: mergeHeaders(headers)
         )
         
-        _ = try await client.execute(Request(endpoint: endpoint))
+        _ = try await client.execute(Request<EmptyResponse>(endpoint: endpoint))
     }
     
     /// Perform DELETE request with response
@@ -207,7 +207,7 @@ public struct RESTEndpoint<Response>: Endpoint {
     public let path: String
     public let method: HTTPMethod
     public let headers: [String: String]
-    public let queryParameters: [String: Any]?
+    public let queryParameters: [String: Sendable]?
     public let body: RequestBody?
     public let timeoutInterval: TimeInterval?
     public let cachePolicy: CachePolicy
@@ -278,7 +278,7 @@ public actor RESTResource<T: Codable & Sendable & Identifiable> where T.ID: Loss
     }
     
     /// Partial update
-    public func patch(_ id: T.ID, changes: [String: Any]) async throws -> T {
+    public func patch(_ id: T.ID, changes: [String: AnyCodable]) async throws -> T {
         try await client.patch("\(basePath)/\(id)", body: changes)
     }
     
