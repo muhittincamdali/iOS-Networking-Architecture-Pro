@@ -361,48 +361,51 @@ public struct RetryHandler: Sendable {
 // MARK: - Network Metrics
 
 /// Collects network performance metrics
-public final class NetworkMetrics: @unchecked Sendable {
-    private let lock = NSLock()
-    private var totalRequests: Int = 0
-    private var successfulRequests: Int = 0
-    private var failedRequests: Int = 0
-    private var totalDuration: TimeInterval = 0
-    private var totalSize: Int = 0
-    
+public final class NetworkMetrics: Sendable {
+    private struct MetricsState {
+        var totalRequests: Int = 0
+        var successfulRequests: Int = 0
+        var failedRequests: Int = 0
+        var totalDuration: TimeInterval = 0
+        var totalSize: Int = 0
+    }
+
+    private let state = Locked<MetricsState>(MetricsState())
+
+    public init() {}
+
     public func recordRequest(url: String, statusCode: Int, duration: TimeInterval, size: Int) {
-        lock.lock()
-        defer { lock.unlock() }
-        
-        totalRequests += 1
-        if (200..<300).contains(statusCode) {
-            successfulRequests += 1
-        } else {
-            failedRequests += 1
+        state.withLock {
+            $0.totalRequests += 1
+            if (200..<300).contains(statusCode) {
+                $0.successfulRequests += 1
+            } else {
+                $0.failedRequests += 1
+            }
+            $0.totalDuration += duration
+            $0.totalSize += size
         }
-        totalDuration += duration
-        totalSize += size
     }
-    
+
     public func snapshot() -> Snapshot {
-        lock.lock()
-        defer { lock.unlock() }
-        
-        return Snapshot(
-            totalRequests: totalRequests,
-            successfulRequests: successfulRequests,
-            failedRequests: failedRequests,
-            averageDuration: totalRequests > 0 ? totalDuration / Double(totalRequests) : 0,
-            totalDataTransferred: totalSize
-        )
+        state.withLock {
+            Snapshot(
+                totalRequests: $0.totalRequests,
+                successfulRequests: $0.successfulRequests,
+                failedRequests: $0.failedRequests,
+                averageDuration: $0.totalRequests > 0 ? $0.totalDuration / Double($0.totalRequests) : 0,
+                totalDataTransferred: $0.totalSize
+            )
+        }
     }
-    
+
     public struct Snapshot: Sendable {
         public let totalRequests: Int
         public let successfulRequests: Int
         public let failedRequests: Int
         public let averageDuration: TimeInterval
         public let totalDataTransferred: Int
-        
+
         public var successRate: Double {
             totalRequests > 0 ? Double(successfulRequests) / Double(totalRequests) : 0
         }

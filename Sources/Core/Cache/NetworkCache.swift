@@ -229,7 +229,7 @@ public actor DiskCache: NetworkCache {
         
         // Load manifest
         self.manifest = [:]
-        try? loadManifest()
+        Task { try? await loadManifest() }
     }
     
     public func get(_ key: CacheKey) async throws -> Data? {
@@ -304,7 +304,7 @@ public actor DiskCache: NetworkCache {
     
     // MARK: - Private Methods
     
-    private func loadManifest() throws {
+    private func loadManifest() async throws {
         let manifestURL = cacheDirectory.appendingPathComponent("manifest.json")
         guard fileManager.fileExists(atPath: manifestURL.path) else { return }
         
@@ -415,12 +415,12 @@ public actor HybridCache: NetworkCache {
     }
     
     public func contains(_ key: CacheKey) async -> Bool {
-        await memoryCache.contains(key) || await diskCache.contains(key)
+        if await memoryCache.contains(key) { return true }; return await diskCache.contains(key)
     }
     
     public var size: Int {
         get async {
-            await memoryCache.size + await diskCache.size
+            (await memoryCache.size) + (await diskCache.size)
         }
     }
 }

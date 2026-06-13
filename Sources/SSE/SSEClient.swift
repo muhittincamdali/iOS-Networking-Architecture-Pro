@@ -95,7 +95,7 @@ public actor SSEClient {
     public func events() -> AsyncStream<SSEEvent> {
         AsyncStream { continuation in
             Task {
-                await self.onAny { event in
+                self.onAny { event in
                     continuation.yield(event)
                 }
             }
@@ -106,7 +106,7 @@ public actor SSEClient {
     public func events(ofType type: String) -> AsyncStream<SSEEvent> {
         AsyncStream { continuation in
             Task {
-                await self.on(type) { event in
+                self.on(type) { event in
                     continuation.yield(event)
                 }
             }
@@ -117,7 +117,7 @@ public actor SSEClient {
     public func events<T: Decodable>(as type: T.Type) -> AsyncThrowingStream<T, Error> {
         AsyncThrowingStream { continuation in
             Task {
-                await self.onAny { event in
+                self.onAny { event in
                     if let data = event.data?.data(using: .utf8),
                        let decoded = try? JSONDecoder().decode(T.self, from: data) {
                         continuation.yield(decoded)
@@ -342,8 +342,8 @@ public actor EventSource {
         _readyState = .open
     }
     
-    public func close() {
-        client.disconnect()
+    public func close() async {
+        await client.disconnect()
         _readyState = .closed
     }
     
