@@ -15,6 +15,9 @@
 
 # iOS-Networking-Architecture-Pro
 
+## 🚀 Killer Feature: Zero-Copy Streaming Decoder
+Process gigabytes of JSON data without memory spikes. Our `ZeroCopyDecoder` reads directly from the `AsyncStream` buffer, parsing JSON entities on-the-fly and drastically reducing heap allocations.
+
 [![Swift](https://img.shields.io/badge/Swift-5.9+-orange.svg)](https://swift.org)
 [![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20macOS%20%7C%20tvOS%20%7C%20watchOS-blue.svg)](https://developer.apple.com)
 [![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen.svg)](https://swift.org/package-manager)
