@@ -109,6 +109,7 @@ private final class BufferingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
         var continuation: CheckedContinuation<(Data, HTTPURLResponse), any Error>?
         var data = Data()
         var failure: (any Error)?
+        var reportedBytes: Int64 = 0
     }
 
     private let limit: Int?
@@ -162,18 +163,24 @@ private final class BufferingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
         totalBytesSent: Int64,
         totalBytesExpectedToSend: Int64
     ) {
+        state.withLock { $0.reportedBytes = totalBytesSent }
         progress?(TransferProgress(completedBytes: totalBytesSent, totalBytes: totalBytesExpectedToSend))
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
         let error = completionError(error, session: session, task: task)
-        let (continuation, data, failure) = state.withLock { state in
+        let (continuation, data, failure, reported) = state.withLock { state in
             defer { state.continuation = nil }
-            return (state.continuation, state.data, state.failure ?? error)
+            return (state.continuation, state.data, state.failure ?? error, state.reportedBytes)
         }
         if let failure {
             continuation?.resume(throwing: failure)
             return
+        }
+        // URLSession does not always deliver a last didSendBodyData once the response has
+        // arrived; report the finished upload so progress always ends at the full size.
+        if let progress, task.countOfBytesSent > reported {
+            progress(TransferProgress(completedBytes: task.countOfBytesSent, totalBytes: task.countOfBytesSent))
         }
         continuation?.resume(with: Result { (data, try httpResponse(task.response)) })
     }
