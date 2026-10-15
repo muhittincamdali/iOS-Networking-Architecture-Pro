@@ -128,27 +128,28 @@ struct URLSessionTransportTests {
         }
     }
 
-    @Test func cancellingAStreamConsumerEndsTheStream() async throws {
+    @Test func cancellingAStreamReaderCancelsTheTransfer() async throws {
         let server = try await largeBodyServer(chunks: 16)
         let session = URLSession(configuration: .ephemeral)
         let transport = URLSessionTransport(session: session, streamBufferLimit: 64 * 1024)
-        let (_, stream) = try await transport.stream(URLRequest(url: server.url("/large")))
-        #expect(try await waitForTask(in: session, toBe: .suspended), "The transfer was not paused")
+        // The stream lives only in the reader, as in an app's task that reads a body.
         let reader = Task {
-            var received = 0
-            for try await chunk in stream {
-                received += chunk.count
-                try await Task.sleep(for: .milliseconds(50))
+            let (_, stream) = try await transport.stream(URLRequest(url: server.url("/large")))
+            for try await _ in stream {
+                try await Task.sleep(for: .seconds(1))
             }
-            return received
         }
-        try await Task.sleep(for: .milliseconds(120))
+        #expect(try await waitForTask(in: session, toBe: .suspended), "The transfer was not paused")
+        let task = try #require(await session.allTasks.first)
         reader.cancel()
-        let result = await reader.result
-        guard case .failure = result else {
-            Issue.record("Expected the cancelled reader to fail, got \(result)")
-            return
+        // A cancelled reader sees the end of the stream or an error, like with any AsyncStream.
+        _ = await reader.result
+        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        while task.state != .completed, ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(20))
         }
+        #expect(task.state == .completed)
+        #expect((task.error as? URLError)?.code == .cancelled)
     }
 
     @Test func downloadsToAFileAndReportsProgress() async throws {
