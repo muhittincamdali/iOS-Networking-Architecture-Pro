@@ -44,7 +44,7 @@ streaming are settings of that client instead of code you write around every req
   redirects, secrets redacted from logs and `curl` output, and limits on response size,
   buffered messages and wait times.
 - **Testable** — `MockTransport` answers requests from canned responses; the package's own
-  204 Swift Testing tests run on macOS, 203 of them also on an iPhone simulator, including
+  215 Swift Testing tests run on macOS, 214 of them also on an iPhone simulator, including
   tests against a local HTTP, TLS and WebSocket server.
 
 ### What's included
