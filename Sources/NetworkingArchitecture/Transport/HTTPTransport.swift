@@ -21,6 +21,10 @@ public protocol HTTPTransport: Sendable {
     /// The consumer may read the stream more slowly than the body arrives. An implementation
     /// should then stop reading instead of buffering without limit, as
     /// ``URLSessionTransport`` does (see ``URLSessionTransport/streamBufferLimit``).
+    ///
+    /// The stream has one reader: iterate it in one task. ``URLSessionTransport`` serves
+    /// readers that wait at the same time in turn, each chunk going to one of them, so
+    /// several readers each see only part of the body.
     func stream(_ request: URLRequest) async throws -> (HTTPURLResponse, AsyncThrowingStream<Data, any Error>)
 
     /// Downloads the body of `request` into a temporary file that the caller then owns.

@@ -222,6 +222,10 @@ private final class BufferingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
 /// bytes are waiting because the consumer is slower than the network, the task is suspended,
 /// and it is resumed once no more than half of them are left, so memory stays bounded and no
 /// chunk is dropped.
+///
+/// The body is meant for one reader. Calls to `next()` that wait at the same time, from
+/// several iterators of the stream, are queued and served in order, so none of them is left
+/// waiting; each chunk goes to one of them.
 private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDataDelegate, @unchecked Sendable {
     typealias Output = (HTTPURLResponse, AsyncThrowingStream<Data, any Error>)
 
@@ -231,8 +235,9 @@ private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
         var chunks: [Data] = []
         var bufferedBytes = 0
         var isSuspended = false
-        /// A `next()` waiting for the next chunk; only set while `chunks` is empty.
-        var waiter: CheckedContinuation<Data?, any Error>?
+        /// Calls to `next()` waiting for a chunk, oldest first; only non-empty while `chunks`
+        /// is empty.
+        var waiters: [CheckedContinuation<Data?, any Error>] = []
         var isComplete = false
         var failure: (any Error)?
     }
@@ -280,9 +285,8 @@ private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         let waiter = state.withLock { state -> CheckedContinuation<Data?, any Error>? in
-            if let waiter = state.waiter {
-                state.waiter = nil
-                return waiter
+            if !state.waiters.isEmpty {
+                return state.waiters.removeFirst()
             }
             state.chunks.append(data)
             state.bufferedBytes += data.count
@@ -298,22 +302,24 @@ private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
         let error = completionError(error, session: session, task: task)
-        let (headers, waiter) = state.withLock { state in
+        let (headers, waiters) = state.withLock { state in
             defer {
                 state.headers = nil
-                state.waiter = nil
+                state.waiters = []
                 state.task = nil
             }
             state.isComplete = true
-            // A waiting next() takes the error now; otherwise the error follows the buffered chunks.
-            state.failure = state.waiter == nil ? error : nil
-            return (state.headers, state.waiter)
+            // Waiting calls to next() take the error now; otherwise it follows the buffered chunks.
+            state.failure = state.waiters.isEmpty ? error : nil
+            return (state.headers, state.waiters)
         }
         headers?.resume(throwing: error ?? NetworkError.invalidResponse)
-        if let error {
-            waiter?.resume(throwing: error)
-        } else {
-            waiter?.resume(returning: nil)
+        for waiter in waiters {
+            if let error {
+                waiter.resume(throwing: error)
+            } else {
+                waiter.resume(returning: nil)
+            }
         }
     }
 
@@ -335,7 +341,7 @@ private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
                         defer { state.failure = nil }
                         return state.failure.map { .failure($0) } ?? .success(nil)
                     }
-                    state.waiter = continuation
+                    state.waiters.append(continuation)
                     return nil
                 }
                 if let result {

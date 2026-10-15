@@ -78,6 +78,36 @@ struct URLSessionTransportTests {
         #expect(firstDelay < .milliseconds(250))
     }
 
+    /// Two iterators of one stream wait for chunks at the same time. Neither may be left
+    /// waiting, and every chunk goes to one of them.
+    @Test func readersThatWaitTogetherAllFinish() async throws {
+        let chunks = ["first", "second", "third"].map { Data($0.utf8) }
+        let server = try await LocalHTTPServer { _ in
+            LocalHTTPServer.Response(chunks: chunks, chunkDelay: .milliseconds(150), omitsContentLength: true)
+        }
+        let transport = URLSessionTransport(session: URLSession(configuration: .ephemeral))
+        let (_, stream) = try await transport.stream(URLRequest(url: server.url("/events")))
+        // Unstructured tasks, so a reader that is never resumed fails the test instead of
+        // keeping it from returning.
+        let finished = Locked<[Data]>([])
+        let readers = (0..<2).map { _ in
+            Task {
+                var data = Data()
+                for try await chunk in stream {
+                    data.append(chunk)
+                }
+                finished.withLock { $0.append(data) }
+            }
+        }
+        let deadline = ContinuousClock.now + .seconds(10)
+        while finished.withLock({ $0.count }) < readers.count, ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        let received = finished.withLock { $0 }
+        try #require(received.count == readers.count, "A reader was still waiting after the body ended")
+        #expect(received.reduce(Data(), +).sorted() == chunks.reduce(Data(), +).sorted())
+    }
+
     /// A server that answers with `count` chunks of 64 KB.
     private func largeBodyServer(chunks count: Int) async throws -> LocalHTTPServer {
         try await LocalHTTPServer { _ in
