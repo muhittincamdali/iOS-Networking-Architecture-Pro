@@ -8,6 +8,11 @@ public struct EventStreamOptions: Sendable, Hashable {
     /// The wait before reconnecting until the server sends a `retry:` field.
     public var defaultRetry: Duration
 
+    /// The shortest wait between connections, whatever the server asks for, so a server that
+    /// sends `retry: 0` and closes after each event cannot make the client reconnect in a
+    /// tight loop. ``maximumRetry`` wins when it is shorter.
+    public var minimumRetry: Duration
+
     /// The longest wait honoured, whatever the server asks for.
     public var maximumRetry: Duration
 
@@ -28,6 +33,7 @@ public struct EventStreamOptions: Sendable, Hashable {
     public init(
         reconnects: Bool = true,
         defaultRetry: Duration = .seconds(3),
+        minimumRetry: Duration = .seconds(1),
         maximumRetry: Duration = .seconds(60),
         maximumReconnectAttempts: Int = 5,
         maximumEventSize: Int = 1_048_576,
@@ -35,6 +41,7 @@ public struct EventStreamOptions: Sendable, Hashable {
     ) {
         self.reconnects = reconnects
         self.defaultRetry = max(.zero, defaultRetry)
+        self.minimumRetry = max(.zero, minimumRetry)
         self.maximumRetry = max(.zero, maximumRetry)
         self.maximumReconnectAttempts = max(0, maximumReconnectAttempts)
         self.maximumEventSize = max(1, maximumEventSize)
@@ -54,7 +61,8 @@ extension NetworkClient {
     ///
     /// The request goes through the client's interceptors, so authentication applies. When
     /// the connection ends or drops, the client waits for the server's `retry:` time (or
-    /// ``EventStreamOptions/defaultRetry``) and reconnects with a `Last-Event-ID` header, as
+    /// ``EventStreamOptions/defaultRetry``), but at least
+    /// ``EventStreamOptions/minimumRetry``, and reconnects with a `Last-Event-ID` header, as
     /// browsers do. A `204 No Content` answer ends the stream. Stop iterating, or cancel the
     /// task, to close the connection.
     public func events(
@@ -125,7 +133,8 @@ extension NetworkClient {
             }
             // A partial event from the dropped connection is discarded, as browsers do.
             parser = parser.restarted()
-            let wait = min(parser.reconnectionTime ?? options.defaultRetry, options.maximumRetry)
+            let requested = parser.reconnectionTime ?? options.defaultRetry
+            let wait = min(max(requested, options.minimumRetry), options.maximumRetry)
             try await Pause.sleep(for: wait)
         }
     }

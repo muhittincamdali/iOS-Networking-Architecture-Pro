@@ -29,9 +29,10 @@ for try await event in client.events(.get("prices/stream")) where event.type == 
 
 The request goes through the client's interceptors, so authentication applies. When the
 connection drops or the server ends the response, the client waits for the server's `retry:`
-time (or ``EventStreamOptions/defaultRetry``) and reconnects with a `Last-Event-ID` header, as
-browsers do. A `204 No Content` answer ends the stream; a `4xx` answer or a response that is
-not an event stream fails it.
+time (or ``EventStreamOptions/defaultRetry``), but at least
+``EventStreamOptions/minimumRetry`` (1 second by default), and reconnects with a
+`Last-Event-ID` header, as browsers do. A `204 No Content` answer ends the stream; a `4xx`
+answer or a response that is not an event stream fails it.
 
 The parser follows the HTML standard: lines may end in CRLF, LF or CR, even split across
 chunks; comments are skipped; and an event larger than

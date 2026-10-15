@@ -110,7 +110,7 @@ struct EventStreamTests {
             }
         }
         let client = NetworkClient(baseURL: base, transport: transport)
-        let events = try await collect(client.events(.get("stream")))
+        let events = try await collect(client.events(.get("stream"), options: EventStreamOptions(minimumRetry: .zero)))
         #expect(events.map(\.data) == ["one", "two", "three"])
         #expect(transport.requests.map { $0.value(forHTTPHeaderField: "Last-Event-ID") } == [nil, "2", "3"])
         #expect(transport.requests.first?.value(forHTTPHeaderField: "Accept") == "text/event-stream")
@@ -134,7 +134,7 @@ struct EventStreamTests {
     @Test func emptyConnectionsStopAfterTheLimit() async throws {
         let transport = MockTransport { _ in .text(": keep-alive\n", headers: ["Content-Type": "text/event-stream"]) }
         let client = NetworkClient(baseURL: base, transport: transport)
-        let options = EventStreamOptions(defaultRetry: .zero, maximumReconnectAttempts: 3)
+        let options = EventStreamOptions(defaultRetry: .zero, minimumRetry: .zero, maximumReconnectAttempts: 3)
         let events = try await collect(client.events(.get("stream"), options: options))
         #expect(events.isEmpty)
         #expect(transport.requests.count == 4)
@@ -143,7 +143,7 @@ struct EventStreamTests {
     @Test func droppedConnectionsReconnectAndPersistentFailuresThrow() async throws {
         let transport = MockTransport { _ in .failure(.networkConnectionLost) }
         let client = NetworkClient(baseURL: base, transport: transport)
-        let options = EventStreamOptions(defaultRetry: .zero, maximumReconnectAttempts: 2)
+        let options = EventStreamOptions(defaultRetry: .zero, minimumRetry: .zero, maximumReconnectAttempts: 2)
         let error = await #expect(throws: NetworkError.self) { try await collect(client.events(.get("stream"), options: options)) }
         #expect(error?.isConnectivityProblem == true)
         #expect(transport.requests.count == 3)
@@ -160,6 +160,30 @@ struct EventStreamTests {
         let events = try await collect(client.events(.get("s"), options: EventStreamOptions(maximumRetry: .milliseconds(50))))
         #expect(events.count == 1)
         #expect(ContinuousClock.now - start < .seconds(5))
+    }
+
+    @Test func aZeroServerRetryStillWaitsTheMinimum() async throws {
+        let transport = MockTransport { request in
+            let headers: HTTPHeaders = ["Content-Type": "text/event-stream"]
+            return switch request.value(forHTTPHeaderField: "Last-Event-ID") {
+            case nil: .text("retry: 0\nid: 1\ndata: a\n\n", headers: headers)
+            case "1": .text("id: 2\ndata: b\n\n", headers: headers)
+            default: .status(204)
+            }
+        }
+        let client = NetworkClient(baseURL: base, transport: transport)
+        let start = ContinuousClock.now
+        let options = EventStreamOptions(minimumRetry: .milliseconds(300))
+        let events = try await collect(client.events(.get("s"), options: options))
+        #expect(events.map(\.data) == ["a", "b"])
+        #expect(transport.requests.count == 3)
+        // Two reconnections, each at least the minimum apart.
+        #expect(ContinuousClock.now - start >= .milliseconds(600))
+    }
+
+    @Test func theMinimumRetryDefaultsToOneSecond() {
+        #expect(EventStreamOptions().minimumRetry == .seconds(1))
+        #expect(EventStreamOptions(minimumRetry: .seconds(-5)).minimumRetry == .zero)
     }
 
     @Test func aConsumerThatFallsBehindEndsTheStreamInsteadOfBufferingForever() async throws {

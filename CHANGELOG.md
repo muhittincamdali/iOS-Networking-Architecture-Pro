@@ -68,7 +68,9 @@ for this package rather than copied.
 - Values that come from a server or from settings cannot crash the app: `Retry-After`
   numbers too large for `Int`, server-sent `retry:` values and retry delays from
   interceptors are clamped before any wait, since `Task.sleep(for:)` traps on durations near
-  `Int64.max` seconds; NaN, infinite and negative backoff settings are handled.
+  `Int64.max` seconds; NaN, infinite and negative backoff settings are handled. An event
+  stream waits at least `minimumRetry` (1 second by default) between connections, so a
+  server that sends `retry: 0` cannot make the client reconnect in a tight loop.
 - Memory is bounded: response bodies by `maximumResponseSize`, one server-sent event by
   `maximumEventSize`, one WebSocket message by `maximumMessageSize`, unread events and
   messages by `maximumBufferedEvents` and `maximumBufferedMessages`, and the caches by their
