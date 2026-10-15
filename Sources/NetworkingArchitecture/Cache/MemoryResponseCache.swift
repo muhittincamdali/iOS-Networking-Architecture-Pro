@@ -4,6 +4,21 @@ import Foundation
 ///
 /// The contents are lost when the app quits. Use ``HybridResponseCache`` to keep them on
 /// disk too.
+///
+/// The cache does not empty itself when the system runs low on memory; its limits bound what
+/// it holds (200 responses and 10 MB by default). To free it on a memory warning, call
+/// ``removeAll()``:
+///
+/// ```swift
+/// Task {
+///     let warnings = NotificationCenter.default.notifications(
+///         named: UIApplication.didReceiveMemoryWarningNotification
+///     )
+///     for await _ in warnings {
+///         await cache.removeAll()
+///     }
+/// }
+/// ```
 public actor MemoryResponseCache: ResponseCache {
     private var storage: LRUCache<String, CachedResponse>
 
