@@ -33,6 +33,15 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: README samples are the file the tests compile
+        # The test target reaches the samples through a symlink; a copy could drift unseen.
+        run: |
+          link=Tests/NetworkingArchitectureTests/ReadmeExamples.swift
+          samples=Examples/NetworkPlayground/NetworkPlayground/ReadmeSamples.swift
+          test -L "$link"
+          test "$(readlink "$link")" = "../../$samples"
+          cmp "$samples" "$link"
+
       - name: Toolchain
         run: xcodebuild -version
 
