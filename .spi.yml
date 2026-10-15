@@ -1,0 +1,7 @@
+version: 1
+builder:
+  configs:
+    - platform: ios
+      scheme: NetworkingArchitecture
+      documentation_targets: [NetworkingArchitecture]
+    - platform: macos-spm
