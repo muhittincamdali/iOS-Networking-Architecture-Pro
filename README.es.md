@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c136cc17c47d9a4d5d476e1786c4aa456d3983db status=reviewed -->
+<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg" alt="Networking Architecture: Endpoints tipados, reintentos, renovación de tokens, caché y streaming sobre URLSession, sin dependencias."></picture></p>
@@ -46,7 +46,7 @@ Una capa de red para apps en iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ y visionOS
   redirecciones a otro origen, secretos ocultos en los registros y en la salida de `curl`, y
   límites para el tamaño de las respuestas, los mensajes en búfer y los tiempos de espera.
 - **Fácil de probar** — `MockTransport` responde a las peticiones con respuestas predefinidas; las
-  218 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 217 de ellas también en
+  229 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 228 de ellas también en
   un simulador de iPhone, incluidas pruebas contra un servidor local HTTP, TLS y WebSocket.
 
 ### Qué incluye

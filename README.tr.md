@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c136cc17c47d9a4d5d476e1786c4aa456d3983db status=reviewed -->
+<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg" alt="Networking Architecture: URLSession üzerinde tipli uç noktalar, yeniden deneme, token yenileme, önbellek ve akış; bağımlılık yok."></picture></p>
@@ -44,8 +44,8 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ ve visionOS 1+ uygulamaları için, `UR
 - **Varsayılan olarak güvenli** — public key pinning, farklı kaynağa yönlendirmelerde kimlik
   bilgisi başlıklarının düşürülmesi, günlüklerden ve `curl` çıktısından gizli bilgilerin
   maskelenmesi; ayrıca yanıt boyutu, arabelleğe alınan mesajlar ve bekleme süreleri için sınırlar.
-- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 218
-  Swift Testing testi macOS'ta çalışır, bunların 217'si ayrıca bir iPhone simülatöründe de
+- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 229
+  Swift Testing testi macOS'ta çalışır, bunların 228'i ayrıca bir iPhone simülatöründe de
   çalışır. Bunlara yerel bir HTTP, TLS ve WebSocket sunucusuna karşı yazılmış testler de dahildir.
 
 ### Neler var

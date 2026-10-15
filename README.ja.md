@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c136cc17c47d9a4d5d476e1786c4aa456d3983db status=reviewed -->
+<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg" alt="Networking Architecture: URLSession 上の型付きエンドポイント、リトライ、トークン更新、キャッシュ、ストリーミング。依存関係なし。"></picture></p>
@@ -45,7 +45,7 @@ iOS 16+、macOS 13+、tvOS 16+、watchOS 9+、visionOS 1+ のアプリ向けの�
   認証情報ヘッダーの破棄、ログと `curl` 出力での秘密情報のマスク、
   レスポンスサイズ・バッファするメッセージ数・待ち時間の上限。
 - **テストしやすい** — `MockTransport` が用意したレスポンスでリクエストに応答します。
-  パッケージ自体の 218 個の Swift Testing テストは macOS で実行され、そのうち 217 個は
+  パッケージ自体の 229 個の Swift Testing テストは macOS で実行され、そのうち 228 個は
   iPhone シミュレータでも実行されます。ローカルの HTTP、TLS、WebSocket サーバーに対するテストも含まれます。
 
 ### 含まれるもの
