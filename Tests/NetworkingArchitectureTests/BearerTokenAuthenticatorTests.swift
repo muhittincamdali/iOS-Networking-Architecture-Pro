@@ -24,25 +24,34 @@ private actor RefreshServer {
     func setPause(_ duration: Duration) { pause = duration }
 }
 
-/// A task executor that can stop running jobs until `release()`, so a test can keep one task
-/// from resuming while others go on.
+/// A task executor that can stop running the jobs of the task that prefers it until
+/// `release()`, so a test can keep that task from resuming while others go on.
+///
+/// Only that task's own jobs are held. When the task (or a task it created) calls an idle
+/// actor, the runtime can run the actor's queue on this executor as a separate job; holding
+/// that job would keep the actor busy for good and every other caller would wait on it.
 @available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
 private final class HoldableExecutor: TaskExecutor, @unchecked Sendable {
     private let lock = NSLock()
     private let queue = DispatchQueue(label: "HoldableExecutor")
     private var isHolding = false
     private var held: [UnownedJob] = []
+    /// The description of the first job, which is the task itself; it includes the task ID,
+    /// while the jobs that run an actor's queue have none.
+    private var taskJob: String?
 
     func enqueue(_ job: consuming ExecutorJob) {
+        let identity = job.description
         let job = UnownedJob(job)
-        lock.lock()
-        if isHolding {
+        let isHeld = lock.withLock {
+            if taskJob == nil { taskJob = identity }
+            guard isHolding, identity == taskJob else { return false }
             held.append(job)
-            lock.unlock()
-            return
+            return true
         }
-        lock.unlock()
-        run(job)
+        if !isHeld {
+            run(job)
+        }
     }
 
     func hold() {
@@ -126,7 +135,8 @@ struct BearerTokenAuthenticatorTests {
 
     /// The request that started a refresh can resume after the requests that joined it. Those
     /// must still be retried with the new token: their one authentication retry is spent.
-    @Test func joinersRetryWithTheNewTokenBeforeTheStarterResumes() async throws {
+    @Test(.timeLimit(.minutes(1)))
+    func joinersRetryWithTheNewTokenBeforeTheStarterResumes() async throws {
         guard #available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *) else { return }
         let starterExecutor = HoldableExecutor()
         let refreshes = EventLog()
