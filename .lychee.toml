@@ -1,0 +1,63 @@
+# Link check settings shared by every repository (links.yml writes this file when a repository
+# has none). Keep the exclusions short and explain each one: a link that is excluded is a link
+# nobody checks.
+
+# Re-check a link at most once a day; the cache is kept between workflow runs.
+cache = true
+max_cache_age = "1d"
+cache_exclude_status = "429, 500.."
+
+max_concurrency = 8
+max_retries = 3
+timeout = 20
+
+# Anchors (#section) in Markdown and HTML files must exist, so README buttons and the table of
+# contents cannot point at a renamed heading.
+include_fragments = "anchor-only"
+
+# 403/429 from rate limiting are not broken links; everything else outside 2xx is.
+accept = ["200..=299", "403", "429"]
+
+exclude_loopback = true
+exclude_private = true
+exclude_link_local = true
+
+exclude = [
+  # Sites that answer automated requests with 999 or a sign-in wall.
+  '^https://(www\.)?linkedin\.com/',
+  '^https://(www\.)?x\.com/',
+  # Placeholder hosts used in code samples.
+  '^https?://(www\.)?example\.(com|org|net)',
+  '^https?://api\.example\.com',
+  # Pull request and comparison pages that only exist after a push.
+  '^https://github\.com/[^/]+/[^/]+/compare/',
+]
+
+# The READMEs link to this repository's own files on main (graphics in .github/brand, media in
+# docs/images, Package.swift, LICENSE, folders). A pull request cannot change main, so the
+# checked-out files stand in for them: on main they are the same files, on a pull request they are
+# the ones it adds or removes. The path is the workspace of GitHub-hosted runners; a local run
+# passes the same --remap options with its own path.
+remap = [
+  '^https://raw\.githubusercontent\.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/(.*)$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/$1',
+  '^https://github\.com/muhittincamdali/iOS-Networking-Architecture-Pro/(?:blob|tree)/master/(.*)$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/$1',
+  # The article pages on GitHub Pages are built from the .docc articles by docs.yml after a push
+  # to main, so a pull request that adds an article links to a page that is not online yet. Each
+  # article URL, and the documentation root, is checked against its source file instead. The
+  # site itself is verified by the docs workflow, which builds it on every pull request and
+  # deploys it on every push to main.
+  '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/?$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/NetworkingArchitecture.md',
+  '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/gettingstarted$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/GettingStarted.md',
+  '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/handlingfailures$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/HandlingFailures.md',
+  '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/authenticatingrequests$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/AuthenticatingRequests.md',
+  '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/StreamingEvents.md',
+  '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/SecuringTraffic.md',
+  '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/TestingYourAPILayer.md',
+]
+
+exclude_path = [
+  "node_modules",
+  ".build",
+  "build",
+  "Pods",
+]
