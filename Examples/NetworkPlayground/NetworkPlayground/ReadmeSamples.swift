@@ -5,6 +5,7 @@
 import Foundation
 import NetworkingArchitecture
 import NetworkingArchitectureTesting
+import SwiftUI
 
 // MARK: - Quick start
 
@@ -16,6 +17,22 @@ struct Post: Decodable, Sendable {
 func loadFirstPost() async throws -> Post {
     let client = NetworkClient(baseURL: URL(string: "https://jsonplaceholder.typicode.com")!)
     return try await client.send(Endpoint<Post>.get("posts/1"))
+}
+
+struct FirstPostView: View {
+    @State private var title = "Loading…"
+
+    var body: some View {
+        Text(title)
+            .padding()
+            .task {
+                do {
+                    title = try await loadFirstPost().title
+                } catch {
+                    title = error.localizedDescription
+                }
+            }
+    }
 }
 
 // MARK: - Describe your API once
