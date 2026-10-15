@@ -25,11 +25,11 @@
 
 <!-- brand:end -->
 
-iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ ve visionOS 1+ uygulamaları için, `URLSession` üzerine kurulu ve hiçbir bağımlılığı olmayan bir ağ katmanı. API'nizin her çağrısını bir kez, türlü bir `Endpoint` olarak tanımlar ve `NetworkClient` ile gönderirsiniz; yeniden deneme, token yenileme, önbellekleme, günlük kaydı ve akış, her isteğin etrafına kendiniz yazacağınız kod yerine istemcinin ayarlarıdır.
+iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ ve visionOS 1+ uygulamaları için, `URLSession` üzerine kurulu ve hiçbir bağımlılığı olmayan bir ağ katmanı. API'nizin her çağrısını bir kez, tipli bir `Endpoint` olarak tanımlar ve `NetworkClient` ile gönderirsiniz; yeniden deneme, token yenileme, önbellekleme, günlük kaydı ve akış, her isteğin etrafına kendiniz yazacağınız kod yerine istemcinin ayarlarıdır.
 
 ## Öne çıkanlar
 
-- **Türlü endpoint'ler** — `Endpoint<User>.get("users/42")` JSON'u `User`'a çözer;
+- **Tipli endpoint'ler** — `Endpoint<User>.get("users/42")` JSON'u `User`'a çözer;
   `Endpoint<Data>` gövdeyi olduğu gibi döndürür, `Endpoint<Void>` ise yok sayar. JSON, form ve
   multipart gövdeler desteklenir; yollardaki kullanıcı girdisi için `PathSegment` vardır.
 - **Hatalar tek yerde ele alınır** — üstel geri çekilme (exponential backoff), jitter ve
