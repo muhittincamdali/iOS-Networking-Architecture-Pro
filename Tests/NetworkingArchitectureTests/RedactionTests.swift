@@ -12,14 +12,16 @@ struct RedactionTests {
         "password", "Password", "PASSWORD", "user_password", "newPassword", "access_token", "Access-Token",
         "accessToken", "ACCESS%5FTOKEN", "access%255Ftoken", "refresh_token", "client_secret", "X-API-Key",
         "apiKey", "Set-Cookie", "session_id", "pin", "PIN", "otp", "cvv", "pass\u{200B}word", "ｐａｓｓｗｏｒｄ",
-        "p-a-s-s-w-o-r-d", "Authorization"
+        "p-a-s-s-w-o-r-d", "Authorization", "sig", "X-Auth-Key", "Ocp-Apim-Subscription-Key", "x-functions-key",
+        "Subscription-Key"
     ])
     func recognisesSensitiveNames(name: String) {
         #expect(redactor.isSensitive(name))
     }
 
     @Test("Ordinary names are left alone", arguments: [
-        "shipping", "spinner", "name", "email_verified", "page", "author", "sort", "id", "count"
+        "shipping", "spinner", "name", "email_verified", "page", "author", "sort", "id", "count", "signal",
+        "design", "keyboard", "subscription", "functions"
     ])
     func leavesOrdinaryNames(name: String) {
         #expect(!redactor.isSensitive(name))
@@ -36,6 +38,26 @@ struct RedactionTests {
         #expect(redacted["X-Upstream"] == "<redacted>")
         #expect(redacted["X-Trace"] == "<redacted>")
         #expect(redacted["Accept"] == "application/json")
+    }
+
+    @Test("Credential values are found after any whitespace", arguments: [
+        "Bearer\tabc", "bearer  abc", "Basic\u{00A0}dXNlcjpwYXNz", " Digest username=\"a\"", "BEARER\nabc"
+    ])
+    func credentialValuesAfterAnyWhitespace(value: String) {
+        let redacted = redactor.redact(["X-Upstream": value] as HTTPHeaders)
+        #expect(redacted["X-Upstream"] == "<redacted>")
+    }
+
+    @Test func ordinaryValuesThatStartWithASchemeNameAreKept() {
+        let redacted = redactor.redact(["X-Note": "Bearer", "X-Kind": "basic-plan"] as HTTPHeaders)
+        #expect(redacted["X-Note"] == "Bearer")
+        #expect(redacted["X-Kind"] == "basic-plan")
+    }
+
+    @Test func azureSharedAccessSignatureIsRedacted() throws {
+        let url = try #require(URL(string: "https://account.blob.core.windows.net/c/b.txt?sv=2024-11-04&se=2026-10-16&sp=r&sig=c2VjcmV0JTJGc2ln"))
+        let text = redactor.redact(url)
+        #expect(text == "https://account.blob.core.windows.net/c/b.txt?sv=2024-11-04&se=2026-10-16&sp=r&sig=<redacted>")
     }
 
     @Test func urlQueryCredentialsAndUserInfoAreRedacted() throws {

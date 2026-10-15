@@ -6,7 +6,8 @@ import Foundation
 /// so `access_token`, `Access-Token`, `accessToken` and `ACCESS%5FTOKEN` are the same name.
 /// A name is sensitive when it equals one of ``sensitiveNames`` or contains one of
 /// ``sensitiveNameFragments``. Values are also hidden wherever they appear when they look
-/// like credentials: `Bearer …` and `Basic …` values and JSON Web Tokens.
+/// like credentials: `Bearer …`, `Basic …` and `Digest …` values (with any whitespace after
+/// the scheme) and JSON Web Tokens.
 ///
 /// Bodies are shown only when they can be parsed: JSON (every nested sensitive key is
 /// hidden) and URL-encoded forms. Other bodies, such as XML or plain text, are summarised
@@ -61,15 +62,18 @@ public struct Redactor: Sendable {
     public static let `default` = Redactor()
 
     /// Short names that are only sensitive as a whole word (`pin`, but not `shipping`).
+    /// `sig` is the signature of an Azure shared access signature URL.
     public static let defaultNames: Set<String> = [
-        "pin", "otp", "cvv", "cvc", "ssn", "iban", "auth", "code", "sid", "jwt", "pass", "pwd", "key"
+        "pin", "otp", "cvv", "cvc", "ssn", "iban", "auth", "code", "sid", "sig", "jwt", "pass", "pwd", "key"
     ]
 
-    /// Fragments that make any name containing them sensitive.
+    /// Fragments that make any name containing them sensitive. `authkey`, `subscriptionkey`
+    /// and `functionskey` cover `X-Auth-Key`, `Ocp-Apim-Subscription-Key` and
+    /// `x-functions-key`.
     public static let defaultFragments: [String] = [
         "password", "passwd", "passphrase", "secret", "token", "apikey", "accesskey", "privatekey",
-        "authorization", "credential", "cookie", "session", "signature", "creditcard", "cardnumber",
-        "securitycode", "clientsecret"
+        "authkey", "subscriptionkey", "functionskey", "authorization", "credential", "cookie", "session",
+        "signature", "creditcard", "cardnumber", "securitycode", "clientsecret"
     ]
 
     /// Whether values under `name` are hidden.
@@ -161,11 +165,12 @@ public struct Redactor: Sendable {
         }
     }
 
-    /// `Bearer …`, `Basic …` and JSON Web Tokens (`eyJ….….…`).
+    /// `Bearer …`, `Basic …`, `Digest …` and JSON Web Tokens (`eyJ….….…`).
     func looksLikeCredential(_ value: String) -> Bool {
-        let trimmed = value.trimmingCharacters(in: .whitespaces)
-        let lowercased = trimmed.lowercased()
-        if lowercased.hasPrefix("bearer ") || lowercased.hasPrefix("basic ") || lowercased.hasPrefix("digest ") {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        // The scheme may be followed by a tab or any other whitespace, not only a space.
+        if let separator = trimmed.firstIndex(where: \.isWhitespace),
+           Self.credentialSchemes.contains(trimmed[..<separator].lowercased()) {
             return true
         }
         let segments = trimmed.split(separator: ".", omittingEmptySubsequences: false)
@@ -173,6 +178,8 @@ public struct Redactor: Sendable {
             !segment.isEmpty && segment.unicodeScalars.allSatisfy { Self.base64URL.contains($0) }
         }
     }
+
+    private static let credentialSchemes: Set<String> = ["bearer", "basic", "digest"]
 
     private static let base64URL = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=")
 
