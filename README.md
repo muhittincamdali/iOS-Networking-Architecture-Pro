@@ -33,8 +33,9 @@ streaming are settings of that client instead of code you write around every req
   `Endpoint<Data>` returns the body and `Endpoint<Void>` ignores it. JSON, form and multipart
   bodies, and `PathSegment` for user input in paths.
 - **Failures handled once** — a `RetryPolicy` with exponential backoff, jitter and
-  `Retry-After`, a `CircuitBreaker`, cache fallbacks when offline, and one `NetworkError`
-  type that tells an offline device from a 404 or a model that no longer matches the JSON.
+  `Retry-After`, a `CircuitBreaker`, cache fallbacks when offline, downloads that resume
+  where the connection dropped, and one `NetworkError` type that tells an offline device
+  from a 404 or a model that no longer matches the JSON.
 - **Token refresh done right** — `BearerTokenAuthenticator` refreshes once for all requests
   that got a 401, retries each of them once, and only sends the token to your hosts.
 - **Streaming** — server-sent events parsed by the HTML standard's rules, and a WebSocket
@@ -51,7 +52,7 @@ streaming are settings of that client instead of code you write around every req
 | Area           | API                                                                                                       |
 | -------------- | --------------------------------------------------------------------------------------------------------- |
 | Requests       | `NetworkClient`, `Endpoint`, `RequestBody` (`json`, `form`, `multipart`), `PathSegment`, `HTTPHeaders`     |
-| Responses      | `HTTPResponse`, `NetworkError`, `upload(_:file:progress:)`, `download(_:to:progress:)`                      |
+| Responses      | `HTTPResponse`, `NetworkError`, `upload(_:file:progress:)`, `download(_:to:resumingFrom:progress:)`         |
 | Resilience     | `RetryPolicy`, `CircuitBreaker`, `NetworkMonitor`                                                         |
 | Authentication | `BearerTokenAuthenticator`, `BearerToken`, `RequestInterceptor`                                           |
 | Caching        | `CachePolicy` (`cacheFirst`, `networkFirst`, `revalidate`), `MemoryResponseCache`, `DiskResponseCache`, `HybridResponseCache` |

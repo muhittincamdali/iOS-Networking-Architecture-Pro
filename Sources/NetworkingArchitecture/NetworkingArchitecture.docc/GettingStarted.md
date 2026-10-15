@@ -108,8 +108,10 @@ carry the response, so you can read an error body your server sends.
 ### Upload and download
 
 ``NetworkClient/upload(_:file:progress:)`` sends an endpoint's body, or a file read as it is
-sent, and reports progress. ``NetworkClient/download(_:to:progress:)`` writes the body to a
-file and only replaces the destination once the download has succeeded:
+sent, and reports progress. ``NetworkClient/download(_:to:resumingFrom:progress:)`` writes
+the body to a file and only replaces the destination once the download has succeeded. When
+the connection drops, the retry continues where the download stopped, and
+``NetworkError/resumeData`` lets you continue a failed download later:
 
 ```swift
 var form = MultipartFormData()

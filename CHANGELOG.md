@@ -22,8 +22,9 @@ for this package rather than copied.
 - Requests: `NetworkClient` and `Endpoint<Response>` with JSON, `Data` and `Void` responses;
   `RequestBody` with JSON, text, data, `URLEncodedForm` (also built from `Encodable` values)
   and `MultipartFormData` bodies; `HTTPHeaders`, `HTTPMethod` and `PathSegment`;
-  `urlRequest(for:)`, `upload(_:file:progress:)` and `download(_:to:progress:)`. Form and
-  multipart bodies are based on SwiftNetwork's.
+  `urlRequest(for:)`, `upload(_:file:progress:)` and `download(_:to:resumingFrom:progress:)`,
+  which continues an interrupted download instead of starting again. Form and multipart
+  bodies are based on SwiftNetwork's.
 - Transport: `HTTPTransport` and `URLSessionTransport`, which streams bodies, reports
   upload and download progress and stops reading a body over
   `Configuration.maximumResponseSize`.
