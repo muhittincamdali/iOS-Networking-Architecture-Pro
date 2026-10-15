@@ -116,6 +116,12 @@ public final class NetworkClient: Sendable {
         return result.response.map { _ in destination }
     }
 
+    /// The `URLRequest` the client builds for `endpoint`, before the interceptors adapt it.
+    /// Useful for debugging, for example with ``Foundation/URLRequest/curlCommand(redactor:)``.
+    public func urlRequest<Response>(for endpoint: Endpoint<Response>) throws -> URLRequest {
+        try makeRequest(for: endpoint)
+    }
+
     // MARK: - Building and decoding
 
     func makeRequest<Response>(for endpoint: Endpoint<Response>) throws -> URLRequest {

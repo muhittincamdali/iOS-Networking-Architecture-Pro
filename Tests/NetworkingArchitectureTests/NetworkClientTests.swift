@@ -271,6 +271,21 @@ struct NetworkClientTests {
         #expect(try String(contentsOf: destination, encoding: .utf8) == "new")
     }
 
+    @Test func urlRequestShowsTheRequestBeforeInterceptors() throws {
+        struct Stamp: RequestInterceptor {
+            func adapt(_ request: URLRequest, context: RequestContext) async throws -> URLRequest {
+                var request = request
+                request.setValue("1", forHTTPHeaderField: "X-Stamped")
+                return request
+            }
+        }
+        let client = client(MockTransport(), interceptors: [Stamp()])
+        let request = try client.urlRequest(for: Endpoint<Data>.get("users", query: [URLQueryItem(name: "q", value: "a+b")]))
+        #expect(request.url?.absoluteString == "https://api.example.com/v1/users?q=a%2Bb")
+        #expect(request.value(forHTTPHeaderField: "Accept") == "application/json")
+        #expect(request.value(forHTTPHeaderField: "X-Stamped") == nil)
+    }
+
     @Test func mapTransformsTheDecodedValue() async throws {
         let transport = MockTransport()
         transport.register(.get, "users/1", try .json(User(id: 1, name: "Ada")))
