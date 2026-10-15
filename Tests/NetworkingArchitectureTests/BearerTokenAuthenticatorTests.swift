@@ -24,6 +24,45 @@ private actor RefreshServer {
     func setPause(_ duration: Duration) { pause = duration }
 }
 
+/// A task executor that can stop running jobs until `release()`, so a test can keep one task
+/// from resuming while others go on.
+@available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
+private final class HoldableExecutor: TaskExecutor, @unchecked Sendable {
+    private let lock = NSLock()
+    private let queue = DispatchQueue(label: "HoldableExecutor")
+    private var isHolding = false
+    private var held: [UnownedJob] = []
+
+    func enqueue(_ job: consuming ExecutorJob) {
+        let job = UnownedJob(job)
+        lock.lock()
+        if isHolding {
+            held.append(job)
+            lock.unlock()
+            return
+        }
+        lock.unlock()
+        run(job)
+    }
+
+    func hold() {
+        lock.withLock { isHolding = true }
+    }
+
+    func release() {
+        let jobs = lock.withLock {
+            isHolding = false
+            defer { held = [] }
+            return held
+        }
+        jobs.forEach(run)
+    }
+
+    private func run(_ job: UnownedJob) {
+        queue.async { job.runSynchronously(on: self.asUnownedTaskExecutor()) }
+    }
+}
+
 @Suite("Bearer token authentication")
 struct BearerTokenAuthenticatorTests {
     private let api = URL(string: "https://api.example.com")!
@@ -83,6 +122,46 @@ struct BearerTokenAuthenticatorTests {
         // Every request was sent at most twice: once with the stale token, once with the new one.
         #expect(transport.requests.count <= 40)
         #expect(transport.requests.filter { $0.value(forHTTPHeaderField: "Authorization") == "Bearer fresh-1" }.count == 20)
+    }
+
+    /// The request that started a refresh can resume after the requests that joined it. Those
+    /// must still be retried with the new token: their one authentication retry is spent.
+    @Test func joinersRetryWithTheNewTokenBeforeTheStarterResumes() async throws {
+        guard #available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *) else { return }
+        let starterExecutor = HoldableExecutor()
+        let refreshes = EventLog()
+        let auth = BearerTokenAuthenticator(
+            token: BearerToken(accessToken: "stale", refreshToken: "r"),
+            allowedHosts: ["api.example.com"]
+        ) { _ in
+            refreshes.append("refresh")
+            // From here on the starter cannot resume until the test releases it.
+            starterExecutor.hold()
+            return BearerToken(accessToken: "fresh-1", refreshToken: "r")
+        }
+        let api = api
+        @Sendable func retryAfter401() async throws -> RetryDecision {
+            var rejected = URLRequest(url: api.appending(path: "me"))
+            rejected.setValue("Bearer stale", forHTTPHeaderField: "Authorization")
+            let unauthorized = NetworkError.unacceptableStatusCode(401, HTTPResponse(value: Data(), statusCode: 401, headers: [:]))
+            return try await auth.retry(rejected, dueTo: unauthorized, context: RequestContext(retryPolicy: .immediate))
+        }
+
+        let starter = Task(executorPreference: starterExecutor) { try await retryAfter401() }
+        while refreshes.all.isEmpty {
+            await Task.yield()
+        }
+        let joined = try await retryAfter401()
+        let resent = try await auth.adapt(
+            URLRequest(url: api.appending(path: "me")),
+            context: RequestContext(retryPolicy: .immediate)
+        )
+        starterExecutor.release()
+
+        #expect(joined == .retry(after: .zero, reason: .authentication))
+        #expect(resent.value(forHTTPHeaderField: "Authorization") == "Bearer fresh-1")
+        #expect(try await starter.value == .retry(after: .zero, reason: .authentication))
+        #expect(refreshes.all.count == 1)
     }
 
     @Test func aStill401AfterRefreshIsThrownWithoutLooping() async throws {

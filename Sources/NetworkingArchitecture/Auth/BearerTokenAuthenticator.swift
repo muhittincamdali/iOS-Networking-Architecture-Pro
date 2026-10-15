@@ -140,25 +140,37 @@ public actor BearerTokenAuthenticator: RequestInterceptor {
         }
         let startGeneration = generation
         let refresh = self.refresh
-        let task = Task { try await refresh(stale) }
-        refreshTask = task
-        do {
-            let fresh = try await Self.value(of: task)
-            guard generation == startGeneration else {
-                // setToken(_:) was called during the refresh; its value wins.
-                guard let token else { throw NetworkError.authenticationFailed(SignedOut()) }
-                return token
+        // The new token is stored inside the task, before anyone waiting on it resumes. If
+        // the request that started the refresh stored it after its own await instead, a
+        // request that joined could resume first and be resent with the old token.
+        let task = Task {
+            let result: Result<BearerToken, any Error>
+            do {
+                result = .success(try await refresh(stale))
+            } catch {
+                result = .failure(error)
             }
-            refreshTask = nil
-            token = fresh
-            onTokenChange?(fresh)
-            return fresh
-        } catch {
-            if generation == startGeneration {
-                refreshTask = nil
-            }
-            throw error
+            return try self.finishRefresh(with: result, startedAt: startGeneration)
         }
+        refreshTask = task
+        return try await Self.value(of: task)
+    }
+
+    /// Stores the result of a refresh and returns the token requests should use now.
+    private func finishRefresh(
+        with result: Result<BearerToken, any Error>,
+        startedAt startGeneration: Int
+    ) throws -> BearerToken {
+        guard generation == startGeneration else {
+            // setToken(_:) was called during the refresh; its value wins.
+            guard let token else { throw SignedOut() }
+            return token
+        }
+        refreshTask = nil
+        let fresh = try result.get()
+        token = fresh
+        onTokenChange?(fresh)
+        return fresh
     }
 
     private static func value(of task: Task<BearerToken, any Error>) async throws -> BearerToken {
