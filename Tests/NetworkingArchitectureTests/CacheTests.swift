@@ -285,6 +285,16 @@ struct CachePolicyTests {
         #expect(transport.requests.count == 2)
     }
 
+    @Test func responsesStoredInTheFutureAreNeverFresh() {
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let skewed = CachedResponse(data: Data(), statusCode: 200, headers: [:], url: nil, storedAt: now.addingTimeInterval(3_600))
+        #expect(skewed.age(at: now) >= .seconds(86_400 * 365))
+        let slightlyAhead = CachedResponse(data: Data(), statusCode: 200, headers: [:], url: nil, storedAt: now.addingTimeInterval(5))
+        #expect(slightlyAhead.age(at: now) == .zero)
+        let old = CachedResponse(data: Data(), statusCode: 200, headers: [:], url: nil, storedAt: now.addingTimeInterval(-90))
+        #expect(old.age(at: now) == .seconds(90))
+    }
+
     @Test func cacheKeyHashesTheAuthorizationHeader() {
         var request = URLRequest(url: URL(string: "https://api.example.com/me")!)
         request.setValue("Bearer secret-token", forHTTPHeaderField: "Authorization")

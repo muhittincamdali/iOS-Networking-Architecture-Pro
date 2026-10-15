@@ -45,10 +45,19 @@ public struct CachedResponse: Sendable, Codable, Hashable {
         self.storedAt = storedAt
     }
 
-    /// How old the response is at `now`. Never negative.
+    /// How old the response is at `now`.
+    ///
+    /// A response stored more than a minute "in the future", because the device clock was set
+    /// back after it was stored, has an unknown age and counts as the oldest possible, so it is
+    /// never treated as fresh.
     public func age(at now: Date = Date()) -> Duration {
-        Duration.clamped(seconds: now.timeIntervalSince(storedAt), max: .seconds(Int64(Int32.max)))
+        let seconds = now.timeIntervalSince(storedAt)
+        guard seconds >= -Self.clockSkewTolerance else { return Self.longestAge }
+        return Duration.clamped(seconds: seconds, max: Self.longestAge)
     }
+
+    private static let clockSkewTolerance: TimeInterval = 60
+    private static let longestAge = Duration.seconds(Int64(Int32.max))
 
     /// The `ETag` header.
     public var entityTag: String? { headers["ETag"] }
