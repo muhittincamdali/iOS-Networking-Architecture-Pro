@@ -9,6 +9,11 @@ import Foundation
 /// like credentials: `Bearer …`, `Basic …` and `Digest …` values (with any whitespace after
 /// the scheme) and JSON Web Tokens.
 ///
+/// A value that holds a URL or a form is read as well, however deeply it is nested or
+/// percent-encoded: `redirect=https%3A%2F%2Fx%2Fcb%3Faccess_token%3D…` in a query, or
+/// `"next": "https://x/cb?access_token=…"` in JSON, is hidden as a whole because the inner
+/// URL has a sensitive field. So is a URL that carries a user name or password.
+///
 /// Bodies are shown only when they can be parsed: JSON (every nested sensitive key is
 /// hidden) and URL-encoded forms. Other bodies, such as XML or plain text, are summarised
 /// by size, because a secret in free text cannot be found reliably.
@@ -86,7 +91,7 @@ public struct Redactor: Sendable {
     public func redact(_ headers: HTTPHeaders) -> HTTPHeaders {
         var result = HTTPHeaders()
         for field in headers {
-            result[field.name] = isSensitive(field.name) || looksLikeCredential(field.value) ? replacement : field.value
+            result[field.name] = isSensitive(field.name) || containsSecret(field.value) ? replacement : field.value
         }
         return result
     }
@@ -109,7 +114,7 @@ public struct Redactor: Sendable {
         text += components.percentEncodedPath
         if let items = components.percentEncodedQueryItems {
             text += "?" + items.map { item in
-                let hide = isSensitive(item.name) || looksLikeCredential(Self.fullyDecoded(item.value ?? ""))
+                let hide = isSensitive(item.name) || containsSecret(item.value ?? "")
                 guard let value = item.value else { return item.name }
                 return item.name + "=" + (hide ? replacement : value)
             }.joined(separator: "&")
@@ -135,7 +140,7 @@ public struct Redactor: Sendable {
         if type.contains("x-www-form-urlencoded"), let text = String(data: body, encoding: .utf8) {
             let form = URLEncodedForm(decoding: text)
             let redacted = URLEncodedForm(form.fields.map { field in
-                isSensitive(field.name) || looksLikeCredential(field.value)
+                isSensitive(field.name) || containsSecret(field.value)
                     ? URLEncodedForm.Field(name: field.name, value: replacement) : field
             })
             return truncate(redacted.encodedString.replacingOccurrences(of: URLEncodedForm.encode(replacement), with: replacement))
@@ -159,7 +164,7 @@ public struct Redactor: Sendable {
         case let array as [Any]:
             return array.map { redactJSON($0, depth: depth + 1) }
         case let string as String:
-            return looksLikeCredential(string) ? replacement : string
+            return containsSecret(string) ? replacement : string
         default:
             return value
         }
