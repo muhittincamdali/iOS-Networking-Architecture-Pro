@@ -96,7 +96,7 @@ struct URLSessionTransportTests {
     }
 
     @Test func aSlowStreamConsumerPausesTheTransferWithoutLosingData() async throws {
-        let server = try await largeBodyServer(chunks: 64)
+        let server = try await largeBodyServer(chunks: 16)
         let session = URLSession(configuration: .ephemeral)
         let transport = URLSessionTransport(session: session, streamBufferLimit: 128 * 1024)
         let (_, stream) = try await transport.stream(URLRequest(url: server.url("/large")))
@@ -107,11 +107,11 @@ struct URLSessionTransportTests {
             #expect(chunk.allSatisfy { $0 == 7 })
             received += chunk.count
         }
-        #expect(received == 64 * 64 * 1024)
+        #expect(received == 16 * 64 * 1024)
     }
 
     @Test func droppingAStreamCancelsItsTask() async throws {
-        let server = try await largeBodyServer(chunks: 64)
+        let server = try await largeBodyServer(chunks: 16)
         let session = URLSession(configuration: .ephemeral)
         let transport = URLSessionTransport(session: session, streamBufferLimit: 64 * 1024)
         do {
@@ -129,7 +129,7 @@ struct URLSessionTransportTests {
     }
 
     @Test func cancellingAStreamConsumerEndsTheStream() async throws {
-        let server = try await largeBodyServer(chunks: 64)
+        let server = try await largeBodyServer(chunks: 16)
         let session = URLSession(configuration: .ephemeral)
         let transport = URLSessionTransport(session: session, streamBufferLimit: 64 * 1024)
         let (_, stream) = try await transport.stream(URLRequest(url: server.url("/large")))

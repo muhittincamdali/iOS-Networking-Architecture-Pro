@@ -42,6 +42,14 @@ struct CircuitBreakerTests {
         return (client, transport, breaker, clock)
     }
 
+    /// Waits until `condition` holds, polling instead of sleeping for a fixed time so slow
+    /// machines do not fail the test.
+    private func waitUntil(_ condition: () async -> Bool) async throws {
+        while await !condition() {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
     /// Opens a breaker with a threshold of 1 by failing one request to `x`, then lets the
     /// reset timeout pass, so the next request is the test request.
     private func openAndWait(_ client: NetworkClient, _ breaker: CircuitBreaker, _ clock: ManualClock) async throws {
@@ -164,17 +172,19 @@ struct CircuitBreakerTests {
         #expect(transport.requests.count == 2)
     }
 
-    @Test func requestsThatStartedBeforeTheTestRequestDoNotReleaseIt() async throws {
+    @Test(.timeLimit(.minutes(1)))
+    func requestsThatStartedBeforeTheTestRequestDoNotReleaseIt() async throws {
         let (client, transport, breaker, clock) = setUp(threshold: 1)
-        transport.register(.get, "slow", MockResponse(statusCode: 200).delayed(by: .seconds(5)))
-        transport.register(.get, "probe", MockResponse(statusCode: 200).delayed(by: .milliseconds(300)))
+        transport.register(.get, "slow", MockResponse(statusCode: 200).delayed(by: .seconds(30)))
         transport.register(.get, "x", .failure(.cannotConnectToHost))
         let slow = Task { try await client.send(Endpoint<Void>.get("slow")) }
-        try await Task.sleep(for: .milliseconds(50))
+        try await waitUntil { transport.requests.count == 1 }
         try await openAndWait(client, breaker, clock)
 
+        // Long enough for the checks below to run while the test request is in flight.
+        transport.register(.get, "probe", MockResponse(statusCode: 200).delayed(by: .seconds(2)))
         let probe = Task { try await client.send(Endpoint<Void>.get("probe")) }
-        try await Task.sleep(for: .milliseconds(50))
+        try await waitUntil { transport.requests.contains { $0.url?.path == "/probe" } }
         slow.cancel()
         _ = await slow.result
         #expect(await breaker.state == .halfOpen)
