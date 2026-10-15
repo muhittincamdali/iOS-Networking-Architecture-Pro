@@ -27,10 +27,19 @@ public protocol HTTPTransport: Sendable {
     /// The default implementation throws ``NetworkError/invalidRequest(_:)``.
     func download(resumingFrom resumeData: Data, progress: ProgressHandler?) async throws -> (URL, HTTPURLResponse)
 
-    /// Sends `request` with `body` as its body, reporting how much of it has been sent.
+    /// Sends `request` with `body` as its body, reporting how much of it has been sent, and
+    /// returns the complete response body.
+    ///
+    /// - Parameters:
+    ///   - request: The request to send, without a body.
+    ///   - body: The bytes or the file to send as the body.
+    ///   - maximumResponseSize: When not `nil`, stop reading the response and throw
+    ///     ``NetworkError/responseTooLarge(limit:)`` once its body exceeds this many bytes.
+    ///   - progress: Called as the body is sent.
     func upload(
         _ request: URLRequest,
         body: UploadBody,
+        maximumResponseSize: Int?,
         progress: ProgressHandler?
     ) async throws -> (Data, HTTPURLResponse)
 }
@@ -105,6 +114,7 @@ extension HTTPTransport {
     public func upload(
         _ request: URLRequest,
         body: UploadBody,
+        maximumResponseSize: Int?,
         progress: ProgressHandler?
     ) async throws -> (Data, HTTPURLResponse) {
         var request = request
@@ -114,7 +124,7 @@ extension HTTPTransport {
         case .file(let url):
             request.httpBody = try Data(contentsOf: url)
         }
-        let result = try await send(request, maximumResponseSize: nil)
+        let result = try await send(request, maximumResponseSize: maximumResponseSize)
         let size = Int64(request.httpBody?.count ?? 0)
         progress?(TransferProgress(completedBytes: size, totalBytes: size))
         return result

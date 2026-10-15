@@ -168,6 +168,35 @@ struct URLSessionTransportTests {
         #expect(progress.all.last == String(payload.count))
     }
 
+    @Test func uploadResponsesOverTheLimitFail() async throws {
+        let server = try await LocalHTTPServer { _ in .body(Data(count: 512 * 1024)) }
+        let error = await #expect(throws: NetworkError.self) {
+            try await client(server, maximumResponseSize: 64 * 1024).upload(
+                Endpoint<Data>.post("upload", body: .data(Data("abc".utf8), contentType: "text/plain"))
+            )
+        }
+        guard case .responseTooLarge(65_536)? = error else {
+            Issue.record("Expected responseTooLarge, got \(String(describing: error))")
+            return
+        }
+    }
+
+    @Test func undeclaredUploadResponsesStopAtTheLimit() async throws {
+        let chunk = Data(count: 16 * 1024)
+        let server = try await LocalHTTPServer { _ in
+            LocalHTTPServer.Response(chunks: Array(repeating: chunk, count: 32), omitsContentLength: true)
+        }
+        let error = await #expect(throws: NetworkError.self) {
+            try await client(server, maximumResponseSize: 64 * 1024).upload(
+                Endpoint<Data>.post("upload", body: .data(Data("abc".utf8), contentType: "text/plain"))
+            )
+        }
+        guard case .responseTooLarge? = error else {
+            Issue.record("Expected responseTooLarge, got \(String(describing: error))")
+            return
+        }
+    }
+
     @Test func cancellationStopsAPendingRequest() async throws {
         let server = try await LocalHTTPServer { _ in
             LocalHTTPServer.Response(chunks: [Data("a".utf8), Data("b".utf8)], chunkDelay: .seconds(10))

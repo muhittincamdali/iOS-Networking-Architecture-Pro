@@ -245,6 +245,18 @@ struct NetworkClientTests {
         #expect(progress.all == ["3/3"])
     }
 
+    @Test func uploadResponsesOverTheLimitFail() async throws {
+        let transport = MockTransport()
+        transport.register(.post, "files", MockResponse(body: Data(count: 2_048)))
+        let error = await #expect(throws: NetworkError.self) {
+            try await client(transport, maximumResponseSize: 1_024).upload(Endpoint<Data>.post("files"))
+        }
+        guard case .responseTooLarge(1_024)? = error else {
+            Issue.record("Expected responseTooLarge, got \(String(describing: error))")
+            return
+        }
+    }
+
     @Test func downloadReplacesTheDestinationOnlyOnSuccess() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let destination = directory.appendingPathComponent("report.txt")

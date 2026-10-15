@@ -65,7 +65,8 @@ public final class NetworkClient: Sendable {
 
     /// Sends `endpoint` as an upload and decodes the response.
     ///
-    /// A failed upload is retried like any request, starting from the first byte.
+    /// A failed upload is retried like any request, starting from the first byte. The
+    /// response body is limited by ``Configuration/maximumResponseSize`` like any other.
     ///
     /// - Parameters:
     ///   - endpoint: The request to send; its body is uploaded unless you pass `file`.
@@ -82,7 +83,9 @@ public final class NetworkClient: Sendable {
         let body: UploadBody = if let file { .file(file) } else { .data(request.httpBody ?? Data()) }
         request.httpBody = nil
         let result = try await perform(request, endpoint: endpoint) { request in
-            try await self.transport.upload(request, body: body, progress: progress)
+            try await self.transport.upload(
+                request, body: body, maximumResponseSize: self.configuration.maximumResponseSize, progress: progress
+            )
         }
         return try decode(result.response, for: endpoint)
     }

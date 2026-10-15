@@ -28,9 +28,10 @@ public struct URLSessionTransport: HTTPTransport {
     public func upload(
         _ request: URLRequest,
         body: UploadBody,
+        maximumResponseSize: Int?,
         progress: ProgressHandler?
     ) async throws -> (Data, HTTPURLResponse) {
-        let delegate = BufferingTaskDelegate(limit: nil, progress: progress, redirectPolicy: redirectPolicy)
+        let delegate = BufferingTaskDelegate(limit: maximumResponseSize, progress: progress, redirectPolicy: redirectPolicy)
         let task = switch body {
         case .data(let data): session.uploadTask(with: request, from: data)
         case .file(let url): session.uploadTask(with: request, fromFile: url)
