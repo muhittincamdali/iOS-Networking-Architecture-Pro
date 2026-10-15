@@ -3,11 +3,6 @@ import NetworkingArchitectureTesting
 import Testing
 @testable import NetworkingArchitecture
 
-struct User: Codable, Equatable, Sendable {
-    let id: Int
-    let name: String
-}
-
 /// Records events from any task, for assertions.
 final class EventLog: @unchecked Sendable {
     private let lock = NSLock()
