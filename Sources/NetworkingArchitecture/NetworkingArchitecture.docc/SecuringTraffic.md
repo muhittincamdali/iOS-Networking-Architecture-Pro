@@ -36,8 +36,9 @@ certificate does not lock your app out. A rejected server fails the request with
 
 `URLSession` drops `Authorization` when a redirect leads to another origin but forwards every
 other header. With the default ``RedirectPolicy/followSafely``, ``URLSessionTransport`` also
-removes every header a ``Redactor`` considers sensitive (such as `X-API-Key` or `Cookie`) on
-such a redirect, and refuses redirects from `https` to `http`. ``RedirectPolicy/doNotFollow``
+removes on such a redirect every header whose name or value a ``Redactor`` would hide (such
+as `X-API-Key`, `Cookie` or `X-Upstream: Bearer …`), and refuses redirects from `https` to
+`http`. ``RedirectPolicy/doNotFollow``
 returns every redirect to you instead.
 
 ``BearerTokenAuthenticator`` adds its token only to the hosts you list, so an absolute URL

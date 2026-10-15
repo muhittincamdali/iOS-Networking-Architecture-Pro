@@ -64,6 +64,20 @@ struct RedirectPolicyTests {
         #expect(RedirectPolicy.follow.request(redirecting: original, to: redirect) != nil)
     }
 
+    @Test func crossOriginRedirectsDropHeadersWhoseValueIsACredential() throws {
+        let original = URLRequest(url: try #require(URL(string: "https://api.example.com/a")))
+        var redirect = URLRequest(url: try #require(URL(string: "https://cdn.example.net/b")))
+        redirect.setValue("Bearer x", forHTTPHeaderField: "X-Upstream")
+        redirect.setValue("Token y", forHTTPHeaderField: "X-Forwarded-Auth-Header")
+        redirect.setValue("https://api.example.com/cb?access_token=z", forHTTPHeaderField: "X-Return")
+        redirect.setValue("t-1", forHTTPHeaderField: "X-Trace")
+        let followed = try #require(RedirectPolicy.followSafely.request(redirecting: original, to: redirect))
+        #expect(followed.value(forHTTPHeaderField: "X-Upstream") == nil)
+        #expect(followed.value(forHTTPHeaderField: "X-Forwarded-Auth-Header") == nil)
+        #expect(followed.value(forHTTPHeaderField: "X-Return") == nil)
+        #expect(followed.value(forHTTPHeaderField: "X-Trace") == "t-1")
+    }
+
     @Test func sameOriginRedirectsKeepEveryHeader() {
         let original = URLRequest(url: URL(string: "https://api.example.com/a")!)
         var redirect = URLRequest(url: URL(string: "https://API.example.com:443/b")!)

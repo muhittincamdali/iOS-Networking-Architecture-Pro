@@ -7,9 +7,10 @@ public enum RedirectPolicy: Sendable, Hashable {
     /// including API keys in custom headers.
     case follow
 
-    /// Follows redirects, but removes credential headers (every header name a ``Redactor``
-    /// treats as sensitive, such as `X-API-Key` or `Cookie`) when the redirect leaves the
-    /// origin, and refuses redirects from `https` to `http`. This is the default.
+    /// Follows redirects, but removes credential headers when the redirect leaves the
+    /// origin: every header whose name or value the default ``Redactor`` would hide, such as
+    /// `X-API-Key`, `Cookie` or `X-Upstream: Bearer …`. Refuses redirects from `https` to
+    /// `http`. This is the default.
     case followSafely
 
     /// Never follows redirects; the `3xx` response is returned to the caller.
@@ -29,8 +30,10 @@ public enum RedirectPolicy: Sendable, Hashable {
                 return nil
             }
             guard !Self.sameOrigin(from, to) else { return redirect }
+            let redactor = Redactor.default
             var stripped = redirect
-            for name in (redirect.allHTTPHeaderFields ?? [:]).keys where Redactor.default.isSensitive(name) {
+            for (name, value) in redirect.allHTTPHeaderFields ?? [:]
+            where redactor.isSensitive(name) || redactor.containsSecret(value) {
                 stripped.setValue(nil, forHTTPHeaderField: name)
             }
             return stripped
