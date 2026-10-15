@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c31287351d0f60344dae9e674a055185223d09f4 status=reviewed -->
+<!-- i18n-source: README.md@c136cc17c47d9a4d5d476e1786c4aa456d3983db status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg" alt="Networking Architecture: Typisierte Endpunkte, Wiederholungen, Token-Erneuerung, Caching und Streaming auf URLSession, ohne Abhängigkeiten."></picture></p>
@@ -46,8 +46,8 @@ Eine Netzwerkschicht für Apps auf iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ und 
   Weiterleitungen auf einen anderen Ursprung entfernt, Geheimnisse werden in Logs und in der
   `curl`-Ausgabe geschwärzt, und es gibt Grenzen für Antwortgröße, gepufferte Nachrichten und
   Wartezeiten.
-- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 215
-  Swift-Testing-Tests des Pakets laufen auf macOS, 214 davon auch in einem iPhone-Simulator,
+- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 218
+  Swift-Testing-Tests des Pakets laufen auf macOS, 217 davon auch in einem iPhone-Simulator,
   darunter Tests gegen einen lokalen HTTP-, TLS- und WebSocket-Server.
 
 ### Was enthalten ist

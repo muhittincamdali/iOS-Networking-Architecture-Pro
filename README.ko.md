@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c31287351d0f60344dae9e674a055185223d09f4 status=reviewed -->
+<!-- i18n-source: README.md@c136cc17c47d9a4d5d476e1786c4aa456d3983db status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg" alt="Networking Architecture: URLSession 기반 타입 엔드포인트, 재시도, 토큰 갱신, 캐싱, 스트리밍. 의존성 없음."></picture></p>
@@ -43,7 +43,7 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+, visionOS 1+ 앱을 위한 네트워킹
 - **기본적으로 안전** — 공개 키 고정(public key pinning), 다른 출처로의 리디렉션 시 인증 헤더 제거,
   로그와 `curl` 출력에서 비밀 값 마스킹, 응답 크기·버퍼링되는 메시지 수·대기 시간에 대한 제한.
 - **테스트하기 쉬움** — `MockTransport`가 미리 준비한 응답으로 요청에 답합니다. 패키지 자체의
-  215개 Swift Testing 테스트가 macOS에서 실행되며, 그중 214개는 iPhone 시뮬레이터에서도 실행됩니다.
+  218개 Swift Testing 테스트가 macOS에서 실행되며, 그중 217개는 iPhone 시뮬레이터에서도 실행됩니다.
   로컬 HTTP, TLS, WebSocket 서버를 대상으로 한 테스트도 포함됩니다.
 
 ### 포함된 기능
