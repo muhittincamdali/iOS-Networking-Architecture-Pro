@@ -52,7 +52,7 @@ enum URLRequestBuilder {
                 throw NetworkError.invalidRequest("\"\(path)\" is not a full URL and the client has no base URL")
             }
             let (pathPart, queryPart) = split(path)
-            base.path = join(base.path, pathPart)
+            base.percentEncodedPath = join(base.percentEncodedPath, encodePath(pathPart))
             if let queryPart {
                 base.percentEncodedQuery = [base.percentEncodedQuery, queryPart]
                     .compactMap { $0 }
@@ -98,6 +98,42 @@ enum URLRequestBuilder {
     private static func split(_ path: String) -> (path: String, query: String?) {
         guard let index = path.firstIndex(of: "?") else { return (path, nil) }
         return (String(path[..<index]), String(path[path.index(after: index)...]))
+    }
+
+    /// Percent-encodes the characters a path may not contain. Existing `%XX` escapes (from a
+    /// ``PathSegment``, for example) are kept, so they are not encoded twice.
+    static func encodePath(_ path: String) -> String {
+        let bytes = Array(path.utf8)
+        var encoded = ""
+        var index = 0
+        while index < bytes.count {
+            let byte = bytes[index]
+            if byte == UInt8(ascii: "%"), index + 2 < bytes.count,
+               isHexDigit(bytes[index + 1]), isHexDigit(bytes[index + 2]) {
+                encoded += String(decoding: bytes[index...index + 2], as: UTF8.self)
+                index += 3
+                continue
+            }
+            if PathSegment.isUnreserved(byte) || pathDelimiters.contains(byte) {
+                encoded.unicodeScalars.append(Unicode.Scalar(byte))
+            } else {
+                encoded += String(format: "%%%02X", byte)
+            }
+            index += 1
+        }
+        return encoded
+    }
+
+    /// Sub-delimiters, ":", "@" and "/", which RFC 3986 allows unencoded in a path.
+    private static let pathDelimiters: Set<UInt8> = Set("!$&'()*+,;=:@/".utf8)
+
+    private static func isHexDigit(_ byte: UInt8) -> Bool {
+        switch byte {
+        case UInt8(ascii: "0")...UInt8(ascii: "9"), UInt8(ascii: "a")...UInt8(ascii: "f"), UInt8(ascii: "A")...UInt8(ascii: "F"):
+            true
+        default:
+            false
+        }
     }
 
     private static func join(_ base: String, _ path: String) -> String {

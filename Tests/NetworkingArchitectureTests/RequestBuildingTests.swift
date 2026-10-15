@@ -36,6 +36,26 @@ struct RequestBuildingTests {
         #expect(url?.absoluteString == "https://api.example.com/v1/search/swift%20concurrency")
     }
 
+    @Test("PathSegment keeps user input inside one segment", arguments: [
+        ("x?role=admin", "users/x%3Frole%3Dadmin/profile"),
+        ("a/b", "users/a%2Fb/profile"),
+        ("..", "users/%2E%2E/profile"),
+        (".", "users/%2E/profile"),
+        ("50%", "users/50%25/profile"),
+        ("frag#ment", "users/frag%23ment/profile"),
+        ("çay bardağı", "users/%C3%A7ay%20barda%C4%9F%C4%B1/profile")
+    ])
+    func pathSegmentsCannotInject(input: String, expected: String) throws {
+        let url = try request(Endpoint<Data>.get("users/\(PathSegment(input))/profile")).url
+        #expect(url?.absoluteString == "https://api.example.com/v1/" + expected)
+        #expect(url?.query == nil)
+    }
+
+    @Test func existingEscapesAreNotEncodedTwice() throws {
+        let url = try request(Endpoint<Data>.get("files/a%2Fb/100%/ü")).url
+        #expect(url?.absoluteString == "https://api.example.com/v1/files/a%2Fb/100%25/%C3%BC")
+    }
+
     @Test func queryValuesEncodePlusAndReservedCharacters() throws {
         let endpoint = Endpoint<Data>.get("search", query: [
             URLQueryItem(name: "q", value: "c++ & swift"),

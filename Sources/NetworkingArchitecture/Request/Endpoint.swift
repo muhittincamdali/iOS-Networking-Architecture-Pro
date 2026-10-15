@@ -35,7 +35,8 @@ public struct Endpoint<Response: Sendable>: Sendable {
     public var method: HTTPMethod
 
     /// The path appended to the client's base URL, or a full URL. Write it unencoded:
-    /// `"search/swift concurrency"` is sent as `search/swift%20concurrency`.
+    /// `"search/swift concurrency"` is sent as `search/swift%20concurrency`. Wrap user input
+    /// in ``PathSegment`` so it cannot add segments or a query.
     public var path: String
 
     /// The query items. A `+` in a value is sent as `%2B`, so servers do not read it as a space.
