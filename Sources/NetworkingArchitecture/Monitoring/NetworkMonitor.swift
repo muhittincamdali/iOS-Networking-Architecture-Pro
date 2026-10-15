@@ -64,13 +64,11 @@ public enum NetworkMonitor {
     /// The connection as it changes, starting with the current one. Each call starts its own
     /// monitor, which stops when the iteration ends.
     public static func paths() -> AsyncStream<NetworkPath> {
-        AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
+        paths { report in
             let monitor = NWPathMonitor()
-            monitor.pathUpdateHandler = { path in
-                continuation.yield(NetworkPath(path))
-            }
-            continuation.onTermination = { _ in monitor.cancel() }
+            monitor.pathUpdateHandler = { path in report(NetworkPath(path)) }
             monitor.start(queue: DispatchQueue(label: "NetworkingArchitecture.NetworkMonitor"))
+            return { monitor.cancel() }
         }
     }
 
@@ -85,7 +83,23 @@ public enum NetworkMonitor {
     /// Returns once the device has a usable connection, or throws `CancellationError` when
     /// the task is cancelled first.
     public static func waitUntilConnected() async throws {
-        for await path in paths() where path.isConnected {
+        try await waitUntilConnected(in: paths())
+    }
+
+    /// The paths a source reports. `start` begins observing, passes each path to the closure
+    /// it receives, and returns the closure that stops observing, which runs when the
+    /// iteration ends. Tests supply a source of their own.
+    static func paths(
+        from start: (_ report: @escaping @Sendable (NetworkPath) -> Void) -> @Sendable () -> Void
+    ) -> AsyncStream<NetworkPath> {
+        AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
+            let stop = start { continuation.yield($0) }
+            continuation.onTermination = { _ in stop() }
+        }
+    }
+
+    static func waitUntilConnected(in paths: AsyncStream<NetworkPath>) async throws {
+        for await path in paths where path.isConnected {
             return
         }
         throw CancellationError()
