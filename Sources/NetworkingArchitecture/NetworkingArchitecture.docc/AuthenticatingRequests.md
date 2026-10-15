@@ -55,10 +55,11 @@ refreshed before the request is sent, which saves the round trip of a `401`.
 
 ### Only to your hosts
 
-The token is only added to requests whose host is in `allowedHosts`. `"*.example.com"`
-matches `api.example.com` and `example.com`, but not `evil-example.com`. An absolute URL in
-an endpoint, for example a download link taken from a response, never receives the token
-unless its host is listed.
+The token is only added to `https` (and `wss`) requests whose host is in `allowedHosts`.
+`"*.example.com"` matches `api.example.com` and `example.com`, but not `evil-example.com`. An
+absolute URL in an endpoint, for example a download link taken from a response, never
+receives the token unless its host is listed, and a plain `http` URL never receives it, even
+when an App Transport Security exception allows the request.
 
 ### Signing in and out
 

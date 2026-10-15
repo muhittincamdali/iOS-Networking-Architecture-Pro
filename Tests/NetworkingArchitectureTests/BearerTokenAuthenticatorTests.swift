@@ -126,13 +126,24 @@ struct BearerTokenAuthenticatorTests {
         let client = client(transport, authenticator(server, token: BearerToken(accessToken: "secret"), hosts: ["*.example.com"]))
         let urls = [
             "https://api.example.com/a", "https://EXAMPLE.com/b", "https://cdn.eu.example.com/c",
-            "https://evil-example.com/d", "https://example.com.evil.net/e", "https://other.org/f"
+            "https://evil-example.com/d", "https://example.com.evil.net/e", "https://other.org/f",
+            "http://api.example.com/g", "HTTP://example.com/h", "wss://api.example.com/i", "ws://api.example.com/j"
         ]
         for url in urls {
             _ = try await client.send(Endpoint<Data>.get(url))
         }
         let sent = transport.requests.map { $0.value(forHTTPHeaderField: "Authorization") != nil }
-        #expect(sent == [true, true, true, false, false, false])
+        #expect(sent == [true, true, true, false, false, false, false, false, true, false])
+    }
+
+    @Test func a401OverPlainHTTPDoesNotRefresh() async throws {
+        let server = RefreshServer()
+        let transport = MockTransport { _ in .status(401) }
+        let client = client(transport, authenticator(server, token: BearerToken(accessToken: "secret")))
+        _ = try? await client.send(Endpoint<Data>.get("http://api.example.com/me"))
+        #expect(transport.requests.count == 1)
+        #expect(transport.requests.first?.value(forHTTPHeaderField: "Authorization") == nil)
+        #expect(await server.refreshCount == 0)
     }
 
     @Test func requestWithoutTokenIsSentUnauthenticated() async throws {

@@ -46,9 +46,10 @@ public struct BearerToken: Sendable, Codable, Hashable {
 ///   once.
 /// - **One retry per request.** A request is retried at most once after a refresh; if the
 ///   server still answers 401, the 401 is thrown instead of refreshing again and again.
-/// - **Only to your hosts.** The token is only added to requests for `allowedHosts`, so an
-///   absolute URL to another server (a CDN, a redirect target in a response) never receives
-///   it.
+/// - **Only to your hosts, only encrypted.** The token is only added to `https` (and `wss`)
+///   requests for `allowedHosts`, so an absolute URL to another server (a CDN, a redirect
+///   target in a response) never receives it, and neither does a plain `http` request that
+///   an App Transport Security exception would let through.
 /// - **Before it expires.** A token whose ``BearerToken/expiresAt`` falls within
 ///   `refreshLeeway` is refreshed before the request is sent.
 ///
@@ -74,8 +75,9 @@ public actor BearerTokenAuthenticator: RequestInterceptor {
     ///
     /// - Parameters:
     ///   - token: The current token, or `nil` until the user signs in.
-    ///   - allowedHosts: Hosts that receive the token. `"*.example.com"` also matches every
-    ///     subdomain of `example.com`. Hosts are compared without regard to case.
+    ///   - allowedHosts: Hosts that receive the token, over `https` or `wss` only.
+    ///     `"*.example.com"` also matches every subdomain of `example.com`. Hosts are compared
+    ///     without regard to case.
     ///   - refreshLeeway: How long before ``BearerToken/expiresAt`` the token is refreshed.
     ///   - onTokenChange: Called after every refresh and ``setToken(_:)``, for saving the
     ///     token to the keychain.
@@ -167,8 +169,13 @@ public actor BearerTokenAuthenticator: RequestInterceptor {
         }
     }
 
+    /// Schemes that encrypt the token on the wire.
+    private static let secureSchemes: Set<String> = ["https", "wss"]
+
     private func isAllowed(_ request: URLRequest) -> Bool {
-        guard let host = request.url?.host?.lowercased() else { return false }
+        guard let url = request.url,
+              let scheme = url.scheme?.lowercased(), Self.secureSchemes.contains(scheme),
+              let host = url.host?.lowercased() else { return false }
         return allowedHosts.contains { pattern in
             if pattern.hasPrefix("*.") {
                 let domain = pattern.dropFirst(2)

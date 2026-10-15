@@ -75,10 +75,11 @@ for this package rather than copied.
   `maximumEventSize`, one WebSocket message by `maximumMessageSize`, unread events and
   messages by `maximumBufferedEvents` and `maximumBufferedMessages`, and the caches by their
   byte and count limits. A request is sent at most 10 times whatever an interceptor asks for.
-- Credentials stay where they belong: the bearer token is only sent to allowed hosts,
-  `RedirectPolicy.followSafely` (the default) removes credential headers on cross-origin
-  redirects and refuses https-to-http redirects, and cache keys include a hash of the
-  `Authorization` header so two users of one client never share a cached response.
+- Credentials stay where they belong: the bearer token is only sent to allowed hosts and
+  only over `https` or `wss`, `RedirectPolicy.followSafely` (the default) removes credential
+  headers on cross-origin redirects and refuses https-to-http redirects, and cache keys
+  include a hash of the `Authorization` header so two users of one client never share a
+  cached response.
 - Input cannot change the structure of a request: header names and values with line breaks
   are rejected, multipart field and file names are escaped, `PathSegment` keeps user input
   in one path segment, and query values encode `+`.
