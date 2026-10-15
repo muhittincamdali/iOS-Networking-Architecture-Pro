@@ -60,6 +60,16 @@ private func runTask<Result: Sendable>(
     }
 }
 
+/// Replaces the `cancelled` error of a task whose server ``PinningSessionDelegate`` rejected
+/// with `serverCertificateUntrusted`, so a pinning failure is not mistaken for a cancellation.
+private func completionError(_ error: (any Error)?, session: URLSession, task: URLSessionTask) -> (any Error)? {
+    guard let pinning = session.delegate as? PinningSessionDelegate,
+          let reason = pinning.takeRejection(for: task) else {
+        return error
+    }
+    return URLError(.serverCertificateUntrusted, userInfo: [NSLocalizedDescriptionKey: "The server was rejected by certificate pinning (\(reason))."])
+}
+
 private func httpResponse(_ response: URLResponse?) throws -> HTTPURLResponse {
     guard let response = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
     return response
@@ -127,6 +137,7 @@ private final class BufferingTaskDelegate: NSObject, URLSessionDataDelegate, @un
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+        let error = completionError(error, session: session, task: task)
         let (continuation, data, failure) = state.withLock { state in
             defer { state.continuation = nil }
             return (state.continuation, state.data, state.failure ?? error)
@@ -187,6 +198,7 @@ private final class StreamingTaskDelegate: NSObject, URLSessionDataDelegate, @un
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+        let error = completionError(error, session: session, task: task)
         let (headers, body) = state.withLock { state in
             defer {
                 state.headers = nil
@@ -243,6 +255,7 @@ private final class DownloadTaskDelegate: NSObject, URLSessionDownloadDelegate, 
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+        let error = completionError(error, session: session, task: task)
         let (continuation, file, failure) = state.withLock { state in
             defer { state.continuation = nil }
             return (state.continuation, state.file, state.failure ?? error)

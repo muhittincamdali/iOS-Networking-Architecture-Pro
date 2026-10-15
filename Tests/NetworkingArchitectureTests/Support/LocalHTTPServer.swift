@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import Security
 
 /// A minimal HTTP/1.1 server on 127.0.0.1 for testing the real `URLSession` transport.
 ///
@@ -38,9 +39,21 @@ final class LocalHTTPServer: @unchecked Sendable {
     /// The port the server listens on.
     let port: UInt16
 
-    init(handler: @escaping @Sendable (Request) -> Response) async throws {
+    private let isSecure: Bool
+
+    /// Starts a server; with `identity`, it speaks HTTPS with that certificate.
+    init(identity: SecIdentity? = nil, handler: @escaping @Sendable (Request) -> Response) async throws {
         self.handler = handler
-        let listener = try NWListener(using: .tcp, on: .any)
+        let parameters: NWParameters
+        if let identity, let secIdentity = sec_identity_create(identity) {
+            let tls = NWProtocolTLS.Options()
+            sec_protocol_options_set_local_identity(tls.securityProtocolOptions, secIdentity)
+            parameters = NWParameters(tls: tls)
+        } else {
+            parameters = .tcp
+        }
+        self.isSecure = identity != nil
+        let listener = try NWListener(using: parameters, on: .any)
         let queue = queue
         self.listener = listener
         self.port = try await withCheckedThrowingContinuation { continuation in
@@ -69,7 +82,7 @@ final class LocalHTTPServer: @unchecked Sendable {
     }
 
     func url(_ path: String) -> URL {
-        URL(string: "http://127.0.0.1:\(port)\(path)")!
+        URL(string: "\(isSecure ? "https" : "http")://127.0.0.1:\(port)\(path)")!
     }
 
     private static func serve(
