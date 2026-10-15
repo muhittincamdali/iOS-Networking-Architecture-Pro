@@ -121,8 +121,16 @@ struct CircuitBreakerTests {
         let (client, transport, breaker, _) = setUp(threshold: 1)
         transport.register(.get, "x", .status(500), .status(200))
         _ = try? await client.send(Endpoint<Void>.get("x"))
+        guard case .open = await breaker.state else {
+            Issue.record("Expected open before the reset")
+            return
+        }
+        let blocked = await #expect(throws: NetworkError.self) { try await client.send(Endpoint<Void>.get("x")) }
+        #expect(isCircuitOpen(blocked))
         await breaker.reset()
+        #expect(await breaker.state == .closed)
         try await client.send(Endpoint<Void>.get("x"))
+        #expect(transport.requests.count == 2)
     }
 
     @Test func cachedAnswerToTheTestRequestLetsTheNextRequestTest() async throws {

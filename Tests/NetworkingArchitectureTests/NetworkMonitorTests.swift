@@ -55,10 +55,17 @@ struct NetworkMonitorTests {
     @Test func waitingReturnsOnceAPathIsConnected() async throws {
         let source = FakePathSource()
         let paths = source.paths()
-        let task = Task { try await NetworkMonitor.waitUntilConnected(in: paths) }
+        let returned = Locked(false)
+        let task = Task {
+            try await NetworkMonitor.waitUntilConnected(in: paths)
+            returned.withLock { $0 = true }
+        }
         source.send(offline)
+        try await Task.sleep(for: .milliseconds(200))
+        #expect(!returned.withLock { $0 }, "Waiting returned while offline")
         source.send(wifi)
         try await task.value
+        #expect(returned.withLock { $0 })
     }
 
     @Test func waitingWithoutAConnectionThrowsWhenCancelled() async {
