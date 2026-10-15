@@ -53,6 +53,10 @@ public final class NetworkClient: Sendable {
     /// Sends `endpoint` and returns its decoded response with the status code and headers.
     public func response<Response>(for endpoint: Endpoint<Response>) async throws -> HTTPResponse<Response> {
         let request = try makeRequest(for: endpoint)
+        if let cache = configuration.cache, endpoint.cachePolicy != .disabled,
+           endpoint.method == .get || endpoint.method == .head {
+            return try decode(try await cachedResponse(for: request, endpoint: endpoint, cache: cache), for: endpoint)
+        }
         let result = try await perform(request, endpoint: endpoint) { request in
             try await self.transport.send(request, maximumResponseSize: self.configuration.maximumResponseSize)
         }

@@ -55,6 +55,9 @@ public struct Endpoint<Response: Sendable>: Sendable {
     /// ``NetworkError/unacceptableStatusCode(_:_:)``.
     public var acceptableStatusCodes: Set<Int>
 
+    /// Whether and how the response is cached. See ``CachePolicy``.
+    public var cachePolicy: CachePolicy
+
     /// Overrides the client's ``RetryPolicy`` for this endpoint. `nil` uses the client's.
     public var retryPolicy: RetryPolicy?
 
@@ -69,6 +72,7 @@ public struct Endpoint<Response: Sendable>: Sendable {
         body: RequestBody? = nil,
         timeout: Duration? = nil,
         acceptableStatusCodes: Set<Int> = Endpoint.successCodes,
+        cachePolicy: CachePolicy = .disabled,
         retryPolicy: RetryPolicy? = nil,
         decode: @escaping @Sendable (Data, JSONDecoder) throws -> Response
     ) {
@@ -79,6 +83,7 @@ public struct Endpoint<Response: Sendable>: Sendable {
         self.body = body
         self.timeout = timeout
         self.acceptableStatusCodes = acceptableStatusCodes
+        self.cachePolicy = cachePolicy
         self.retryPolicy = retryPolicy
         self.decode = decode
     }
@@ -87,7 +92,7 @@ public struct Endpoint<Response: Sendable>: Sendable {
     public static var successCodes: Set<Int> { Set(200..<300) }
 
     /// Returns a copy with one property changed, for chaining:
-    /// `API.user(id: 1).with(\.timeout, .seconds(5))`.
+    /// `API.user(id: 1).with(\.cachePolicy, .cacheFirst(maxAge: .seconds(60)))`.
     public func with<Value>(_ keyPath: WritableKeyPath<Endpoint, Value>, _ value: Value) -> Endpoint {
         var copy = self
         copy[keyPath: keyPath] = value
@@ -102,7 +107,7 @@ public struct Endpoint<Response: Sendable>: Sendable {
         return Endpoint<NewResponse>(
             method: method, path: path, query: query, headers: headers, body: body,
             timeout: timeout, acceptableStatusCodes: acceptableStatusCodes,
-            retryPolicy: retryPolicy
+            cachePolicy: cachePolicy, retryPolicy: retryPolicy
         ) { data, decoder in
             try transform(decode(data, decoder))
         }

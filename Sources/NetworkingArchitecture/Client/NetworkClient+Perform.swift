@@ -1,7 +1,15 @@
 import Foundation
 
 extension NetworkClient {
-    /// The outcome of ``perform(_:endpoint:errorBody:extraAcceptedStatusCodes:attempt:)``.
+    /// What to do with an adapted request before it is sent.
+    enum Preparation<Payload: Sendable>: Sendable {
+        /// Send this request (possibly with extra headers).
+        case send(URLRequest)
+        /// Do not send anything; answer with this response.
+        case respond(HTTPResponse<Payload>)
+    }
+
+    /// The outcome of ``perform(_:endpoint:errorBody:extraAcceptedStatusCodes:prepare:attempt:)``.
     struct PerformResult<Payload: Sendable>: Sendable {
         /// The accepted response.
         let response: HTTPResponse<Payload>
@@ -16,6 +24,7 @@ extension NetworkClient {
         endpoint: Endpoint<Response>,
         errorBody: (Payload) -> Data = { $0 as? Data ?? Data() },
         extraAcceptedStatusCodes: Set<Int> = [],
+        prepare: ((URLRequest) async -> Preparation<Payload>)? = nil,
         attempt send: (URLRequest) async throws -> (Payload, HTTPURLResponse)
     ) async throws -> PerformResult<Payload> {
         let policy = endpoint.retryPolicy ?? configuration.retryPolicy
@@ -25,7 +34,13 @@ extension NetworkClient {
 
         while true {
             guard !Task.isCancelled else { throw NetworkError.cancelled }
-            let adapted = try await adapt(request, context: context)
+            var adapted = try await adapt(request, context: context)
+            if let prepare {
+                switch await prepare(adapted) {
+                case .send(let prepared): adapted = prepared
+                case .respond(let response): return PerformResult(response: response, request: adapted)
+                }
+            }
             notify(.willSend(adapted), context)
             let start = clock.now
             let failure: NetworkError

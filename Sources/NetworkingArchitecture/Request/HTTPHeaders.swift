@@ -107,3 +107,22 @@ extension HTTPHeaders: CustomStringConvertible {
         fields.map { "\($0.name): \($0.value)" }.joined(separator: "\n")
     }
 }
+
+extension HTTPHeaders: Codable {
+    private struct Field: Codable {
+        let name: String
+        let value: String
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let fields = try decoder.singleValueContainer().decode([Field].self)
+        for field in fields {
+            self[field.name] = field.value
+        }
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(fields.map { Field(name: $0.name, value: $0.value) })
+    }
+}

@@ -8,7 +8,7 @@ extension NetworkClient {
     /// configuration.headers["X-Client-Version"] = "2.0"
     /// configuration.decoder.keyDecodingStrategy = .convertFromSnakeCase
     /// configuration.interceptors = [authenticator]
-    /// configuration.monitors = [NetworkLogger()]
+    /// configuration.cache = HybridResponseCache()
     ///
     /// let client = NetworkClient(baseURL: apiURL, configuration: configuration)
     /// ```
@@ -35,6 +35,10 @@ extension NetworkClient {
         /// Retries for endpoints that do not set their own ``Endpoint/retryPolicy``.
         public var retryPolicy: RetryPolicy
 
+        /// Where responses are cached for endpoints whose ``Endpoint/cachePolicy`` is not
+        /// ``CachePolicy/disabled``. `nil` turns caching off for every endpoint.
+        public var cache: (any ResponseCache)?
+
         /// The largest response body read into memory, in bytes; a larger one fails with
         /// ``NetworkError/responseTooLarge(limit:)`` instead of exhausting memory. `nil` reads
         /// any size. Downloads are written to disk and are not limited. The default is 50 MB.
@@ -49,6 +53,7 @@ extension NetworkClient {
             interceptors: [any RequestInterceptor] = [],
             monitors: [any NetworkEventMonitor] = [],
             retryPolicy: RetryPolicy = .default,
+            cache: (any ResponseCache)? = nil,
             maximumResponseSize: Int? = 50 * 1024 * 1024
         ) {
             self.baseURL = baseURL
@@ -58,6 +63,7 @@ extension NetworkClient {
             self.interceptors = interceptors
             self.monitors = monitors
             self.retryPolicy = retryPolicy
+            self.cache = cache
             self.maximumResponseSize = maximumResponseSize
         }
     }
