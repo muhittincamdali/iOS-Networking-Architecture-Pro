@@ -6,8 +6,9 @@ import Foundation
 /// so `access_token`, `Access-Token`, `accessToken` and `ACCESS%5FTOKEN` are the same name.
 /// A name is sensitive when it equals one of ``sensitiveNames`` or contains one of
 /// ``sensitiveNameFragments``. Values are also hidden wherever they appear when they look
-/// like credentials: `Bearer …`, `Basic …` and `Digest …` values (with any whitespace after
-/// the scheme) and JSON Web Tokens.
+/// like credentials: values that start with an HTTP authentication scheme such as `Bearer`,
+/// `Basic`, `Digest`, `Token` or `Negotiate` (with any whitespace after the scheme), and JSON
+/// Web Tokens. A word such as `Token` at the start of ordinary text hides that text too.
 ///
 /// A value that holds a URL or a form is read as well, however deeply it is nested or
 /// percent-encoded: `redirect=https%3A%2F%2Fx%2Fcb%3Faccess_token%3D…` in a query, or
@@ -170,7 +171,8 @@ public struct Redactor: Sendable {
         }
     }
 
-    /// `Bearer …`, `Basic …`, `Digest …` and JSON Web Tokens (`eyJ….….…`).
+    /// A value that starts with an HTTP authentication scheme and whitespace (`Bearer …`,
+    /// `Token …`, ``credentialSchemes``), or a JSON Web Token (`eyJ….….…`).
     func looksLikeCredential(_ value: String) -> Bool {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         // The scheme may be followed by a tab or any other whitespace, not only a space.
@@ -184,7 +186,14 @@ public struct Redactor: Sendable {
         }
     }
 
-    private static let credentialSchemes: Set<String> = ["bearer", "basic", "digest"]
+    /// The schemes of the IANA HTTP Authentication Scheme Registry, plus `Token` (Rails and
+    /// many REST APIs), `ApiKey`, `SSWS` (Okta), `SharedKey` and `SharedAccessSignature`
+    /// (Azure), `AWS4-HMAC-SHA256` and `NTLM`.
+    private static let credentialSchemes: Set<String> = [
+        "basic", "bearer", "concealed", "digest", "dpop", "gnap", "hoba", "mutual", "negotiate", "oauth",
+        "privatetoken", "scram-sha-1", "scram-sha-256", "vapid",
+        "token", "apikey", "ssws", "sharedkey", "sharedaccesssignature", "aws4-hmac-sha256", "ntlm"
+    ]
 
     private static let base64URL = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=")
 

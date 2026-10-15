@@ -48,10 +48,11 @@ to another server never receives it.
 ``NetworkLogger`` and `URLRequest.curlCommand(redactor:)` pass everything through a
 ``Redactor``. It hides header, query, JSON and form values whose names look like credentials
 (`password`, `access_token`, `Access-Token`, `ACCESS%5FTOKEN`, `apiKey`, …), any value that
-looks like a bearer token or a JSON Web Token, and the user and password of a URL. A value
-that is itself a URL or a form is read too, however it is nested or encoded, so a `redirect`
-query value or a JSON string holding `https://x/cb?access_token=…` is hidden. Bodies it
-cannot parse, such as XML, are summarised by size only.
+starts with an HTTP authentication scheme (`Bearer …`, `Token …`, `Negotiate …`, …) or is a
+JSON Web Token, and the user and password of a URL. A value that is itself a URL or a form
+is read too, however it is nested or encoded, so a `redirect` query value or a JSON string
+holding `https://x/cb?access_token=…` is hidden. Bodies it cannot parse, such as XML, are
+summarised by size only.
 
 Redaction is a safety net, not a guarantee: a secret in a URL path or under an unusual name is
 not recognised. Add your own names:

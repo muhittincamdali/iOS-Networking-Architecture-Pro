@@ -41,7 +41,9 @@ struct RedactionTests {
     }
 
     @Test("Credential values are found after any whitespace", arguments: [
-        "Bearer\tabc", "bearer  abc", "Basic\u{00A0}dXNlcjpwYXNz", " Digest username=\"a\"", "BEARER\nabc"
+        "Bearer\tabc", "bearer  abc", "Basic\u{00A0}dXNlcjpwYXNz", " Digest username=\"a\"", "BEARER\nabc",
+        "Token SECRET", "token token=\"abc\"", "Negotiate YIIG", "NTLM TlRMTVNTUAAB", "DPoP eyJ0",
+        "SSWS 00abc", "SharedAccessSignature sr=x&sig=y", "AWS4-HMAC-SHA256 Credential=AKIA/x", "OAuth oauth_token=x"
     ])
     func credentialValuesAfterAnyWhitespace(value: String) {
         let redacted = redactor.redact(["X-Upstream": value] as HTTPHeaders)
@@ -49,9 +51,10 @@ struct RedactionTests {
     }
 
     @Test func ordinaryValuesThatStartWithASchemeNameAreKept() {
-        let redacted = redactor.redact(["X-Note": "Bearer", "X-Kind": "basic-plan"] as HTTPHeaders)
+        let redacted = redactor.redact(["X-Note": "Bearer", "X-Kind": "basic-plan", "X-Mode": "token-only"] as HTTPHeaders)
         #expect(redacted["X-Note"] == "Bearer")
         #expect(redacted["X-Kind"] == "basic-plan")
+        #expect(redacted["X-Mode"] == "token-only")
     }
 
     @Test func azureSharedAccessSignatureIsRedacted() throws {
