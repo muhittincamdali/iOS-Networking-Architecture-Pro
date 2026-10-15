@@ -29,7 +29,8 @@ struct NetworkMonitorTests {
     @Test func reportsTheCurrentPathRightAway() async {
         let start = ContinuousClock.now
         let path = await NetworkMonitor.currentPath()
-        #expect(ContinuousClock.now - start < .seconds(5))
+        // Generous for a slow simulator; the point is that it returns instead of waiting for a change.
+        #expect(ContinuousClock.now - start < .seconds(30))
         // A connected path always names at least one interface.
         if path.isConnected {
             #expect(!path.interfaces.isEmpty)

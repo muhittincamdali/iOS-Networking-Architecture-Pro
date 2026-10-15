@@ -85,9 +85,9 @@ struct URLSessionTransportTests {
         }
     }
 
-    /// Waits until the session's only task is in `state`, for at most five seconds.
+    /// Waits until the session's only task is in `state`, for at most 20 seconds.
     private func waitForTask(in session: URLSession, toBe state: URLSessionTask.State) async throws -> Bool {
-        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
         while ContinuousClock.now < deadline {
             if await session.allTasks.first?.state == state { return true }
             try await Task.sleep(for: .milliseconds(20))
@@ -118,7 +118,7 @@ struct URLSessionTransportTests {
             let (response, _) = try await transport.stream(URLRequest(url: server.url("/large")))
             #expect(response.statusCode == 200)
         }
-        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
         while await !session.allTasks.isEmpty {
             guard ContinuousClock.now < deadline else {
                 Issue.record("The task of a dropped stream kept running")
@@ -144,7 +144,7 @@ struct URLSessionTransportTests {
         reader.cancel()
         // A cancelled reader sees the end of the stream or an error, like with any AsyncStream.
         _ = await reader.result
-        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
         while task.state != .completed, ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(20))
         }

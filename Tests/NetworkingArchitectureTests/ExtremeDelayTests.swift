@@ -63,7 +63,13 @@ struct ExtremeDelayTests {
         let socket = WebSocketConnection(url: URL(string: "ws://127.0.0.1:9/socket")!, options: options)
         let stream = await socket.messages()
         let reader = Task { for try await _ in stream {} }
-        try await Task.sleep(for: .milliseconds(300))
+        // Polled rather than a fixed pause: on a busy machine the first attempt can take longer
+        // to be refused.
+        let deadline = ContinuousClock.now.advanced(by: .seconds(30))
+        while ContinuousClock.now < deadline {
+            if case .reconnecting = await socket.state { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
         guard case .reconnecting = await socket.state else {
             Issue.record("Expected to wait before reconnecting")
             return

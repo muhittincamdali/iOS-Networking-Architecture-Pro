@@ -159,7 +159,8 @@ struct EventStreamTests {
         let start = ContinuousClock.now
         let events = try await collect(client.events(.get("s"), options: EventStreamOptions(maximumRetry: .milliseconds(50))))
         #expect(events.count == 1)
-        #expect(ContinuousClock.now - start < .seconds(5))
+        // Uncapped, the wait would be 999999999 seconds; the bound leaves room for a slow machine.
+        #expect(ContinuousClock.now - start < .seconds(30))
     }
 
     @Test func aZeroServerRetryStillWaitsTheMinimum() async throws {
@@ -191,8 +192,12 @@ struct EventStreamTests {
         let transport = MockTransport { _ in .text(events, headers: ["Content-Type": "text/event-stream"]) }
         let client = NetworkClient(baseURL: base, transport: transport)
         let stream = client.events(.get("s"), options: EventStreamOptions(reconnects: false, maximumBufferedEvents: 5))
-        // Let the producer run ahead before reading anything.
-        try await Task.sleep(for: .milliseconds(200))
+        // Let the producer run ahead before reading anything: wait for the request, then give
+        // it time to parse the 50 events, generously for a slow machine.
+        while transport.requests.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        try await Task.sleep(for: .seconds(1))
         var received: [String] = []
         do {
             for try await event in stream { received.append(event.data) }

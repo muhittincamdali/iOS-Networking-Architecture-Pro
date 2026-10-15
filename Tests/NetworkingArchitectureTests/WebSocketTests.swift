@@ -46,9 +46,9 @@ private final class Inbox: @unchecked Sendable {
         lock.unlock()
     }
 
-    /// Waits until `condition` holds, for at most five seconds.
+    /// Waits until `condition` holds, for at most 20 seconds (generous for a slow simulator).
     func waitFor(_ condition: @escaping @Sendable (Inbox) -> Bool) async throws {
-        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
         while !condition(self) {
             guard ContinuousClock.now < deadline else { throw CancellationError() }
             try await Task.sleep(for: .milliseconds(20))
@@ -87,7 +87,7 @@ struct WebSocketTests {
         try await socket.send(.text("first"))
         try await inbox.waitFor { $0.received.count == 1 }
         try await socket.send(.text("drop"))
-        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
         while true {
             let state = await socket.state
             if server.connectionCount >= 2, state == .connected { break }
