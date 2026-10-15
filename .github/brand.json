@@ -1,0 +1,40 @@
+{
+  "name": "Networking Architecture",
+  "repository": "muhittincamdali/iOS-Networking-Architecture-Pro",
+  "branch": "master",
+  "tagline": {
+    "en": "Typed endpoints, retries, token refresh, caching and streaming on URLSession, without dependencies.",
+    "tr": "URLSession üzerinde tipli uç noktalar, yeniden deneme, token yenileme, önbellek ve akış; bağımlılık yok.",
+    "zh-CN": "基于 URLSession：类型化端点、重试、令牌刷新、缓存和流式传输，无依赖。",
+    "ja": "URLSession 上の型付きエンドポイント、リトライ、トークン更新、キャッシュ、ストリーミング。依存関係なし。",
+    "ko": "URLSession 기반 타입 엔드포인트, 재시도, 토큰 갱신, 캐싱, 스트리밍. 의존성 없음.",
+    "es": "Endpoints tipados, reintentos, renovación de tokens, caché y streaming sobre URLSession, sin dependencias.",
+    "de": "Typisierte Endpunkte, Wiederholungen, Token-Erneuerung, Caching und Streaming auf URLSession, ohne Abhängigkeiten.",
+    "fr": "Endpoints typés, relances, renouvellement de jeton, cache et streaming sur URLSession, sans dépendance.",
+    "pt-BR": "Endpoints tipados, novas tentativas, renovação de token, cache e streaming sobre URLSession, sem dependências.",
+    "ru": "Типизированные эндпоинты, повторы, обновление токенов, кэш и стриминг на URLSession, без зависимостей."
+  },
+  "tags": {
+    "en": ["Swift 6", "URLSession", "No dependencies"],
+    "tr": ["Swift 6", "URLSession", "Bağımlılık yok"],
+    "zh-CN": ["Swift 6", "URLSession", "无依赖"],
+    "ja": ["Swift 6", "URLSession", "依存関係なし"],
+    "ko": ["Swift 6", "URLSession", "의존성 없음"],
+    "es": ["Swift 6", "URLSession", "Sin dependencias"],
+    "de": ["Swift 6", "URLSession", "Keine Abhängigkeiten"],
+    "fr": ["Swift 6", "URLSession", "Sans dépendance"],
+    "pt-BR": ["Swift 6", "URLSession", "Sem dependências"],
+    "ru": ["Swift 6", "URLSession", "Без зависимостей"]
+  },
+  "motif": "code",
+  "buttons": ["start", "docs", "examples"],
+  "links": {
+    "docs": "https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/",
+    "examples": "Examples/"
+  },
+  "languages": ["en", "tr", "zh-CN", "ja", "ko", "es", "de", "fr", "pt-BR", "ru"],
+  "docc": {
+    "targets": ["NetworkingArchitecture"]
+  },
+  "socialTheme": "dark"
+}
