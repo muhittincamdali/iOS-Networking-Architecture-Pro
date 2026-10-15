@@ -85,6 +85,10 @@ let client = NetworkClient(baseURL: apiURL, configuration: configuration)
 The defaults retry idempotent requests twice after timeouts and `5xx` answers, read at most
 50 MB of a response into memory, and ask for JSON.
 
+The configuration's headers go with every request, also to another host when an endpoint's
+path is a full URL. Keep credentials out of them and add them with an interceptor that checks
+the host instead; see <doc:AuthenticatingRequests>.
+
 ### Handle errors
 
 Every failure is a ``NetworkError``:

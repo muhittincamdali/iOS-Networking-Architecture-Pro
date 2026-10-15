@@ -82,13 +82,17 @@ do {
 
 ### Other schemes
 
-For an API key or a custom scheme, write a small interceptor:
+For an API key or a custom scheme, write a small interceptor. Check the host, because an
+endpoint whose path is a full URL can point anywhere, and so can
+``NetworkClient/Configuration/headers``, which go to every host:
 
 ```swift
 struct APIKey: RequestInterceptor {
     let key: String
+    let host: String
 
     func adapt(_ request: URLRequest, context: RequestContext) async throws -> URLRequest {
+        guard request.url?.scheme == "https", request.url?.host == host else { return request }
         var request = request
         request.setValue(key, forHTTPHeaderField: "X-API-Key")
         return request

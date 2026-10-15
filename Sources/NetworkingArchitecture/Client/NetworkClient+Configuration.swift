@@ -19,6 +19,11 @@ extension NetworkClient {
 
         /// Headers sent with every request. An endpoint's headers replace fields with the same
         /// name. The default asks for JSON.
+        ///
+        /// They go to every host, including the host of an endpoint whose path is a full URL
+        /// (a download link taken from a response, for example). Do not put credentials here:
+        /// add them with an interceptor that checks the host, such as
+        /// ``BearerTokenAuthenticator`` with its `allowedHosts`.
         public var headers: HTTPHeaders
 
         /// Encodes ``RequestBody/json(_:encoder:)`` bodies.

@@ -24,7 +24,8 @@ import Foundation
 ///
 /// The path is resolved against the client's base URL by appending it, so `"users/42"` on a
 /// base URL of `https://api.example.com/v1` requests `https://api.example.com/v1/users/42`.
-/// A path that is a full URL (`https://…`) is used as it is.
+/// A path that is a full URL (`https://…`) is used as it is, with the client's
+/// ``NetworkClient/Configuration/headers`` and interceptors like any other request.
 ///
 /// `Response` decides how the body is read:
 /// - a `Decodable` type is decoded from JSON with the client's decoder;

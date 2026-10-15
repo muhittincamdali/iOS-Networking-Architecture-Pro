@@ -31,6 +31,12 @@ struct RequestBuildingTests {
         #expect(url?.absoluteString == "https://cdn.example.com/a.json")
     }
 
+    /// Documented on `Configuration.headers`: they are not limited to the base URL's host.
+    @Test func defaultHeadersAlsoGoToAFullURLOnAnotherHost() throws {
+        let built = try request(Endpoint<Data>.get("https://cdn.example.com/a.json"), headers: ["X-Client-Version": "2.0"])
+        #expect(built.value(forHTTPHeaderField: "X-Client-Version") == "2.0")
+    }
+
     @Test func pathIsPercentEncoded() throws {
         let url = try request(Endpoint<Data>.get("search/swift concurrency")).url
         #expect(url?.absoluteString == "https://api.example.com/v1/search/swift%20concurrency")

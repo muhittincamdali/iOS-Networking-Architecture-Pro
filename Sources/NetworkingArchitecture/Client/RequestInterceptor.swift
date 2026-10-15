@@ -11,8 +11,11 @@ import Foundation
 /// ```swift
 /// struct APIKeyInterceptor: RequestInterceptor {
 ///     let key: String
+///     let host: String
 ///
 ///     func adapt(_ request: URLRequest, context: RequestContext) async throws -> URLRequest {
+///         // An endpoint whose path is a full URL can point at another server.
+///         guard request.url?.scheme == "https", request.url?.host == host else { return request }
 ///         var request = request
 ///         request.setValue(key, forHTTPHeaderField: "X-API-Key")
 ///         return request
