@@ -9,7 +9,7 @@ extension NetworkClient {
         cache: any ResponseCache
     ) async throws -> HTTPResponse<Data> {
         let policy = endpoint.cachePolicy
-        // The key depends on the adapted request (it includes the Authorization header), so it
+        // The key depends on the adapted request (it includes the credential headers), so it
         // is computed in `prepare`, after the interceptors ran.
         let lookup = Locked<(key: String, entry: CachedResponse?)?>(nil)
         let prepare: (URLRequest) async -> Preparation<Data> = { adapted in

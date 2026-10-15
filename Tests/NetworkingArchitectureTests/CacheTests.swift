@@ -302,4 +302,28 @@ struct CachePolicyTests {
         #expect(!key.contains("secret-token"))
         #expect(key.hasPrefix("GET https://api.example.com/me"))
     }
+
+    @Test("Every credential header separates cache entries", arguments: ["Cookie", "X-API-Key", "X-Auth-Token", "Proxy-Authorization"])
+    func cacheKeySeparatesCredentialHeaders(name: String) {
+        func key(_ value: String?) -> String {
+            var request = URLRequest(url: URL(string: "https://api.example.com/me")!)
+            request.setValue(value, forHTTPHeaderField: name)
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            return CacheKey.make(for: request)
+        }
+        #expect(key("alice-secret") != key("bob-secret"))
+        #expect(key("alice-secret") != key(nil))
+        #expect(key("alice-secret") == key("alice-secret"))
+        #expect(!key("alice-secret").contains("alice-secret"))
+    }
+
+    @Test func cacheKeyDoesNotDependOnHeaderNameCaseOrOrder() {
+        var first = URLRequest(url: URL(string: "https://api.example.com/me")!)
+        first.setValue("a=1", forHTTPHeaderField: "Cookie")
+        first.setValue("k", forHTTPHeaderField: "X-API-Key")
+        var second = URLRequest(url: URL(string: "https://api.example.com/me")!)
+        second.setValue("k", forHTTPHeaderField: "x-api-key")
+        second.setValue("a=1", forHTTPHeaderField: "cookie")
+        #expect(CacheKey.make(for: first) == CacheKey.make(for: second))
+    }
 }
