@@ -162,6 +162,23 @@ struct EventStreamTests {
         #expect(ContinuousClock.now - start < .seconds(5))
     }
 
+    @Test func aConsumerThatFallsBehindEndsTheStreamInsteadOfBufferingForever() async throws {
+        let events = (1...50).map { "data: \($0)\n\n" }.joined()
+        let transport = MockTransport { _ in .text(events, headers: ["Content-Type": "text/event-stream"]) }
+        let client = NetworkClient(baseURL: base, transport: transport)
+        let stream = client.events(.get("s"), options: EventStreamOptions(reconnects: false, maximumBufferedEvents: 5))
+        // Let the producer run ahead before reading anything.
+        try await Task.sleep(for: .milliseconds(200))
+        var received: [String] = []
+        do {
+            for try await event in stream { received.append(event.data) }
+            Issue.record("Expected bufferOverflow")
+        } catch NetworkError.bufferOverflow(let limit) {
+            #expect(limit == 5)
+        }
+        #expect(received == ["1", "2", "3", "4", "5"])
+    }
+
     @Test func stoppingTheIterationClosesTheConnection() async throws {
         let server = try await LocalHTTPServer { _ in
             LocalHTTPServer.Response(

@@ -136,6 +136,30 @@ struct WebSocketTests {
         #expect(inbox.end == "failed")
     }
 
+    @Test func aConsumerThatFallsBehindClosesTheConnection() async throws {
+        let server = try await LocalWebSocketServer()
+        var options = fastReconnect
+        options.maximumBufferedMessages = 3
+        let socket = WebSocketConnection(url: server.url, options: options)
+        let stream = await socket.messages()
+        // The connection may close because of the overflow before all ten are sent.
+        for index in 1...10 {
+            guard (try? await socket.send(.text("\(index)"))) != nil else { break }
+        }
+        // Read nothing until the echoes have piled up.
+        try await Task.sleep(for: .milliseconds(500))
+        var received: [WebSocketConnection.Message] = []
+        do {
+            for try await message in stream { received.append(message) }
+            Issue.record("Expected bufferOverflow")
+        } catch NetworkError.bufferOverflow(let limit) {
+            #expect(limit == 3)
+        }
+        #expect(received == [.text("1"), .text("2"), .text("3")])
+        #expect(await socket.state == .closed)
+        #expect(server.connectionCount == 1)
+    }
+
     @Test func clientWebSocketsUseTheBaseURLAndInterceptors() async throws {
         struct Token: RequestInterceptor {
             func adapt(_ request: URLRequest, context: RequestContext) async throws -> URLRequest {

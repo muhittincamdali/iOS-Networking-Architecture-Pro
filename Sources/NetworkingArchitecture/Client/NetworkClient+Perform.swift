@@ -134,7 +134,8 @@ extension NetworkError {
     /// Errors that a retry cannot fix are thrown right away.
     var isRetryable: Bool {
         switch self {
-        case .invalidRequest, .encodingFailed, .responseTooLarge, .cancelled, .authenticationFailed, .circuitOpen:
+        case .invalidRequest, .encodingFailed, .responseTooLarge, .cancelled, .authenticationFailed, .circuitOpen,
+             .bufferOverflow:
             false
         default:
             true

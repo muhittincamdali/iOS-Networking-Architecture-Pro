@@ -44,6 +44,11 @@ public enum NetworkError: Error, Sendable {
     /// The server sent something that is not an HTTP response.
     case invalidResponse
 
+    /// More streamed messages or events than the limit were waiting to be read, because the
+    /// code iterating the stream fell behind. The stream is closed instead of buffering
+    /// without bound.
+    case bufferOverflow(limit: Int)
+
     /// The task was cancelled.
     case cancelled
 
@@ -110,6 +115,8 @@ extension NetworkError: LocalizedError {
             "Signing in again failed: \(error.localizedDescription)"
         case .invalidResponse:
             "The server sent a response that is not HTTP."
+        case .bufferOverflow(let limit):
+            "More than \(limit) received items were waiting to be read."
         case .cancelled:
             "The request was cancelled."
         }

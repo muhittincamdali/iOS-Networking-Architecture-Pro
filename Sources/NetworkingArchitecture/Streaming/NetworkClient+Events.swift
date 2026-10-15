@@ -18,18 +18,25 @@ public struct EventStreamOptions: Sendable, Hashable {
     /// The largest single event kept in memory. See ``ServerSentEventParser/maximumEventSize``.
     public var maximumEventSize: Int
 
+    /// The most events kept while the code iterating the stream is busy. When more arrive,
+    /// the stream ends with ``NetworkError/bufferOverflow(limit:)`` instead of growing memory
+    /// without bound.
+    public var maximumBufferedEvents: Int
+
     public init(
         reconnects: Bool = true,
         defaultRetry: Duration = .seconds(3),
         maximumRetry: Duration = .seconds(60),
         maximumReconnectAttempts: Int = 5,
-        maximumEventSize: Int = 1_048_576
+        maximumEventSize: Int = 1_048_576,
+        maximumBufferedEvents: Int = 1_000
     ) {
         self.reconnects = reconnects
         self.defaultRetry = max(.zero, defaultRetry)
         self.maximumRetry = max(.zero, maximumRetry)
         self.maximumReconnectAttempts = max(0, maximumReconnectAttempts)
         self.maximumEventSize = max(1, maximumEventSize)
+        self.maximumBufferedEvents = max(1, maximumBufferedEvents)
     }
 }
 
@@ -52,10 +59,16 @@ extension NetworkClient {
         _ endpoint: Endpoint<Void>,
         options: EventStreamOptions = EventStreamOptions()
     ) -> AsyncThrowingStream<ServerSentEvent, any Error> {
-        let (stream, continuation) = AsyncThrowingStream<ServerSentEvent, any Error>.makeStream()
+        let (stream, continuation) = AsyncThrowingStream<ServerSentEvent, any Error>.makeStream(
+            bufferingPolicy: .bufferingOldest(options.maximumBufferedEvents)
+        )
         let task = Task {
             do {
-                try await runEventStream(endpoint, options: options) { continuation.yield($0) }
+                try await runEventStream(endpoint, options: options) { event in
+                    if case .dropped = continuation.yield(event) {
+                        throw NetworkError.bufferOverflow(limit: options.maximumBufferedEvents)
+                    }
+                }
                 continuation.finish()
             } catch {
                 continuation.finish(throwing: NetworkError(error))
@@ -68,7 +81,7 @@ extension NetworkClient {
     private func runEventStream(
         _ endpoint: Endpoint<Void>,
         options: EventStreamOptions,
-        emit: (ServerSentEvent) -> Void
+        emit: (ServerSentEvent) throws -> Void
     ) async throws {
         var base = try makeRequest(for: endpoint)
         base.setValue("text/event-stream", forHTTPHeaderField: "Accept")
@@ -89,11 +102,13 @@ extension NetworkClient {
                 for try await chunk in chunks {
                     for event in try parser.parse(chunk) {
                         delivered = true
-                        emit(event)
+                        try emit(event)
                     }
                 }
             } catch let error as ServerSentEventParser.EventTooLarge {
                 throw NetworkError.responseTooLarge(limit: error.limit)
+            } catch NetworkError.bufferOverflow(let limit) {
+                throw NetworkError.bufferOverflow(limit: limit)
             } catch {
                 failure = NetworkError(error)
             }

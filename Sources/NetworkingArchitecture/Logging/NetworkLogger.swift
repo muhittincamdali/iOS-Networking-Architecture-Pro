@@ -106,6 +106,7 @@ public struct NetworkLogger: NetworkEventMonitor {
         case .circuitOpen: "circuit open"
         case .authenticationFailed: "authentication failed"
         case .invalidResponse: "invalid response"
+        case .bufferOverflow(let limit): "more than \(limit) items waiting to be read"
         case .cancelled: "cancelled"
         }
     }

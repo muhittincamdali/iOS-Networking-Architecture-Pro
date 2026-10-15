@@ -49,19 +49,25 @@ public actor WebSocketConnection {
         public var pingInterval: Duration?
         /// The largest message accepted, in bytes; a larger one closes the connection.
         public var maximumMessageSize: Int
+        /// The most messages kept while the code iterating ``messages()`` is busy. When more
+        /// arrive, the connection closes and the stream ends with
+        /// ``NetworkError/bufferOverflow(limit:)`` instead of growing memory without bound.
+        public var maximumBufferedMessages: Int
 
         public init(
             reconnects: Bool = true,
             maximumReconnectAttempts: Int = 5,
             backoff: RetryPolicy = RetryPolicy(baseDelay: .seconds(1), maximumDelay: .seconds(30)),
             pingInterval: Duration? = .seconds(25),
-            maximumMessageSize: Int = 1_048_576
+            maximumMessageSize: Int = 1_048_576,
+            maximumBufferedMessages: Int = 1_000
         ) {
             self.reconnects = reconnects
             self.maximumReconnectAttempts = max(0, maximumReconnectAttempts)
             self.backoff = backoff
             self.pingInterval = pingInterval.map { max(.milliseconds(100), $0) }
             self.maximumMessageSize = max(1, maximumMessageSize)
+            self.maximumBufferedMessages = max(1, maximumBufferedMessages)
         }
     }
 
@@ -106,7 +112,9 @@ public actor WebSocketConnection {
     /// Opens the connection and returns the messages it receives. Call it once; a second
     /// call finishes the first stream and starts a new connection.
     public func messages() -> AsyncThrowingStream<Message, any Error> {
-        let (stream, continuation) = AsyncThrowingStream<Message, any Error>.makeStream()
+        let (stream, continuation) = AsyncThrowingStream<Message, any Error>.makeStream(
+            bufferingPolicy: .bufferingOldest(options.maximumBufferedMessages)
+        )
         stop()
         closedByClient = false
         generation += 1
@@ -198,6 +206,10 @@ public actor WebSocketConnection {
                 outcome = error
             }
             guard !Task.isCancelled, !closedByClient else { break }
+            if case NetworkError.bufferOverflow? = outcome {
+                continuation?.finish(throwing: outcome)
+                break
+            }
             // A connection that opened resets the count; only failures in a row add up.
             if connectedThisAttempt { failures = 0 }
             let closeCode = task?.closeCode ?? .invalid
@@ -228,10 +240,15 @@ public actor WebSocketConnection {
             while true {
                 let message = try await task.receive()
                 markConnected(task)
+                let delivered: Message
                 switch message {
-                case .string(let text): continuation?.yield(.text(text))
-                case .data(let data): continuation?.yield(.data(data))
-                @unknown default: break
+                case .string(let text): delivered = .text(text)
+                case .data(let data): delivered = .data(data)
+                @unknown default: continue
+                }
+                if case .dropped = continuation?.yield(delivered) {
+                    task.cancel(with: .goingAway, reason: nil)
+                    return NetworkError.bufferOverflow(limit: options.maximumBufferedMessages)
                 }
             }
         } catch {
