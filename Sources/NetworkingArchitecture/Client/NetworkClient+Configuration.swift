@@ -8,6 +8,7 @@ extension NetworkClient {
     /// configuration.headers["X-Client-Version"] = "2.0"
     /// configuration.decoder.keyDecodingStrategy = .convertFromSnakeCase
     /// configuration.interceptors = [authenticator]
+    /// configuration.monitors = [NetworkLogger()]
     /// configuration.cache = HybridResponseCache()
     ///
     /// let client = NetworkClient(baseURL: apiURL, configuration: configuration)
