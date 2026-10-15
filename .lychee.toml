@@ -15,8 +15,9 @@ timeout = 20
 # contents cannot point at a renamed heading.
 include_fragments = "anchor-only"
 
-# 403/429 from rate limiting are not broken links; everything else outside 2xx is.
-accept = ["200..=299", "403", "429"]
+# 429 from rate limiting is not a broken link; everything else outside 2xx is, including 403,
+# so a page that has been made private or removed behind a sign-in wall is reported.
+accept = ["200..=299", "429"]
 
 exclude_loopback = true
 exclude_private = true
@@ -44,8 +45,8 @@ remap = [
   # The article pages on GitHub Pages are built from the .docc articles by docs.yml after a push
   # to main, so a pull request that adds an article links to a page that is not online yet. Each
   # article URL, and the documentation root, is checked against its source file instead. The
-  # site itself is verified by the docs workflow, which builds it on every pull request and
-  # deploys it on every push to main.
+  # published site is checked by the "live" job of docs.yml, which requests every one of these
+  # pages after each deploy and fails when one does not answer 200.
   '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/?$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/NetworkingArchitecture.md',
   '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/gettingstarted$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/GettingStarted.md',
   '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/handlingfailures$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/HandlingFailures.md',
