@@ -54,6 +54,8 @@ public actor WebSocketConnection {
         /// ``NetworkError/bufferOverflow(limit:)`` instead of growing memory without bound.
         public var maximumBufferedMessages: Int
 
+        /// Creates options. See the properties for what each value means; out-of-range values
+        /// are clamped.
         public init(
             reconnects: Bool = true,
             maximumReconnectAttempts: Int = 5,

@@ -2,7 +2,7 @@ import Foundation
 
 /// A `URLSession` delegate that answers server trust challenges with ``PublicKeyPinning``.
 ///
-/// ``URLSessionTransport/init(configuration:pinning:)`` creates a session with this delegate
+/// ``URLSessionTransport/init(configuration:pinning:redirectPolicy:)`` creates a session with this delegate
 /// for you. Use the delegate directly when you build the `URLSession` yourself.
 ///
 /// When a server is rejected the connection is cancelled, and a request sent through
@@ -17,8 +17,10 @@ public final class PinningSessionDelegate: NSObject, URLSessionTaskDelegate, Sen
 
     /// Creates a delegate.
     ///
-    /// - Parameter onRejection: Called with the host and the reason whenever a server is
-    ///   rejected, for logging or reporting.
+    /// - Parameters:
+    ///   - pinning: The pins to enforce.
+    ///   - onRejection: Called with the host and the reason whenever a server is rejected,
+    ///     for logging or reporting.
     public init(pinning: PublicKeyPinning, onRejection: (@Sendable (_ host: String, _ reason: String) -> Void)? = nil) {
         self.pinning = pinning
         self.onRejection = onRejection

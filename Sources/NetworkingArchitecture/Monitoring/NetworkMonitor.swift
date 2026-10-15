@@ -20,6 +20,7 @@ public struct NetworkPath: Sendable, Hashable {
     /// The interfaces the connection uses.
     public let interfaces: Set<Interface>
 
+    /// Creates a path, for example to test code that reacts to connectivity.
     public init(isConnected: Bool, isExpensive: Bool = false, isConstrained: Bool = false, interfaces: Set<Interface> = []) {
         self.isConnected = isConnected
         self.isExpensive = isExpensive

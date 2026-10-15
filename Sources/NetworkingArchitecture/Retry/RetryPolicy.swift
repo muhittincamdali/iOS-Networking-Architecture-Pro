@@ -83,9 +83,14 @@ public struct RetryPolicy: Sendable, Hashable {
     /// The upper bound for ``maximumAttempts``.
     public static let attemptLimit = 10
 
-    /// Decides whether to retry after `error` on attempt number `attempt` (starting at 1).
+    /// Decides whether to retry after `error`.
     ///
-    /// - Parameter random: Returns a number in 0...1 for the jitter; tests pass a fixed one.
+    /// - Parameters:
+    ///   - error: The error of the attempt that failed.
+    ///   - method: The request method; non-idempotent methods are only retried when
+    ///     ``retriesNonIdempotentRequests`` is set.
+    ///   - attempt: The number of the attempt that failed, starting at 1.
+    ///   - random: Returns a number in 0...1 for the jitter; tests pass a fixed one.
     public func decision(
         for error: NetworkError,
         method: HTTPMethod,

@@ -86,7 +86,9 @@ public struct GraphQLError: Error, Sendable, Hashable, Decodable {
 
     /// A position in the query document.
     public struct Location: Sendable, Hashable, Decodable {
+        /// The line, starting at 1.
         public let line: Int
+        /// The column, starting at 1.
         public let column: Int
     }
 

@@ -23,6 +23,8 @@ public struct EventStreamOptions: Sendable, Hashable {
     /// without bound.
     public var maximumBufferedEvents: Int
 
+    /// Creates options. See the properties for what each value means; out-of-range values are
+    /// clamped.
     public init(
         reconnects: Bool = true,
         defaultRetry: Duration = .seconds(3),

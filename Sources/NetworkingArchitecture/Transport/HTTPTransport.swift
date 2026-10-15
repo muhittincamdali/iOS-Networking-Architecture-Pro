@@ -9,8 +9,10 @@ import Foundation
 public protocol HTTPTransport: Sendable {
     /// Sends `request` and returns the complete body and the response.
     ///
-    /// - Parameter maximumResponseSize: When not `nil`, stop reading and throw
-    ///   ``NetworkError/responseTooLarge(limit:)`` once the body exceeds this many bytes.
+    /// - Parameters:
+    ///   - request: The request to send.
+    ///   - maximumResponseSize: When not `nil`, stop reading and throw
+    ///     ``NetworkError/responseTooLarge(limit:)`` once the body exceeds this many bytes.
     func send(_ request: URLRequest, maximumResponseSize: Int?) async throws -> (Data, HTTPURLResponse)
 
     /// Sends `request` and returns the response as soon as its headers arrive, with the body

@@ -82,8 +82,10 @@ public enum RetryDecision: Sendable, Hashable {
 
 /// Why a request was retried. Interceptors use it to limit their own retries.
 public struct RetryReason: RawRepresentable, Hashable, Sendable, ExpressibleByStringLiteral {
+    /// The name of the reason.
     public let rawValue: String
 
+    /// Creates a reason with a name of your own, such as `"rateLimited"`.
     public init(rawValue: String) {
         self.rawValue = rawValue
     }

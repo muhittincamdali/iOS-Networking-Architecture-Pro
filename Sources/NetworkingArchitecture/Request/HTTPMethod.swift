@@ -18,12 +18,19 @@ public struct HTTPMethod: RawRepresentable, Hashable, Sendable, ExpressibleByStr
         self.init(rawValue: value)
     }
 
+    /// `GET`: read a resource.
     public static let get = HTTPMethod(rawValue: "GET")
+    /// `HEAD`: like `GET`, without the body.
     public static let head = HTTPMethod(rawValue: "HEAD")
+    /// `POST`: create a resource or run an action.
     public static let post = HTTPMethod(rawValue: "POST")
+    /// `PUT`: replace a resource.
     public static let put = HTTPMethod(rawValue: "PUT")
+    /// `PATCH`: change part of a resource.
     public static let patch = HTTPMethod(rawValue: "PATCH")
+    /// `DELETE`: remove a resource.
     public static let delete = HTTPMethod(rawValue: "DELETE")
+    /// `OPTIONS`: ask what a resource supports.
     public static let options = HTTPMethod(rawValue: "OPTIONS")
 
     /// Whether sending the request twice has the same effect as sending it once

@@ -63,14 +63,16 @@ public final class NetworkClient: Sendable {
         return try decode(result.response, for: endpoint)
     }
 
-    /// Sends `endpoint` as an upload and decodes the response. `progress` is called as the
-    /// body is sent.
-    ///
-    /// - Parameter file: A file to send as the body, read as it is sent instead of being
-    ///   loaded into memory. When `nil`, the endpoint's own body is sent. With a file, the
-    ///   `Content-Type` of the endpoint's body (if any) is still used.
+    /// Sends `endpoint` as an upload and decodes the response.
     ///
     /// A failed upload is retried like any request, starting from the first byte.
+    ///
+    /// - Parameters:
+    ///   - endpoint: The request to send; its body is uploaded unless you pass `file`.
+    ///   - file: A file to send as the body, read as it is sent instead of being loaded into
+    ///     memory. With a file, the `Content-Type` of the endpoint's body (if any) is still
+    ///     used.
+    ///   - progress: Called as the body is sent.
     public func upload<Response>(
         _ endpoint: Endpoint<Response>,
         file: URL? = nil,
@@ -86,10 +88,15 @@ public final class NetworkClient: Sendable {
     }
 
     /// Downloads the body of `endpoint` to `destination`, replacing any file there, and
-    /// returns the response with the file URL. `progress` is called as the body arrives.
+    /// returns the response with the file URL.
     ///
     /// The file at `destination` is only replaced once a response with an accepted status
     /// code has been downloaded completely.
+    ///
+    /// - Parameters:
+    ///   - endpoint: The request to send.
+    ///   - destination: Where to put the file. Missing folders are created.
+    ///   - progress: Called as the body arrives.
     @discardableResult
     public func download(
         _ endpoint: Endpoint<Void>,

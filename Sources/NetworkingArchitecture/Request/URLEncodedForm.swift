@@ -14,9 +14,12 @@ import Foundation
 public struct URLEncodedForm: Sendable, Hashable, ExpressibleByDictionaryLiteral {
     /// One name and value.
     public struct Field: Sendable, Hashable {
+        /// The field name, before encoding.
         public var name: String
+        /// The field value, before encoding.
         public var value: String
 
+        /// Creates a field.
         public init(name: String, value: String) {
             self.name = name
             self.value = value

@@ -36,6 +36,7 @@ public struct CachedResponse: Sendable, Codable, Hashable {
     /// When the response was received or last revalidated.
     public var storedAt: Date
 
+    /// Creates a stored response. You only need this to fill a cache yourself or in tests.
     public init(data: Data, statusCode: Int, headers: HTTPHeaders, url: URL?, storedAt: Date = Date()) {
         self.data = data
         self.statusCode = statusCode

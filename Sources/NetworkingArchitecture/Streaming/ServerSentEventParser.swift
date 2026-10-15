@@ -12,6 +12,7 @@ public struct ServerSentEvent: Sendable, Hashable {
     /// or an empty string.
     public var id: String
 
+    /// Creates an event, for example to test code that handles events.
     public init(type: String = "message", data: String, id: String = "") {
         self.type = type
         self.data = data

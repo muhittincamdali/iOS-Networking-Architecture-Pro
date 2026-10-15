@@ -30,6 +30,7 @@ public struct MultipartFormData: Sendable {
 
     /// The error thrown for a boundary that RFC 2046 does not allow.
     public struct InvalidBoundary: Error, Sendable, Equatable {
+        /// The boundary that was rejected.
         public let boundary: String
     }
 
@@ -68,6 +69,8 @@ public struct MultipartFormData: Sendable {
     /// Adds a file from memory.
     ///
     /// - Parameters:
+    ///   - data: The contents of the file.
+    ///   - name: The form field name.
     ///   - fileName: The file name the server sees. `nil` sends the data as a field without
     ///     a file name.
     ///   - mimeType: The part's `Content-Type`. A value with a line break is replaced with
@@ -88,6 +91,9 @@ public struct MultipartFormData: Sendable {
 
     /// Adds the contents of a file. The MIME type is derived from the file extension when you
     /// do not pass one.
+    ///
+    /// The whole file is read into memory. For large files, send the file itself with
+    /// ``NetworkClient/upload(_:file:progress:)`` instead of a multipart body.
     public mutating func append(
         contentsOf fileURL: URL,
         name: String,

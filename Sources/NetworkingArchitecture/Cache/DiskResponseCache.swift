@@ -28,8 +28,10 @@ public actor DiskResponseCache: ResponseCache {
 
     /// Creates a cache in `directory`, creating the directory if needed.
     ///
-    /// - Parameter byteLimit: The largest total size of the files kept. A single response
-    ///   larger than this is not stored.
+    /// - Parameters:
+    ///   - directory: The directory for the files. Use one directory per cache.
+    ///   - byteLimit: The largest total size of the files kept. A single response larger
+    ///     than this is not stored.
     public init(directory: URL, byteLimit: Int = 50 * 1024 * 1024) {
         self.directory = directory
         self.byteLimit = max(0, byteLimit)

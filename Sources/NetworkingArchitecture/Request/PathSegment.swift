@@ -13,6 +13,7 @@ public struct PathSegment: CustomStringConvertible, Sendable, Hashable {
     /// The value before encoding.
     public let value: String
 
+    /// Wraps a value, such as a user name or an ID, for use as one path segment.
     public init(_ value: some CustomStringConvertible) {
         self.value = value.description
     }

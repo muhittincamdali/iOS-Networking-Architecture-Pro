@@ -11,6 +11,7 @@ public struct BearerToken: Sendable, Codable, Hashable {
     /// When the access token stops being accepted, if known.
     public var expiresAt: Date?
 
+    /// Creates a token.
     public init(accessToken: String, refreshToken: String? = nil, expiresAt: Date? = nil) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
