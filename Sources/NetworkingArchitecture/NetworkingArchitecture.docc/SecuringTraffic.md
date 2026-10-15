@@ -51,9 +51,10 @@ to another server never receives it.
 (`password`, `access_token`, `Access-Token`, `ACCESS%5FTOKEN`, `apiKey`, …), any value that
 starts with an HTTP authentication scheme (`Bearer …`, `Token …`, `Negotiate …`, …, and
 `Bearer+…` in a query, where `+` is a space) or is a JSON Web Token, and the user and
-password of a URL. A value that is itself a URL or a form is read too, however it is nested
-or encoded, so a `redirect` query value or a JSON string holding
-`https://x/cb?access_token=…` is hidden. Bodies it cannot parse, such as XML, are summarised
+password of a URL. A value that is itself a URL, a form or JSON is read too, however it is
+nested or encoded, so a `redirect` query value or a JSON string holding
+`https://x/cb?access_token=…`, and a `state` query value or a header holding
+`{"access_token":…}`, is hidden. Bodies it cannot parse, such as XML, are summarised
 by size only.
 
 Path parameters such as `;jsessionid=…` are treated like query fields. Redaction is a safety

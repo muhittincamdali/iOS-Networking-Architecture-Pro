@@ -50,6 +50,25 @@ struct EmbeddedRedactionTests {
         #expect(redactor.redact(url) == "https://api.example.com/a?\(expected)")
     }
 
+    @Test func aQueryValueHoldingJSONWithASensitiveKeyIsHidden() throws {
+        let state = "%7B%22access_token%22%3A%22SECRET5%22%7D"
+        let url = try #require(URL(string: "https://api.example.com/a?state=\(state)&page=%7B%22n%22%3A2%7D"))
+        #expect(redactor.redact(url) == "https://api.example.com/a?state=<redacted>&page=%7B%22n%22%3A2%7D")
+    }
+
+    @Test func aJSONStringHoldingJSONWithASensitiveKeyIsHidden() {
+        let body = Data(#"{"data":"{\"access_token\":\"SECRET6\"}","list":"[{\"a\":\"{\\\"pin\\\":1}\"}]","page":"{\"n\":2}"}"#.utf8)
+        let text = redactor.redact(body: body, contentType: "application/json")
+        #expect(text == #"{"data":"<redacted>","list":"<redacted>","page":"{\"n\":2}"}"#)
+    }
+
+    @Test func aHeaderHoldingJSONWithASensitiveKeyIsHidden() {
+        let redacted = redactor.redact(["X-Ctx": #"{"token":"SECRET7"}"#, "X-Page": #"{"n":2}"#, "X-Note": "[draft"] as HTTPHeaders)
+        #expect(redacted["X-Ctx"] == "<redacted>")
+        #expect(redacted["X-Page"] == #"{"n":2}"#)
+        #expect(redacted["X-Note"] == "[draft")
+    }
+
     @Test func aJSONStringHoldingAURLWithATokenIsHidden() {
         let body = Data(#"{"next":"https://x.example/cb?access_token=SECRET1","page":"https://x.example/cb?page=2"}"#.utf8)
         let text = redactor.redact(body: body, contentType: "application/json")

@@ -88,8 +88,9 @@ for this package rather than copied.
   hides values that start with an HTTP authentication scheme (`Bearer`, `Token`,
   `Negotiate`, …) and JSON Web Tokens by their value (reading `+` in a query value as a
   space, so `?note=Bearer+…` is hidden), also reads values that are
-  themselves URLs or forms (a `redirect` query value or a JSON string holding
-  `https://x/cb?access_token=…`) however deeply they are nested or encoded, hides
+  themselves URLs, forms or JSON (a `redirect` query value or a JSON string holding
+  `https://x/cb?access_token=…`, or a query value, header or JSON string holding
+  `{"access_token":…}`) however deeply they are nested or encoded, hides
   sensitive path parameters such as `;jsessionid=…`, and does not print bodies it cannot
   parse.
 - Pinning failures surface as `URLError.serverCertificateUntrusted` instead of a

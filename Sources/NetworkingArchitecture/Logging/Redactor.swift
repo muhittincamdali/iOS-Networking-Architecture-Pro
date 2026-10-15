@@ -14,7 +14,9 @@ import Foundation
 /// A value that holds a URL or a form is read as well, however deeply it is nested or
 /// percent-encoded: `redirect=https%3A%2F%2Fx%2Fcb%3Faccess_token%3D…` in a query, or
 /// `"next": "https://x/cb?access_token=…"` in JSON, is hidden as a whole because the inner
-/// URL has a sensitive field. So is a URL that carries a user name or password.
+/// URL has a sensitive field. So is a URL that carries a user name or password, and a value
+/// that holds JSON with a sensitive key, such as `state=%7B%22access_token%22…` in a query,
+/// `X-Context: {"token":…}` in a header or `"data": "{\"access_token\":…}"` in JSON.
 ///
 /// Bodies are shown only when they can be parsed: JSON (every nested sensitive key is
 /// hidden) and URL-encoded forms. Other bodies, such as XML or plain text, are summarised
@@ -171,7 +173,8 @@ public struct Redactor: Sendable {
         }.joined(separator: "/")
     }
 
-    private static let maximumDepth = 64
+    /// How deeply JSON is read before a nested value is hidden unread.
+    static let maximumDepth = 64
 
     private func redactJSON(_ value: Any, depth: Int) -> Any {
         guard depth < Self.maximumDepth else { return replacement }
