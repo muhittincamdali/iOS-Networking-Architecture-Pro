@@ -213,7 +213,7 @@ public actor WebSocketConnection {
             }
             state = .reconnecting(attempt: failures)
             let delay = options.backoff.delay(forRetry: failures)
-            try? await Task.sleep(for: delay)
+            try? await Pause.sleep(for: delay)
         }
         state = .closed
         continuation = nil
@@ -247,7 +247,7 @@ public actor WebSocketConnection {
             while !Task.isCancelled {
                 if !first {
                     guard let interval else { return }
-                    try? await Task.sleep(for: interval)
+                    try? await Pause.sleep(for: interval)
                     guard !Task.isCancelled else { return }
                 }
                 first = false

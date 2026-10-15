@@ -74,7 +74,7 @@ extension NetworkClient {
             let delay = try await retryDelay(for: failure, request: adapted, method: method, context: &context)
             guard let delay else { throw failure }
             do {
-                try await Task.sleep(for: delay)
+                try await Pause.sleep(for: delay)
             } catch {
                 throw NetworkError.cancelled
             }
@@ -111,7 +111,7 @@ extension NetworkClient {
             decision = context.retryPolicy.decision(for: error, method: method, attempt: context.attempt)
         }
         guard case .retry(let delay, let reason) = decision else { return nil }
-        let wait = max(delay, .zero)
+        let wait = Pause.clamped(delay)
         notify(.willRetry(request, delay: wait, reason: reason), context)
         context.recordRetry(reason)
         return wait

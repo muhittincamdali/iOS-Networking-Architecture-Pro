@@ -109,7 +109,7 @@ extension NetworkClient {
             // A partial event from the dropped connection is discarded, as browsers do.
             parser = parser.restarted()
             let wait = min(parser.reconnectionTime ?? options.defaultRetry, options.maximumRetry)
-            try await Task.sleep(for: max(.zero, wait))
+            try await Pause.sleep(for: wait)
         }
     }
 

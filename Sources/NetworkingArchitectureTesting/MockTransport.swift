@@ -84,7 +84,7 @@ public final class MockTransport: HTTPTransport, @unchecked Sendable {
             let task = Task {
                 for (index, chunk) in chunks.enumerated() {
                     if index > 0, pause > .zero {
-                        try? await Task.sleep(for: pause)
+                        try? await Pause.sleep(for: pause)
                     }
                     guard !Task.isCancelled else { break }
                     continuation.yield(chunk)
@@ -105,7 +105,7 @@ public final class MockTransport: HTTPTransport, @unchecked Sendable {
             mock = nextResponse(for: request)
         }
         if mock.delay > .zero {
-            try await Task.sleep(for: mock.delay)
+            try await Pause.sleep(for: mock.delay)
         }
         if let error = mock.error {
             throw error

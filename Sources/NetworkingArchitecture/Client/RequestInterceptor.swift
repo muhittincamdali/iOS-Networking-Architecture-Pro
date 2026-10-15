@@ -75,8 +75,8 @@ extension NetworkError {
 public enum RetryDecision: Sendable, Hashable {
     /// Fail with the error.
     case doNotRetry
-    /// Send the request again after `delay`. `reason` is counted in
-    /// ``RequestContext/retryCount(for:)``.
+    /// Send the request again after `delay`, which is clamped to 0 seconds...24 hours.
+    /// `reason` is counted in ``RequestContext/retryCount(for:)``.
     case retry(after: Duration, reason: RetryReason)
 }
 
