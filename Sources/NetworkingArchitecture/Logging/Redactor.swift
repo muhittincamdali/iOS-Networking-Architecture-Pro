@@ -16,11 +16,22 @@ import Foundation
 /// (`/reset/8f2a…`) or under an unusual name is not recognised. Add your own names to
 /// ``sensitiveNames`` and ``sensitiveNameFragments``.
 public struct Redactor: Sendable {
-    /// Exact names (after normalising) whose values are hidden.
-    public var sensitiveNames: Set<String>
+    /// Exact names whose values are hidden. Names are normalised when you set them, so
+    /// inserting `"customerReference"` also covers `customer_reference`.
+    public var sensitiveNames: Set<String> {
+        get { normalizedNames }
+        set { normalizedNames = Set(newValue.map(Self.normalize)) }
+    }
 
-    /// Parts of names whose values are hidden, such as `token` in `refresh_token`.
-    public var sensitiveNameFragments: [String]
+    /// Parts of names whose values are hidden, such as `token` in `refresh_token`. They are
+    /// normalised when you set them.
+    public var sensitiveNameFragments: [String] {
+        get { normalizedFragments }
+        set { normalizedFragments = newValue.map(Self.normalize).filter { !$0.isEmpty } }
+    }
+
+    private var normalizedNames: Set<String> = []
+    private var normalizedFragments: [String] = []
 
     /// The text that replaces a hidden value.
     public var replacement: String
@@ -39,8 +50,8 @@ public struct Redactor: Sendable {
         maximumBodyLength: Int = 4_096,
         maximumParsedBodySize: Int = 1_048_576
     ) {
-        self.sensitiveNames = Set(sensitiveNames.map(Self.normalize))
-        self.sensitiveNameFragments = sensitiveNameFragments.map(Self.normalize).filter { !$0.isEmpty }
+        self.normalizedNames = Set(sensitiveNames.map(Self.normalize))
+        self.normalizedFragments = sensitiveNameFragments.map(Self.normalize).filter { !$0.isEmpty }
         self.replacement = replacement
         self.maximumBodyLength = max(0, maximumBodyLength)
         self.maximumParsedBodySize = max(0, maximumParsedBodySize)
@@ -64,7 +75,7 @@ public struct Redactor: Sendable {
     /// Whether values under `name` are hidden.
     public func isSensitive(_ name: String) -> Bool {
         let normalized = Self.normalize(Self.fullyDecoded(name))
-        return sensitiveNames.contains(normalized) || sensitiveNameFragments.contains { normalized.contains($0) }
+        return normalizedNames.contains(normalized) || normalizedFragments.contains { normalized.contains($0) }
     }
 
     /// The headers with sensitive values replaced.

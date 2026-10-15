@@ -99,8 +99,11 @@ struct RedactionTests {
 
     @Test func customNamesExtendTheDefaults() {
         var custom = Redactor()
-        custom.sensitiveNames.insert("customerref")
-        #expect(custom.isSensitive("Customer-Ref"))
+        custom.sensitiveNames.insert("customerReference")
+        custom.sensitiveNameFragments.append("Internal_ID")
+        #expect(custom.isSensitive("Customer-Reference"))
+        #expect(custom.isSensitive("customer_reference"))
+        #expect(custom.isSensitive("x-internal-id-v2"))
     }
 }
 
