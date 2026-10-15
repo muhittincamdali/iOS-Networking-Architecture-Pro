@@ -17,6 +17,10 @@ public protocol HTTPTransport: Sendable {
 
     /// Sends `request` and returns the response as soon as its headers arrive, with the body
     /// as a stream of chunks.
+    ///
+    /// The consumer may read the stream more slowly than the body arrives. An implementation
+    /// should then stop reading instead of buffering without limit, as
+    /// ``URLSessionTransport`` does (see ``URLSessionTransport/streamBufferLimit``).
     func stream(_ request: URLRequest) async throws -> (HTTPURLResponse, AsyncThrowingStream<Data, any Error>)
 
     /// Downloads the body of `request` into a temporary file that the caller then owns.

@@ -14,10 +14,26 @@ public struct URLSessionTransport: HTTPTransport {
     /// How redirects are handled.
     public let redirectPolicy: RedirectPolicy
 
+    /// How many bytes of a streamed body may wait for a slow consumer. When they are
+    /// reached, the transport stops reading from the network until half of them have been
+    /// read, so memory stays bounded and nothing is dropped.
+    public let streamBufferLimit: Int
+
     /// Creates a transport that sends requests with `session`.
-    public init(session: URLSession = .shared, redirectPolicy: RedirectPolicy = .followSafely) {
+    ///
+    /// - Parameters:
+    ///   - session: The session the requests are sent with.
+    ///   - redirectPolicy: How redirects are handled.
+    ///   - streamBufferLimit: How many bytes of a streamed body may wait for the consumer,
+    ///     at least 1. The default is 1 MB.
+    public init(
+        session: URLSession = .shared,
+        redirectPolicy: RedirectPolicy = .followSafely,
+        streamBufferLimit: Int = 1024 * 1024
+    ) {
         self.session = session
         self.redirectPolicy = redirectPolicy
+        self.streamBufferLimit = max(1, streamBufferLimit)
     }
 
     public func send(_ request: URLRequest, maximumResponseSize: Int?) async throws -> (Data, HTTPURLResponse) {
@@ -40,7 +56,7 @@ public struct URLSessionTransport: HTTPTransport {
     }
 
     public func stream(_ request: URLRequest) async throws -> (HTTPURLResponse, AsyncThrowingStream<Data, any Error>) {
-        let delegate = StreamingTaskDelegate(redirectPolicy: redirectPolicy)
+        let delegate = StreamingTaskDelegate(bufferLimit: streamBufferLimit, redirectPolicy: redirectPolicy)
         return try await delegate.run(session.dataTask(with: request))
     }
 
@@ -188,18 +204,37 @@ private final class BufferingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
 }
 
 /// Hands out a body chunk by chunk as it arrives.
+///
+/// The stream is pulled: each `next()` takes the oldest waiting chunk. When `bufferLimit`
+/// bytes are waiting because the consumer is slower than the network, the task is suspended,
+/// and it is resumed once no more than half of them are left, so memory stays bounded and no
+/// chunk is dropped.
 private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDataDelegate, @unchecked Sendable {
     typealias Output = (HTTPURLResponse, AsyncThrowingStream<Data, any Error>)
 
     private struct State {
         var headers: CheckedContinuation<Output, any Error>?
-        var body: AsyncThrowingStream<Data, any Error>.Continuation?
+        var task: URLSessionDataTask?
+        var chunks: [Data] = []
+        var bufferedBytes = 0
+        var isSuspended = false
+        /// A `next()` waiting for the next chunk; only set while `chunks` is empty.
+        var waiter: CheckedContinuation<Data?, any Error>?
+        var isComplete = false
+        var failure: (any Error)?
     }
 
+    private let bufferLimit: Int
     private let state = Locked(State())
+
+    init(bufferLimit: Int, redirectPolicy: RedirectPolicy) {
+        self.bufferLimit = max(1, bufferLimit)
+        super.init(redirectPolicy: redirectPolicy)
+    }
 
     func run(_ task: URLSessionDataTask) async throws -> Output {
         task.delegate = self
+        state.withLock { $0.task = task }
         return try await runTask(task) { continuation in
             state.withLock { $0.headers = continuation }
         }
@@ -215,15 +250,15 @@ private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
             completionHandler(.cancel)
             return
         }
-        let (stream, continuation) = AsyncThrowingStream<Data, any Error>.makeStream()
-        continuation.onTermination = { termination in
-            if case .cancelled = termination {
-                dataTask.cancel()
-            }
+        // Cancels the task once the stream and its iterators are gone, so a consumer that
+        // stops reading does not leave the task suspended or downloading.
+        let lifetime = TaskLifetime(dataTask)
+        let stream = AsyncThrowingStream<Data, any Error> { [self, lifetime] in
+            _ = lifetime
+            return try await next()
         }
         let headers = state.withLock { state in
             defer { state.headers = nil }
-            state.body = continuation
             return state.headers
         }
         completionHandler(.allow)
@@ -231,20 +266,85 @@ private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        _ = state.withLock { $0.body }?.yield(data)
+        let waiter = state.withLock { state -> CheckedContinuation<Data?, any Error>? in
+            if let waiter = state.waiter {
+                state.waiter = nil
+                return waiter
+            }
+            state.chunks.append(data)
+            state.bufferedBytes += data.count
+            if !state.isSuspended, state.bufferedBytes >= bufferLimit {
+                // Suspended and resumed under the lock, so the two cannot overtake each other.
+                state.isSuspended = true
+                dataTask.suspend()
+            }
+            return nil
+        }
+        waiter?.resume(returning: data)
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
         let error = completionError(error, session: session, task: task)
-        let (headers, body) = state.withLock { state in
+        let (headers, waiter) = state.withLock { state in
             defer {
                 state.headers = nil
-                state.body = nil
+                state.waiter = nil
+                state.task = nil
             }
-            return (state.headers, state.body)
+            state.isComplete = true
+            // A waiting next() takes the error now; otherwise the error follows the buffered chunks.
+            state.failure = state.waiter == nil ? error : nil
+            return (state.headers, state.waiter)
         }
         headers?.resume(throwing: error ?? NetworkError.invalidResponse)
-        body?.finish(throwing: error)
+        if let error {
+            waiter?.resume(throwing: error)
+        } else {
+            waiter?.resume(returning: nil)
+        }
+    }
+
+    /// The next chunk, or `nil` at the end of the body.
+    private func next() async throws -> Data? {
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data?, any Error>) in
+                let result = state.withLock { state -> Result<Data?, any Error>? in
+                    if !state.chunks.isEmpty {
+                        let chunk = state.chunks.removeFirst()
+                        state.bufferedBytes -= chunk.count
+                        if state.isSuspended, state.bufferedBytes <= bufferLimit / 2 {
+                            state.isSuspended = false
+                            state.task?.resume()
+                        }
+                        return .success(chunk)
+                    }
+                    guard !state.isComplete else {
+                        defer { state.failure = nil }
+                        return state.failure.map { .failure($0) } ?? .success(nil)
+                    }
+                    state.waiter = continuation
+                    return nil
+                }
+                if let result {
+                    continuation.resume(with: result)
+                }
+            }
+        } onCancel: {
+            state.withLock { $0.task }?.cancel()
+        }
+    }
+}
+
+/// Cancels a task when it is released.
+private final class TaskLifetime: Sendable {
+    private let task: URLSessionTask
+
+    init(_ task: URLSessionTask) {
+        self.task = task
+    }
+
+    deinit {
+        task.cancel()
     }
 }
 

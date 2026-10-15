@@ -78,6 +78,79 @@ struct URLSessionTransportTests {
         #expect(firstDelay < .milliseconds(250))
     }
 
+    /// A server that answers with `count` chunks of 64 KB.
+    private func largeBodyServer(chunks count: Int) async throws -> LocalHTTPServer {
+        try await LocalHTTPServer { _ in
+            LocalHTTPServer.Response(chunks: Array(repeating: Data(repeating: 7, count: 64 * 1024), count: count))
+        }
+    }
+
+    /// Waits until the session's only task is in `state`, for at most five seconds.
+    private func waitForTask(in session: URLSession, toBe state: URLSessionTask.State) async throws -> Bool {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        while ContinuousClock.now < deadline {
+            if await session.allTasks.first?.state == state { return true }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        return false
+    }
+
+    @Test func aSlowStreamConsumerPausesTheTransferWithoutLosingData() async throws {
+        let server = try await largeBodyServer(chunks: 64)
+        let session = URLSession(configuration: .ephemeral)
+        let transport = URLSessionTransport(session: session, streamBufferLimit: 128 * 1024)
+        let (_, stream) = try await transport.stream(URLRequest(url: server.url("/large")))
+
+        #expect(try await waitForTask(in: session, toBe: .suspended), "The transfer was not paused")
+        var received = 0
+        for try await chunk in stream {
+            #expect(chunk.allSatisfy { $0 == 7 })
+            received += chunk.count
+        }
+        #expect(received == 64 * 64 * 1024)
+    }
+
+    @Test func droppingAStreamCancelsItsTask() async throws {
+        let server = try await largeBodyServer(chunks: 64)
+        let session = URLSession(configuration: .ephemeral)
+        let transport = URLSessionTransport(session: session, streamBufferLimit: 64 * 1024)
+        do {
+            let (response, _) = try await transport.stream(URLRequest(url: server.url("/large")))
+            #expect(response.statusCode == 200)
+        }
+        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        while await !session.allTasks.isEmpty {
+            guard ContinuousClock.now < deadline else {
+                Issue.record("The task of a dropped stream kept running")
+                return
+            }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+
+    @Test func cancellingAStreamConsumerEndsTheStream() async throws {
+        let server = try await largeBodyServer(chunks: 64)
+        let session = URLSession(configuration: .ephemeral)
+        let transport = URLSessionTransport(session: session, streamBufferLimit: 64 * 1024)
+        let (_, stream) = try await transport.stream(URLRequest(url: server.url("/large")))
+        #expect(try await waitForTask(in: session, toBe: .suspended), "The transfer was not paused")
+        let reader = Task {
+            var received = 0
+            for try await chunk in stream {
+                received += chunk.count
+                try await Task.sleep(for: .milliseconds(50))
+            }
+            return received
+        }
+        try await Task.sleep(for: .milliseconds(120))
+        reader.cancel()
+        let result = await reader.result
+        guard case .failure = result else {
+            Issue.record("Expected the cancelled reader to fail, got \(result)")
+            return
+        }
+    }
+
     @Test func downloadsToAFileAndReportsProgress() async throws {
         let payload = Data((0..<300_000).map { UInt8($0 % 251) })
         let server = try await LocalHTTPServer { _ in .body(payload) }

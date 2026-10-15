@@ -25,9 +25,9 @@ for this package rather than copied.
   `urlRequest(for:)`, `upload(_:file:progress:)` and `download(_:to:resumingFrom:progress:)`,
   which continues an interrupted download instead of starting again. Form and multipart
   bodies are based on SwiftNetwork's.
-- Transport: `HTTPTransport` and `URLSessionTransport`, which streams bodies, reports
-  upload and download progress and stops reading a body over
-  `Configuration.maximumResponseSize`.
+- Transport: `HTTPTransport` and `URLSessionTransport`, which streams bodies (pausing the
+  transfer while a slow reader catches up), reports upload and download progress and stops
+  reading a body over `Configuration.maximumResponseSize`.
 - Failures: `NetworkError`, `RetryPolicy` with exponential backoff, jitter and `Retry-After`,
   and `CircuitBreaker` (based on SwiftNetwork's).
 - Authentication: `BearerTokenAuthenticator` with single-flight refresh, one retry per
