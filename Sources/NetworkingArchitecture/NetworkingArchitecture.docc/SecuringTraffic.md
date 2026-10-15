@@ -54,8 +54,9 @@ is read too, however it is nested or encoded, so a `redirect` query value or a J
 holding `https://x/cb?access_token=…` is hidden. Bodies it cannot parse, such as XML, are
 summarised by size only.
 
-Redaction is a safety net, not a guarantee: a secret in a URL path or under an unusual name is
-not recognised. Add your own names:
+Path parameters such as `;jsessionid=…` are treated like query fields. Redaction is a safety
+net, not a guarantee: a secret that is a whole path segment (`/reset/8f2a…`) or sits under an
+unusual name is not recognised. Add your own names:
 
 ```swift
 var redactor = Redactor()

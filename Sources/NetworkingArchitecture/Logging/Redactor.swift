@@ -19,8 +19,10 @@ import Foundation
 /// hidden) and URL-encoded forms. Other bodies, such as XML or plain text, are summarised
 /// by size, because a secret in free text cannot be found reliably.
 ///
-/// Redaction is a safety net for logs, not a guarantee: a secret in a URL path segment
-/// (`/reset/8f2a…`) or under an unusual name is not recognised. Add your own names to
+/// Path parameters after a `;` (`/cart;jsessionid=…`) are treated like query fields.
+///
+/// Redaction is a safety net for logs, not a guarantee: a secret that is a whole URL path
+/// segment (`/reset/8f2a…`) or sits under an unusual name is not recognised. Add your own names to
 /// ``sensitiveNames`` and ``sensitiveNameFragments``.
 public struct Redactor: Sendable {
     /// Exact names whose values are hidden. Names are normalised when you set them, so
@@ -97,8 +99,8 @@ public struct Redactor: Sendable {
         return result
     }
 
-    /// The URL as text with the user name, password, fragment and sensitive query values
-    /// replaced.
+    /// The URL as text with the user name, password, fragment, sensitive query values and
+    /// sensitive path parameters (`;jsessionid=…`) replaced.
     public func redact(_ url: URL?) -> String {
         guard let url else { return "<no URL>" }
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return replacement }
@@ -112,7 +114,7 @@ public struct Redactor: Sendable {
         if let port = components.port {
             text += ":\(port)"
         }
-        text += components.percentEncodedPath
+        text += redactPathParameters(components.percentEncodedPath)
         if let items = components.percentEncodedQueryItems {
             text += "?" + items.map { item in
                 let hide = isSensitive(item.name) || containsSecret(item.value ?? "")
@@ -150,6 +152,22 @@ public struct Redactor: Sendable {
     }
 
     // MARK: - Helpers
+
+    /// The path with the values of sensitive parameters after `;` in a segment replaced, as in
+    /// `/cart;jsessionid=…/items`.
+    private func redactPathParameters(_ path: String) -> String {
+        guard path.contains(";") else { return path }
+        return path.split(separator: "/", omittingEmptySubsequences: false).map { segment in
+            let parts = segment.split(separator: ";", omittingEmptySubsequences: false)
+            return ([String(parts[0])] + parts.dropFirst().map { parameter in
+                let pair = parameter.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+                guard pair.count == 2, isSensitive(String(pair[0])) || containsSecret(String(pair[1])) else {
+                    return String(parameter)
+                }
+                return pair[0] + "=" + replacement
+            }).joined(separator: ";")
+        }.joined(separator: "/")
+    }
 
     private static let maximumDepth = 64
 

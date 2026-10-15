@@ -88,8 +88,9 @@ for this package rather than copied.
   hides values that start with an HTTP authentication scheme (`Bearer`, `Token`,
   `Negotiate`, …) and JSON Web Tokens by their value, also reads values that are
   themselves URLs or forms (a `redirect` query value or a JSON string holding
-  `https://x/cb?access_token=…`) however deeply they are nested or encoded, and does not
-  print bodies it cannot parse.
+  `https://x/cb?access_token=…`) however deeply they are nested or encoded, hides
+  sensitive path parameters such as `;jsessionid=…`, and does not print bodies it cannot
+  parse.
 - Pinning failures surface as `URLError.serverCertificateUntrusted` instead of a
   cancellation, system certificate validation always runs before the pins are checked, and
   a host name with a trailing dot (`api.example.com.`) gets the same pins as without it.

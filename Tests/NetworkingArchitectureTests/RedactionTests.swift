@@ -70,6 +70,14 @@ struct RedactionTests {
         #expect(!text.contains("hunter2") && !text.contains("abc123") && !text.contains("xyz"))
     }
 
+    @Test func sensitivePathParametersAreRedacted() throws {
+        let url = try #require(URL(string: "https://api.example.com/cart;jsessionid=SECRET5;v=2/items;Session%5FId=S6?x=1"))
+        let text = redactor.redact(url)
+        #expect(text == "https://api.example.com/cart;jsessionid=<redacted>;v=2/items;Session%5FId=<redacted>?x=1")
+        let plain = try #require(URL(string: "https://api.example.com/a;v=2/b;"))
+        #expect(redactor.redact(plain) == "https://api.example.com/a;v=2/b;")
+    }
+
     @Test func nestedJSONKeysAndTokenValuesAreRedacted() {
         let body = Data("""
         {"user":{"name":"Ada","Password":"p1","profile":{"pass\\u0077ord":"p2"}},
