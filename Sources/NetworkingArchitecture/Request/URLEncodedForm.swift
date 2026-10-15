@@ -44,6 +44,56 @@ public struct URLEncodedForm: Sendable, Hashable, ExpressibleByDictionaryLiteral
         self.fields = elements.map { Field(name: $0.0, value: $0.1) }
     }
 
+    /// Creates a form from the properties of `value`, encoded with `encoder` first.
+    ///
+    /// Nested objects become `parent[child]` names and arrays repeat `name[]`, the convention
+    /// of Rails, PHP and most form parsers; `nil` values are left out and booleans become
+    /// `true` or `false`. The fields are sorted by name.
+    ///
+    /// ```swift
+    /// struct Search: Encodable { let query: String; let tags: [String] }
+    /// let form = try URLEncodedForm(encoding: Search(query: "swift", tags: ["ios", "net"]))
+    /// // fields: query=swift, tags[]=ios, tags[]=net
+    /// ```
+    ///
+    /// - Throws: `EncodingError` when `value` does not encode to a JSON object, or nests
+    ///   deeper than 32 levels.
+    public init<Value: Encodable>(encoding value: Value, encoder: JSONEncoder = JSONEncoder()) throws {
+        let data = try encoder.encode(value)
+        guard let object = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? [String: Any] else {
+            throw EncodingError.invalidValue(value, .init(codingPath: [], debugDescription: "A form needs an object at the top level."))
+        }
+        var fields: [Field] = []
+        try Self.flatten(object, prefix: nil, depth: 0, into: &fields)
+        self.fields = fields
+    }
+
+    private static func flatten(_ value: Any, prefix: String?, depth: Int, into fields: inout [Field]) throws {
+        guard depth <= 32 else {
+            throw EncodingError.invalidValue(value, .init(codingPath: [], debugDescription: "The value nests deeper than 32 levels."))
+        }
+        switch value {
+        case let object as [String: Any]:
+            for key in object.keys.sorted() {
+                let name = prefix.map { "\($0)[\(key)]" } ?? key
+                try flatten(object[key] as Any, prefix: name, depth: depth + 1, into: &fields)
+            }
+        case let array as [Any]:
+            for element in array {
+                try flatten(element, prefix: (prefix ?? "") + "[]", depth: depth + 1, into: &fields)
+            }
+        case is NSNull:
+            break
+        case let number as NSNumber:
+            let isBool = CFGetTypeID(number) == CFBooleanGetTypeID()
+            fields.append(Field(name: prefix ?? "", value: isBool ? (number.boolValue ? "true" : "false") : number.stringValue))
+        case let string as String:
+            fields.append(Field(name: prefix ?? "", value: string))
+        default:
+            fields.append(Field(name: prefix ?? "", value: String(describing: value)))
+        }
+    }
+
     /// Adds a field at the end. Names may repeat, as in `tag=a&tag=b`.
     public mutating func append(_ name: String, _ value: String) {
         fields.append(Field(name: name, value: value))
