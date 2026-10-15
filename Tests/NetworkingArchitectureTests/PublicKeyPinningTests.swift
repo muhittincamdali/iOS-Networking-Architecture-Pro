@@ -104,6 +104,19 @@ struct PublicKeyPinningTests {
         #expect(PublicKeyPinning(pins: ["pinned.test": ["p="]]).pins(for: "cdn.pinned.test") == nil)
     }
 
+    @Test func aTrailingDotNamesTheSameHost() throws {
+        let pinning = PublicKeyPinning(pins: ["pinned.test": [PinningFixtures.leafPin]])
+        #expect(pinning.pins(for: "pinned.test.") == [PinningFixtures.leafPin])
+        #expect(pinning.evaluate(try trust(), host: "PINNED.test.") == .trusted)
+        let dotted = PublicKeyPinning(pins: ["pinned.test.": ["other="]], includesSubdomains: true)
+        #expect(dotted.pins(for: "pinned.test") == ["other="])
+        #expect(dotted.pins(for: "api.pinned.test.") == ["other="])
+        guard case .rejected = dotted.evaluate(try trust(), host: "pinned.test.") else {
+            Issue.record("Expected the unpinned key to be rejected")
+            return
+        }
+    }
+
     @Test func delegateAcceptsRejectsOrDefers() throws {
         let delegate = PinningSessionDelegate(pinning: PublicKeyPinning(pins: ["pinned.test": [PinningFixtures.leafPin]]))
         func answer(_ space: URLProtectionSpace) -> URLSession.AuthChallengeDisposition {

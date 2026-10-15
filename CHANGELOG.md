@@ -87,7 +87,8 @@ for this package rather than copied.
   hides bearer tokens and JSON Web Tokens by their value, and does not print bodies it
   cannot parse.
 - Pinning failures surface as `URLError.serverCertificateUntrusted` instead of a
-  cancellation, and system certificate validation always runs before the pins are checked.
+  cancellation, system certificate validation always runs before the pins are checked, and
+  a host name with a trailing dot (`api.example.com.`) gets the same pins as without it.
 
 ## [1.0.0] - 2026-02-02
 

@@ -51,15 +51,16 @@ public struct PublicKeyPinning: Sendable {
         for (host, hostPins) in pins {
             // Accept the "sha256/…" form that OkHttp and HPKP tools print.
             let hashes = hostPins.map { $0.hasPrefix("sha256/") ? String($0.dropFirst(7)) : $0 }
-            normalized[host.lowercased(), default: []].formUnion(hashes)
+            normalized[Self.canonicalHost(host), default: []].formUnion(hashes)
         }
         self.pins = normalized
         self.includesSubdomains = includesSubdomains
     }
 
-    /// The pins that apply to `host`, or `nil` when it has none.
+    /// The pins that apply to `host`, or `nil` when it has none. Case and a trailing dot
+    /// (`api.example.com.`) do not matter.
     public func pins(for host: String) -> Set<String>? {
-        let host = host.lowercased()
+        let host = Self.canonicalHost(host)
         if let exact = pins[host] { return exact }
         guard includesSubdomains else { return nil }
         let match = pins.keys
@@ -71,7 +72,7 @@ public struct PublicKeyPinning: Sendable {
     /// Validates `trust` for `host` with the system policy and checks it against the pins.
     public func evaluate(_ trust: SecTrust, host: String) -> Evaluation {
         guard let expected = pins(for: host) else { return .notPinned }
-        SecTrustSetPolicies(trust, SecPolicyCreateSSL(true, host as CFString))
+        SecTrustSetPolicies(trust, SecPolicyCreateSSL(true, Self.canonicalHost(host) as CFString))
         var error: CFError?
         guard SecTrustEvaluateWithError(trust, &error) else {
             return .rejected(error.map { CFErrorCopyDescription($0) as String } ?? "the certificate is not trusted")
@@ -81,6 +82,14 @@ public struct PublicKeyPinning: Sendable {
             Self.publicKeyHash(of: certificate).map(expected.contains) ?? false
         }
         return found ? .trusted : .rejected("no certificate in the chain has a pinned public key")
+    }
+
+    /// The host in lower case without the trailing dot of a fully qualified name, which names
+    /// the same server and which certificates never contain.
+    private static func canonicalHost(_ host: String) -> String {
+        var host = host.lowercased()
+        while host.hasSuffix(".") { host.removeLast() }
+        return host
     }
 
     /// The Base64 SHA-256 hash of the certificate's SubjectPublicKeyInfo, or `nil` for a key
