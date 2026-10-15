@@ -11,7 +11,8 @@ extension Redactor {
     ///
     /// The fields are found by splitting the decoded text at `?`, `#`, `&` and `;` rather than
     /// by a URL parser, so text that no parser accepts is still read, and a value keeps its
-    /// spaces (`note=Bearer abc` is a credential).
+    /// spaces (`note=Bearer abc` is a credential). A `+` in a field value is read as a space,
+    /// as in a query or form, so `note=Bearer+abc` is a credential too.
     func containsSecret(_ value: String) -> Bool {
         containsSecret(value, nesting: 0)
     }
@@ -31,8 +32,13 @@ extension Redactor {
             return true
         }
         return fields.contains { field in
-            isSensitive(field.name) || containsSecret(field.value, nesting: nesting + 1)
+            isSensitive(field.name) || containsSecret(Self.plusAsSpace(field.value), nesting: nesting + 1)
         }
+    }
+
+    /// The text with every `+` read as a space, as in a URL query or form value.
+    static func plusAsSpace(_ text: String) -> String {
+        text.replacingOccurrences(of: "+", with: " ")
     }
 
     /// The `name=value` pairs in text such as `https://x/cb;a=1?b=2#c=3` or `b=2&c=3`.

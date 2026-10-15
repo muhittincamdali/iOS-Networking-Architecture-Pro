@@ -8,7 +8,8 @@ import Foundation
 /// ``sensitiveNameFragments``. Values are also hidden wherever they appear when they look
 /// like credentials: values that start with an HTTP authentication scheme such as `Bearer`,
 /// `Basic`, `Digest`, `Token` or `Negotiate` (with any whitespace after the scheme), and JSON
-/// Web Tokens. A word such as `Token` at the start of ordinary text hides that text too.
+/// Web Tokens. A word such as `Token` at the start of ordinary text hides that text too. In a
+/// query value a `+` is read as a space, so `?note=Bearer+…` is a credential as well.
 ///
 /// A value that holds a URL or a form is read as well, however deeply it is nested or
 /// percent-encoded: `redirect=https%3A%2F%2Fx%2Fcb%3Faccess_token%3D…` in a query, or
@@ -117,7 +118,8 @@ public struct Redactor: Sendable {
         text += redactPathParameters(components.percentEncodedPath)
         if let items = components.percentEncodedQueryItems {
             text += "?" + items.map { item in
-                let hide = isSensitive(item.name) || containsSecret(item.value ?? "")
+                // A query value is form-encoded: `+` stands for a space, as in `Bearer+abc`.
+                let hide = isSensitive(item.name) || containsSecret(Self.plusAsSpace(item.value ?? ""))
                 guard let value = item.value else { return item.name }
                 return item.name + "=" + (hide ? replacement : value)
             }.joined(separator: "&")

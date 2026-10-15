@@ -40,6 +40,16 @@ struct EmbeddedRedactionTests {
         #expect(!redactor.containsSecret(value))
     }
 
+    @Test("A plus in a query value is read as a space", arguments: [
+        ("note=Bearer+SECRET", "note=<redacted>"),
+        ("redirect=https%3A%2F%2Fx.example%2Fcb%3Fnote%3DBearer%2BSECRET&page=2", "redirect=<redacted>&page=2"),
+        ("q=a+b", "q=a+b")
+    ])
+    func aPlusInAQueryValueIsASpace(query: String, expected: String) throws {
+        let url = try #require(URL(string: "https://api.example.com/a?\(query)"))
+        #expect(redactor.redact(url) == "https://api.example.com/a?\(expected)")
+    }
+
     @Test func aJSONStringHoldingAURLWithATokenIsHidden() {
         let body = Data(#"{"next":"https://x.example/cb?access_token=SECRET1","page":"https://x.example/cb?page=2"}"#.utf8)
         let text = redactor.redact(body: body, contentType: "application/json")
