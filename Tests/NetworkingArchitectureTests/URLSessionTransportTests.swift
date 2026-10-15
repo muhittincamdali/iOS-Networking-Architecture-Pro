@@ -174,9 +174,14 @@ struct URLSessionTransportTests {
             guard let range = request.header("Range"), range.hasPrefix("bytes="),
                   let start = Int(range.dropFirst(6).prefix { $0 != "-" }) else {
                 ranges.withLock { $0.append("none") }
-                // Declare the whole file but send only the first half, then close.
+                // Declare the whole file but send only the first half, then close. The pause before
+                // the close lets URLSession take in the half first; without it, a busy machine
+                // sometimes saw the close first and its resume data started at byte 0.
                 return LocalHTTPServer.Response(
-                    headers: validators, chunks: [payload.prefix(payload.count / 2)], declaredLength: payload.count
+                    headers: validators,
+                    chunks: [payload.prefix(payload.count / 2), Data()],
+                    chunkDelay: .milliseconds(300),
+                    declaredLength: payload.count
                 )
             }
             ranges.withLock { $0.append(range) }
