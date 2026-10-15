@@ -247,6 +247,30 @@ struct URLSessionTransportTests {
         #expect(progress.all.last == String(payload.count))
     }
 
+    /// The transport reads the task metrics for upload progress; the session's own delegate
+    /// must still get them.
+    @Test func theSessionDelegateStillReceivesTaskMetrics() async throws {
+        final class MetricsRecorder: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+            let paths = EventLog()
+
+            func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+                paths.append(task.originalRequest?.url?.path ?? "")
+            }
+        }
+        let server = try await LocalHTTPServer { _ in .body(Data("ok".utf8)) }
+        let recorder = MetricsRecorder()
+        let session = URLSession(configuration: .ephemeral, delegate: recorder, delegateQueue: nil)
+        defer { session.finishTasksAndInvalidate() }
+        let client = NetworkClient(
+            baseURL: server.url("/api"),
+            configuration: .init(retryPolicy: .none),
+            transport: URLSessionTransport(session: session)
+        )
+        _ = try await client.send(Endpoint<Data>.get("sent"))
+        _ = try await client.upload(Endpoint<Data>.post("uploaded", body: .data(Data("abc".utf8), contentType: "text/plain")))
+        #expect(recorder.paths.all == ["/api/sent", "/api/uploaded"])
+    }
+
     @Test func uploadResponsesOverTheLimitFail() async throws {
         let server = try await LocalHTTPServer { _ in .body(Data(count: 512 * 1024)) }
         let error = await #expect(throws: NetworkError.self) {

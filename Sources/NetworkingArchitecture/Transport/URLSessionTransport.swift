@@ -127,6 +127,8 @@ private final class BufferingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
         var data = Data()
         var failure: (any Error)?
         var reportedBytes: Int64 = 0
+        /// The body bytes of the last request the task sent, from its metrics.
+        var measuredBodyBytes: Int64 = 0
     }
 
     private let limit: Int?
@@ -184,20 +186,31 @@ private final class BufferingTaskDelegate: RedirectingTaskDelegate, URLSessionDa
         progress?(TransferProgress(completedBytes: totalBytesSent, totalBytes: totalBytesExpectedToSend))
     }
 
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        if let last = metrics.transactionMetrics.last {
+            state.withLock { $0.measuredBodyBytes = last.countOfRequestBodyBytesSent }
+        }
+        // A task delegate that implements this method keeps it from the session's delegate.
+        (session.delegate as? URLSessionTaskDelegate)?.urlSession?(session, task: task, didFinishCollecting: metrics)
+    }
+
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
         let error = completionError(error, session: session, task: task)
-        let (continuation, data, failure, reported) = state.withLock { state in
+        let (continuation, data, failure, reported, measured) = state.withLock { state in
             defer { state.continuation = nil }
-            return (state.continuation, state.data, state.failure ?? error, state.reportedBytes)
+            return (state.continuation, state.data, state.failure ?? error, state.reportedBytes, state.measuredBodyBytes)
         }
         if let failure {
             continuation?.resume(throwing: failure)
             return
         }
         // URLSession does not always deliver a last didSendBodyData once the response has
-        // arrived; report the finished upload so progress always ends at the full size.
-        if let progress, task.countOfBytesSent > reported {
-            progress(TransferProgress(completedBytes: task.countOfBytesSent, totalBytes: task.countOfBytesSent))
+        // arrived, and when the whole upload finishes quickly it can deliver none and still
+        // read 0 in countOfBytesSent. The task metrics, which arrive before this call, count
+        // the body that was sent; report the finished upload so progress ends at that size.
+        let sent = max(task.countOfBytesSent, measured)
+        if let progress, sent > reported {
+            progress(TransferProgress(completedBytes: sent, totalBytes: sent))
         }
         continuation?.resume(with: Result { (data, try httpResponse(task.response)) })
     }
