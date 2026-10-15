@@ -38,7 +38,9 @@ extension NetworkClient {
             if let prepare {
                 switch await prepare(adapted) {
                 case .send(let prepared): adapted = prepared
-                case .respond(let response): return PerformResult(response: response, request: adapted)
+                case .respond(let response):
+                    await configuration.interceptors.complete(adapted, outcome: .notSent, context: context)
+                    return PerformResult(response: response, request: adapted)
                 }
             }
             notify(.willSend(adapted), context)
@@ -58,7 +60,8 @@ extension NetworkClient {
                     || extraAcceptedStatusCodes.contains(response.statusCode)
                 let body = accepted ? (payload as? Data ?? Data()) : errorBody(payload)
                 notify(.didReceive(adapted, response.map { _ in body }, duration: clock.now - start), context)
-                await complete(adapted, .response(statusCode: response.statusCode), context)
+                let outcome = AttemptOutcome.response(statusCode: response.statusCode)
+                await configuration.interceptors.complete(adapted, outcome: outcome, context: context)
                 if accepted {
                     return PerformResult(response: response, request: adapted)
                 }
@@ -66,7 +69,7 @@ extension NetworkClient {
             } catch {
                 let networkError = NetworkError(error)
                 notify(.didFail(adapted, networkError, duration: clock.now - start), context)
-                await complete(adapted, .failure(networkError), context)
+                await configuration.interceptors.complete(adapted, outcome: .failure(networkError), context: context)
                 guard networkError.isRetryable else { throw networkError }
                 failure = networkError
             }
@@ -82,15 +85,11 @@ extension NetworkClient {
     }
 
     private func adapt(_ request: URLRequest, context: RequestContext) async throws -> URLRequest {
-        var request = request
-        for interceptor in configuration.interceptors {
-            do {
-                request = try await interceptor.adapt(request, context: context)
-            } catch is CancellationError {
-                throw NetworkError.cancelled
-            }
+        do {
+            return try await configuration.interceptors.adapt(request, context: context)
+        } catch is CancellationError {
+            throw NetworkError.cancelled
         }
-        return request
     }
 
     /// Asks the interceptors, then the retry policy, whether to retry. Returns the delay, or
@@ -120,12 +119,6 @@ extension NetworkClient {
     private func notify(_ event: NetworkEvent, _ context: RequestContext) {
         for monitor in configuration.monitors {
             monitor.handle(event, context: context)
-        }
-    }
-
-    private func complete(_ request: URLRequest, _ outcome: AttemptOutcome, _ context: RequestContext) async {
-        for interceptor in configuration.interceptors {
-            await interceptor.didComplete(request, outcome: outcome, context: context)
         }
     }
 }

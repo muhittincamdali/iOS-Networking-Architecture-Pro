@@ -28,8 +28,11 @@ public protocol RequestInterceptor: Sendable {
     /// with the thrown error instead of `error`.
     func retry(_ request: URLRequest, dueTo error: NetworkError, context: RequestContext) async throws -> RetryDecision
 
-    /// Called after every attempt with its outcome: the status code, or the error when no
-    /// response arrived.
+    /// Called after every attempt with its outcome: the status code, the error when no
+    /// response arrived, or ``AttemptOutcome/notSent`` when the attempt ended before the
+    /// client sent it. Every interceptor whose ``adapt(_:context:)`` returned is called, so
+    /// one that holds something for the request, such as a ``CircuitBreaker``'s test request,
+    /// can release it.
     func didComplete(_ request: URLRequest, outcome: AttemptOutcome, context: RequestContext) async
 }
 
@@ -51,12 +54,44 @@ public enum AttemptOutcome: Sendable {
     case response(statusCode: Int)
     /// No response arrived.
     case failure(NetworkError)
+    /// The client did not send the request itself, so the attempt says nothing about the
+    /// service: a cached response answered it, a later interceptor's
+    /// ``RequestInterceptor/adapt(_:context:)`` threw, or it was handed to a
+    /// ``WebSocketConnection``, whose handshake the interceptors do not see.
+    case notSent
 
     /// Whether the attempt counts as a failure of the service: no response, or a 5xx status.
     public var isServiceFailure: Bool {
         switch self {
         case .response(let statusCode): statusCode >= 500
         case .failure(let error): error.isServiceFailure
+        case .notSent: false
+        }
+    }
+}
+
+extension Array where Element == any RequestInterceptor {
+    /// Runs every interceptor's `adapt` in order. When one throws, the interceptors before it
+    /// are told that the request was not sent, then the error is rethrown.
+    func adapt(_ request: URLRequest, context: RequestContext) async throws -> URLRequest {
+        var request = request
+        for (index, interceptor) in enumerated() {
+            do {
+                request = try await interceptor.adapt(request, context: context)
+            } catch {
+                await self[..<index].complete(request, outcome: .notSent, context: context)
+                throw error
+            }
+        }
+        return request
+    }
+}
+
+extension Collection where Element == any RequestInterceptor {
+    /// Reports the outcome of an attempt to every interceptor, in order.
+    func complete(_ request: URLRequest, outcome: AttemptOutcome, context: RequestContext) async {
+        for interceptor in self {
+            await interceptor.didComplete(request, outcome: outcome, context: context)
         }
     }
 }

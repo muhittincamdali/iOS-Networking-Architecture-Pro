@@ -320,11 +320,9 @@ extension NetworkClient {
         let interceptors = configuration.interceptors
         let prepared = request
         return WebSocketConnection(session: session, options: options) {
-            var request = prepared
             let context = RequestContext(retryPolicy: .none)
-            for interceptor in interceptors {
-                request = try await interceptor.adapt(request, context: context)
-            }
+            let request = try await interceptors.adapt(prepared, context: context)
+            await interceptors.complete(request, outcome: .notSent, context: context)
             return request
         }
     }

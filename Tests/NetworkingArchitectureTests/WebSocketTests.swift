@@ -1,4 +1,5 @@
 import Foundation
+import NetworkingArchitectureTesting
 import Testing
 @testable import NetworkingArchitecture
 
@@ -179,6 +180,40 @@ struct WebSocketTests {
         try await socket.send(.text("ping"))
         try await inbox.waitFor { $0.received.count == 1 }
         #expect(server.authorizations == ["Bearer ws-token"])
+        await socket.close()
+        await reader.value
+    }
+
+    @Test func connectingDoesNotKeepACircuitBreakerHalfOpen() async throws {
+        let server = try await LocalWebSocketServer()
+        let opened = ContinuousClock.now
+        let later = Locked(false)
+        let breaker = CircuitBreaker(failureThreshold: 1, resetTimeout: .seconds(30)) {
+            later.withLock { $0 } ? opened.advanced(by: .seconds(31)) : opened
+        }
+        let transport = MockTransport()
+        transport.register(.get, "x", .failure(.cannotConnectToHost), .status(200))
+        let client = NetworkClient(
+            baseURL: URL(string: "http://127.0.0.1:\(server.port)")!,
+            configuration: .init(interceptors: [breaker], retryPolicy: .none),
+            transport: transport
+        )
+        _ = try? await client.send(Endpoint<Void>.get("x"))
+        guard case .open = await breaker.state else {
+            Issue.record("Expected open")
+            return
+        }
+        later.withLock { $0 = true }
+
+        let socket = try client.webSocket(.get("socket"), options: fastReconnect)
+        let inbox = Inbox()
+        let reader = inbox.start(await socket.messages())
+        try await socket.send(.text("ping"))
+        try await inbox.waitFor { $0.received.count == 1 }
+        #expect(await breaker.state == .halfOpen)
+
+        try await client.send(Endpoint<Void>.get("x"))
+        #expect(await breaker.state == .closed)
         await socket.close()
         await reader.value
     }

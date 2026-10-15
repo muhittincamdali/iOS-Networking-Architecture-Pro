@@ -13,7 +13,9 @@ import Foundation
 /// configuration.interceptors = [CircuitBreaker(failureThreshold: 5, resetTimeout: .seconds(30))]
 /// ```
 ///
-/// A `4xx` response counts as a success: the server is up and answered.
+/// A `4xx` response counts as a success: the server is up and answered. A test request that
+/// ends without an answer about the service (it was cancelled, a cached response answered it,
+/// or a later interceptor stopped it) lets the next request test the service instead.
 public actor CircuitBreaker: RequestInterceptor {
     /// The state of the breaker.
     public enum State: Sendable, Equatable {
@@ -35,7 +37,8 @@ public actor CircuitBreaker: RequestInterceptor {
     public private(set) var state: State = .closed
 
     private var consecutiveFailures = 0
-    private var probeInFlight = false
+    /// The ``RequestContext/id`` of the request let through while half-open, until it ends.
+    private var probe: UUID?
     private let now: @Sendable () -> ContinuousClock.Instant
 
     /// Creates a breaker.
@@ -64,26 +67,30 @@ public actor CircuitBreaker: RequestInterceptor {
                 throw NetworkError.circuitOpen(retryAfter: until - current)
             }
             state = .halfOpen
-            probeInFlight = true
+            probe = context.id
             return request
         case .halfOpen:
-            guard !probeInFlight else {
+            guard probe == nil || probe == context.id else {
                 throw NetworkError.circuitOpen(retryAfter: resetTimeout)
             }
-            probeInFlight = true
+            probe = context.id
             return request
         }
     }
 
     public func didComplete(_ request: URLRequest, outcome: AttemptOutcome, context: RequestContext) async {
-        if case .failure(.cancelled) = outcome {
-            // A cancelled probe says nothing about the service; let the next request probe.
-            if state == .halfOpen { probeInFlight = false }
+        switch outcome {
+        case .notSent, .failure(.cancelled):
+            // Says nothing about the service; when it was the test request, let the next
+            // request test the service instead.
+            if probe == context.id { probe = nil }
             return
+        default:
+            break
         }
         guard outcome.isServiceFailure else {
             consecutiveFailures = 0
-            probeInFlight = false
+            probe = nil
             state = .closed
             return
         }
@@ -103,13 +110,13 @@ public actor CircuitBreaker: RequestInterceptor {
     /// Closes the breaker, for example when the device comes back online.
     public func reset() {
         consecutiveFailures = 0
-        probeInFlight = false
+        probe = nil
         state = .closed
     }
 
     private func open() {
         state = .open(until: now().advanced(by: resetTimeout))
-        probeInFlight = false
+        probe = nil
         consecutiveFailures = 0
     }
 }
