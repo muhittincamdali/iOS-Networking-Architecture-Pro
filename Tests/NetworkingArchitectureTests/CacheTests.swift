@@ -317,6 +317,16 @@ struct CachePolicyTests {
         #expect(!key("alice-secret").contains("alice-secret"))
     }
 
+    @Test func credentialValuesUnderOrdinaryNamesSeparateCacheEntries() {
+        func key(_ value: String) -> String {
+            var request = URLRequest(url: URL(string: "https://api.example.com/me")!)
+            request.setValue(value, forHTTPHeaderField: "X-Upstream")
+            return CacheKey.make(for: request)
+        }
+        #expect(key("Bearer alice") != key("Bearer bob"))
+        #expect(!key("Bearer alice").contains("alice"))
+    }
+
     @Test func cacheKeyDoesNotDependOnHeaderNameCaseOrOrder() {
         var first = URLRequest(url: URL(string: "https://api.example.com/me")!)
         first.setValue("a=1", forHTTPHeaderField: "Cookie")
