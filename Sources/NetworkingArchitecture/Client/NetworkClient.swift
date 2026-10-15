@@ -93,19 +93,38 @@ public final class NetworkClient: Sendable {
     /// The file at `destination` is only replaced once a response with an accepted status
     /// code has been downloaded completely.
     ///
+    /// When the connection drops and the server supports resuming, the retry continues from
+    /// where the download stopped instead of starting again. When the download fails for
+    /// good, ``NetworkError/resumeData`` holds the data to continue it later with
+    /// `resumingFrom`. A resumed attempt sends the request as it was first sent, without
+    /// running the interceptors again.
+    ///
     /// - Parameters:
     ///   - endpoint: The request to send.
     ///   - destination: Where to put the file. Missing folders are created.
+    ///   - resumeData: The ``NetworkError/resumeData`` of an earlier, interrupted download of
+    ///     the same endpoint.
     ///   - progress: Called as the body arrives.
     @discardableResult
     public func download(
         _ endpoint: Endpoint<Void>,
         to destination: URL,
+        resumingFrom resumeData: Data? = nil,
         progress: ProgressHandler? = nil
     ) async throws -> HTTPResponse<URL> {
         let request = try makeRequest(for: endpoint)
+        let resume = Locked(resumeData)
         let result = try await perform(request, endpoint: endpoint, errorBody: Self.readErrorBody) { request in
-            try await self.transport.download(request, progress: progress)
+            do {
+                if let data = resume.withLock({ $0 }) {
+                    return try await self.transport.download(resumingFrom: data, progress: progress)
+                }
+                return try await self.transport.download(request, progress: progress)
+            } catch let error as URLError {
+                // The next attempt continues from here, or starts again when there is nothing to resume.
+                resume.withLock { $0 = error.downloadTaskResumeData }
+                throw error
+            }
         }
         let file = result.response.value
         do {

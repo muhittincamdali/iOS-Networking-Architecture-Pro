@@ -22,6 +22,11 @@ public protocol HTTPTransport: Sendable {
     /// Downloads the body of `request` into a temporary file that the caller then owns.
     func download(_ request: URLRequest, progress: ProgressHandler?) async throws -> (URL, HTTPURLResponse)
 
+    /// Continues an interrupted download from the resume data of its error
+    /// (`URLError.downloadTaskResumeData`) into a temporary file that the caller then owns.
+    /// The default implementation throws ``NetworkError/invalidRequest(_:)``.
+    func download(resumingFrom resumeData: Data, progress: ProgressHandler?) async throws -> (URL, HTTPURLResponse)
+
     /// Sends `request` with `body` as its body, reporting how much of it has been sent.
     func upload(
         _ request: URLRequest,
@@ -91,6 +96,10 @@ extension HTTPTransport {
         let size = Int64(data.count)
         progress?(TransferProgress(completedBytes: size, totalBytes: size))
         return (file, response)
+    }
+
+    public func download(resumingFrom resumeData: Data, progress: ProgressHandler?) async throws -> (URL, HTTPURLResponse) {
+        throw NetworkError.invalidRequest("this transport cannot resume downloads")
     }
 
     public func upload(

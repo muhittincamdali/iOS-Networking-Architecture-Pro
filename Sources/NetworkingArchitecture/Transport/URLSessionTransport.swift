@@ -47,6 +47,11 @@ public struct URLSessionTransport: HTTPTransport {
         let delegate = DownloadTaskDelegate(progress: progress, redirectPolicy: redirectPolicy)
         return try await delegate.run(session.downloadTask(with: request))
     }
+
+    public func download(resumingFrom resumeData: Data, progress: ProgressHandler?) async throws -> (URL, HTTPURLResponse) {
+        let delegate = DownloadTaskDelegate(progress: progress, redirectPolicy: redirectPolicy)
+        return try await delegate.run(session.downloadTask(withResumeData: resumeData))
+    }
 }
 
 /// Runs a task until it completes, cancelling it when the calling task is cancelled.
@@ -266,6 +271,15 @@ private final class DownloadTaskDelegate: RedirectingTaskDelegate, URLSessionDow
         totalBytesExpectedToWrite: Int64
     ) {
         progress?(TransferProgress(completedBytes: totalBytesWritten, totalBytes: totalBytesExpectedToWrite))
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didResumeAtOffset fileOffset: Int64,
+        expectedTotalBytes: Int64
+    ) {
+        progress?(TransferProgress(completedBytes: fileOffset, totalBytes: expectedTotalBytes))
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {

@@ -92,6 +92,66 @@ struct URLSessionTransportTests {
         #expect(progress.all.last == "1.0")
     }
 
+    /// A server that cuts the first response in half and answers range requests, the way a
+    /// file server behind a flaky connection does.
+    private func resumableServer(_ payload: Data, ranges: Locked<[String]>) async throws -> LocalHTTPServer {
+        try await LocalHTTPServer { request in
+            let validators = ["ETag": "\"file-v1\"", "Accept-Ranges": "bytes", "Last-Modified": "Wed, 21 Oct 2015 07:28:00 GMT"]
+            guard let range = request.header("Range"), range.hasPrefix("bytes="),
+                  let start = Int(range.dropFirst(6).prefix { $0 != "-" }) else {
+                ranges.withLock { $0.append("none") }
+                // Declare the whole file but send only the first half, then close.
+                return LocalHTTPServer.Response(
+                    headers: validators, chunks: [payload.prefix(payload.count / 2)], declaredLength: payload.count
+                )
+            }
+            ranges.withLock { $0.append(range) }
+            var headers = validators
+            headers["Content-Range"] = "bytes \(start)-\(payload.count - 1)/\(payload.count)"
+            return LocalHTTPServer.Response(status: 206, headers: headers, chunks: [payload.suffix(from: start)])
+        }
+    }
+
+    @Test func aDroppedDownloadIsResumedByTheRetry() async throws {
+        let payload = Data((0..<400_000).map { UInt8($0 % 253) })
+        let ranges = Locked<[String]>([])
+        let server = try await resumableServer(payload, ranges: ranges)
+        let client = NetworkClient(
+            baseURL: server.url(""),
+            configuration: .init(retryPolicy: RetryPolicy(baseDelay: .zero, jitter: 0)),
+            transport: URLSessionTransport(session: URLSession(configuration: .ephemeral))
+        )
+        let destination = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).bin")
+        defer { try? FileManager.default.removeItem(at: destination) }
+        let response = try await client.download(.get("file"), to: destination)
+        #expect(response.statusCode == 206)
+        #expect(response.attempts == 2)
+        #expect(try Data(contentsOf: destination) == payload)
+        #expect(ranges.withLock { $0 } == ["none", "bytes=200000-"])
+    }
+
+    @Test func anInterruptedDownloadCanBeResumedLater() async throws {
+        let payload = Data((0..<300_000).map { UInt8($0 % 241) })
+        let ranges = Locked<[String]>([])
+        let server = try await resumableServer(payload, ranges: ranges)
+        let client = NetworkClient(
+            baseURL: server.url(""),
+            configuration: .init(retryPolicy: .none),
+            transport: URLSessionTransport(session: URLSession(configuration: .ephemeral))
+        )
+        let destination = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).bin")
+        defer { try? FileManager.default.removeItem(at: destination) }
+        let error = await #expect(throws: NetworkError.self) {
+            try await client.download(.get("file"), to: destination)
+        }
+        #expect(!FileManager.default.fileExists(atPath: destination.path))
+        let resumeData = try #require(error?.resumeData)
+
+        try await client.download(.get("file"), to: destination, resumingFrom: resumeData)
+        #expect(try Data(contentsOf: destination) == payload)
+        #expect(ranges.withLock { $0 } == ["none", "bytes=150000-"])
+    }
+
     @Test func uploadsAFileAndReportsProgress() async throws {
         let payload = Data(repeating: 7, count: 200_000)
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).bin")

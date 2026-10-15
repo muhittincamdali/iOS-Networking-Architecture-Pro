@@ -26,6 +26,9 @@ final class LocalHTTPServer: @unchecked Sendable {
         var chunkDelay: Duration = .zero
         /// Leave out Content-Length so the body ends when the connection closes.
         var omitsContentLength = false
+        /// A Content-Length larger than the chunks, to simulate a connection that drops in the
+        /// middle of the body.
+        var declaredLength: Int?
 
         static func body(_ data: Data, status: Int = 200, headers: [String: String] = [:]) -> Response {
             Response(status: status, headers: headers, chunks: [data])
@@ -141,7 +144,7 @@ final class LocalHTTPServer: @unchecked Sendable {
         var headers = response.headers
         headers["Connection"] = "close"
         if !response.omitsContentLength {
-            headers["Content-Length"] = String(response.chunks.reduce(0) { $0 + $1.count })
+            headers["Content-Length"] = String(response.declaredLength ?? response.chunks.reduce(0) { $0 + $1.count })
         }
         for (name, value) in headers.sorted(by: { $0.key < $1.key }) {
             head += "\(name): \(value)\r\n"

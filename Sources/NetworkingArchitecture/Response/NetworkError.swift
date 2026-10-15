@@ -65,6 +65,14 @@ public enum NetworkError: Error, Sendable {
     /// The status code of the response, if the server answered.
     public var statusCode: Int? { response?.statusCode }
 
+    /// For an interrupted download, the data to continue it with
+    /// ``NetworkClient/download(_:to:resumingFrom:progress:)``. `nil` when the server does not
+    /// support resuming (it needs to send `Accept-Ranges` and an `ETag` or `Last-Modified`).
+    public var resumeData: Data? {
+        guard case .transport(let error) = self else { return nil }
+        return error.downloadTaskResumeData
+    }
+
     /// Whether the error means the device could not reach the server (offline, DNS failure,
     /// connection lost or timed out).
     public var isConnectivityProblem: Bool {
