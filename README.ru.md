@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@1e81d980b108d49ca5f54d545a62a31a34190fe3 status=reviewed -->
+<!-- i18n-source: README.md@bbde047897d37f689f23d5f4124afa4d5b135115 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg" alt="Networking Architecture: Типизированные эндпоинты, повторы, обновление токенов, кэш и стриминг на URLSession, без зависимостей."></picture></p>
@@ -45,7 +45,7 @@
   редиректах на другой origin, скрытие секретов в логах и в выводе `curl`, а также ограничения на
   размер ответа, число буферизуемых сообщений и время ожидания.
 - **Удобство тестирования** — `MockTransport` отвечает на запросы заранее заготовленными ответами;
-  собственные 194 теста пакета на Swift Testing запускаются на macOS, а 193 из них — ещё и на
+  собственные 204 теста пакета на Swift Testing запускаются на macOS, а 203 из них — ещё и на
   симуляторе iPhone, включая тесты с локальным HTTP-, TLS- и WebSocket-сервером.
 
 ### Что входит в пакет

@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@1e81d980b108d49ca5f54d545a62a31a34190fe3 status=reviewed -->
+<!-- i18n-source: README.md@bbde047897d37f689f23d5f4124afa4d5b135115 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg" alt="Networking Architecture: 基于 URLSession：类型化端点、重试、令牌刷新、缓存和流式传输，无依赖。"></picture></p>
@@ -41,8 +41,8 @@
   并通过 ping 保持连接的 WebSocket。
 - **默认安全**：公钥固定（public key pinning）、跨源重定向时丢弃凭据请求头、
   在日志和 `curl` 输出中隐去敏感信息，并对响应大小、缓冲消息数量和等待时间设置上限。
-- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 194 个
-  Swift Testing 测试都在 macOS 上运行，其中 193 个也在 iPhone 模拟器上运行，
+- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 204 个
+  Swift Testing 测试都在 macOS 上运行，其中 203 个也在 iPhone 模拟器上运行，
   包括针对本地 HTTP、TLS 和 WebSocket 服务器的测试。
 
 ### 包含的内容
