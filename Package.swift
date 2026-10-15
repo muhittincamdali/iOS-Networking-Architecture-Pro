@@ -11,16 +11,22 @@ let package = Package(
         .visionOS(.v1)
     ],
     products: [
-        .library(name: "NetworkingArchitecture", targets: ["NetworkingArchitecture"])
+        .library(name: "NetworkingArchitecture", targets: ["NetworkingArchitecture"]),
+        .library(name: "NetworkingArchitectureTesting", targets: ["NetworkingArchitectureTesting"])
     ],
     targets: [
         .target(
             name: "NetworkingArchitecture",
             path: "Sources/NetworkingArchitecture"
         ),
+        .target(
+            name: "NetworkingArchitectureTesting",
+            dependencies: ["NetworkingArchitecture"],
+            path: "Sources/NetworkingArchitectureTesting"
+        ),
         .testTarget(
             name: "NetworkingArchitectureTests",
-            dependencies: ["NetworkingArchitecture"],
+            dependencies: ["NetworkingArchitecture", "NetworkingArchitectureTesting"],
             path: "Tests/NetworkingArchitectureTests"
         )
     ]
