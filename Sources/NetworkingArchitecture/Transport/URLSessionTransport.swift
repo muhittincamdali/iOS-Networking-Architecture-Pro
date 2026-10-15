@@ -6,18 +6,22 @@ import Foundation
 /// grows past ``NetworkClient/Configuration/maximumResponseSize``, hand out a streamed body
 /// chunk by chunk, and report upload and download progress, while the session's own
 /// delegate (for example a ``PinningSessionDelegate``) still answers authentication
-/// challenges.
+/// challenges. Redirects follow a ``RedirectPolicy``.
 public struct URLSessionTransport: HTTPTransport {
     /// The session the requests are sent with.
     public let session: URLSession
 
+    /// How redirects are handled.
+    public let redirectPolicy: RedirectPolicy
+
     /// Creates a transport that sends requests with `session`.
-    public init(session: URLSession = .shared) {
+    public init(session: URLSession = .shared, redirectPolicy: RedirectPolicy = .followSafely) {
         self.session = session
+        self.redirectPolicy = redirectPolicy
     }
 
     public func send(_ request: URLRequest, maximumResponseSize: Int?) async throws -> (Data, HTTPURLResponse) {
-        let delegate = BufferingTaskDelegate(limit: maximumResponseSize, progress: nil)
+        let delegate = BufferingTaskDelegate(limit: maximumResponseSize, progress: nil, redirectPolicy: redirectPolicy)
         return try await delegate.run(session.dataTask(with: request))
     }
 
@@ -26,7 +30,7 @@ public struct URLSessionTransport: HTTPTransport {
         body: UploadBody,
         progress: ProgressHandler?
     ) async throws -> (Data, HTTPURLResponse) {
-        let delegate = BufferingTaskDelegate(limit: nil, progress: progress)
+        let delegate = BufferingTaskDelegate(limit: nil, progress: progress, redirectPolicy: redirectPolicy)
         let task = switch body {
         case .data(let data): session.uploadTask(with: request, from: data)
         case .file(let url): session.uploadTask(with: request, fromFile: url)
@@ -35,12 +39,12 @@ public struct URLSessionTransport: HTTPTransport {
     }
 
     public func stream(_ request: URLRequest) async throws -> (HTTPURLResponse, AsyncThrowingStream<Data, any Error>) {
-        let delegate = StreamingTaskDelegate()
+        let delegate = StreamingTaskDelegate(redirectPolicy: redirectPolicy)
         return try await delegate.run(session.dataTask(with: request))
     }
 
     public func download(_ request: URLRequest, progress: ProgressHandler?) async throws -> (URL, HTTPURLResponse) {
-        let delegate = DownloadTaskDelegate(progress: progress)
+        let delegate = DownloadTaskDelegate(progress: progress, redirectPolicy: redirectPolicy)
         return try await delegate.run(session.downloadTask(with: request))
     }
 }
@@ -75,8 +79,27 @@ private func httpResponse(_ response: URLResponse?) throws -> HTTPURLResponse {
     return response
 }
 
+/// Applies the redirect policy; the task delegates below inherit from it.
+private class RedirectingTaskDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    let redirectPolicy: RedirectPolicy
+
+    init(redirectPolicy: RedirectPolicy) {
+        self.redirectPolicy = redirectPolicy
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping @Sendable (URLRequest?) -> Void
+    ) {
+        completionHandler(redirectPolicy.request(redirecting: task.currentRequest, to: request))
+    }
+}
+
 /// Collects a body in memory, up to an optional limit.
-private final class BufferingTaskDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+private final class BufferingTaskDelegate: RedirectingTaskDelegate, URLSessionDataDelegate, @unchecked Sendable {
     private struct State {
         var continuation: CheckedContinuation<(Data, HTTPURLResponse), any Error>?
         var data = Data()
@@ -87,9 +110,10 @@ private final class BufferingTaskDelegate: NSObject, URLSessionDataDelegate, @un
     private let progress: ProgressHandler?
     private let state = Locked(State())
 
-    init(limit: Int?, progress: ProgressHandler?) {
+    init(limit: Int?, progress: ProgressHandler?, redirectPolicy: RedirectPolicy) {
         self.limit = limit.map { max(0, $0) }
         self.progress = progress
+        super.init(redirectPolicy: redirectPolicy)
     }
 
     func run(_ task: URLSessionTask) async throws -> (Data, HTTPURLResponse) {
@@ -151,7 +175,7 @@ private final class BufferingTaskDelegate: NSObject, URLSessionDataDelegate, @un
 }
 
 /// Hands out a body chunk by chunk as it arrives.
-private final class StreamingTaskDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+private final class StreamingTaskDelegate: RedirectingTaskDelegate, URLSessionDataDelegate, @unchecked Sendable {
     typealias Output = (HTTPURLResponse, AsyncThrowingStream<Data, any Error>)
 
     private struct State {
@@ -212,7 +236,7 @@ private final class StreamingTaskDelegate: NSObject, URLSessionDataDelegate, @un
 }
 
 /// Writes a body to a temporary file and reports progress.
-private final class DownloadTaskDelegate: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+private final class DownloadTaskDelegate: RedirectingTaskDelegate, URLSessionDownloadDelegate, @unchecked Sendable {
     private struct State {
         var continuation: CheckedContinuation<(URL, HTTPURLResponse), any Error>?
         var file: URL?
@@ -222,8 +246,9 @@ private final class DownloadTaskDelegate: NSObject, URLSessionDownloadDelegate, 
     private let progress: ProgressHandler?
     private let state = Locked(State())
 
-    init(progress: ProgressHandler?) {
+    init(progress: ProgressHandler?, redirectPolicy: RedirectPolicy) {
         self.progress = progress
+        super.init(redirectPolicy: redirectPolicy)
     }
 
     func run(_ task: URLSessionDownloadTask) async throws -> (URL, HTTPURLResponse) {

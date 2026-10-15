@@ -71,8 +71,15 @@ extension URLSessionTransport {
     ///
     /// The session keeps a strong reference to its delegate until it is invalidated; create
     /// one transport per pin set and keep it for the life of the app.
-    public init(configuration: URLSessionConfiguration = .default, pinning: PublicKeyPinning) {
+    public init(
+        configuration: URLSessionConfiguration = .default,
+        pinning: PublicKeyPinning,
+        redirectPolicy: RedirectPolicy = .followSafely
+    ) {
         let delegate = PinningSessionDelegate(pinning: pinning)
-        self.init(session: URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil))
+        self.init(
+            session: URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil),
+            redirectPolicy: redirectPolicy
+        )
     }
 }
