@@ -1,103 +1,220 @@
-// WebSocketTests.swift
-// iOS-Networking-Architecture-Pro
-//
-// Created by Muhittin Camdali
-// Copyright © 2025. All rights reserved.
+import Foundation
+import NetworkingArchitectureTesting
+import Testing
+@testable import NetworkingArchitecture
 
-import XCTest
-@testable import NetworkingWebSocket
+/// Collects the messages of a connection in the background.
+private final class Inbox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var messages: [WebSocketConnection.Message] = []
+    private var ending: String?
 
-final class WebSocketTests: XCTestCase {
-    
-    // MARK: - Configuration Tests
-    
-    func testDefaultConfiguration() {
-        let config = WebSocketConfiguration.default
-        
-        XCTAssertEqual(config.connectionTimeout, 30)
-        XCTAssertEqual(config.pingInterval, 30)
-        XCTAssertTrue(config.autoReconnect)
-        XCTAssertEqual(config.maxReconnectAttempts, 5)
+    var received: [WebSocketConnection.Message] {
+        lock.lock()
+        defer { lock.unlock() }
+        return messages
     }
-    
-    func testCustomConfiguration() {
-        let config = WebSocketConfiguration(
-            connectionTimeout: 60,
-            pingInterval: 15,
-            autoReconnect: false,
-            maxReconnectAttempts: 3,
-            reconnectDelay: 5,
-            headers: ["X-Custom": "Value"],
-            protocols: ["chat"]
+
+    var end: String? {
+        lock.lock()
+        defer { lock.unlock() }
+        return ending
+    }
+
+    func start(_ stream: AsyncThrowingStream<WebSocketConnection.Message, any Error>) -> Task<Void, Never> {
+        Task {
+            do {
+                for try await message in stream {
+                    append(message)
+                }
+                finish("finished")
+            } catch {
+                finish("failed")
+            }
+        }
+    }
+
+    private func append(_ message: WebSocketConnection.Message) {
+        lock.lock()
+        messages.append(message)
+        lock.unlock()
+    }
+
+    private func finish(_ value: String) {
+        lock.lock()
+        ending = value
+        lock.unlock()
+    }
+
+    /// Waits until `condition` holds, for at most 20 seconds (generous for a slow simulator).
+    func waitFor(_ condition: @escaping @Sendable (Inbox) -> Bool) async throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
+        while !condition(self) {
+            guard ContinuousClock.now < deadline else { throw CancellationError() }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+}
+
+@Suite("WebSocket", .serialized, .timeLimit(.minutes(1)))
+struct WebSocketTests {
+    private let fastReconnect = WebSocketConnection.Options(
+        maximumReconnectAttempts: 2,
+        backoff: RetryPolicy(baseDelay: .milliseconds(50), jitter: 0),
+        pingInterval: .seconds(5)
+    )
+
+    @Test func echoesTextAndBinaryMessages() async throws {
+        let server = try await LocalWebSocketServer()
+        let socket = WebSocketConnection(url: server.url, options: fastReconnect)
+        let inbox = Inbox()
+        let reader = inbox.start(await socket.messages())
+        try await socket.send(.text("hello"))
+        try await socket.send(.data(Data([1, 2, 3])))
+        try await inbox.waitFor { $0.received.count == 2 }
+        #expect(inbox.received == [.text("hello"), .data(Data([1, 2, 3]))])
+        #expect(await socket.state == .connected)
+        await socket.close()
+        await reader.value
+        #expect(inbox.end == "finished")
+    }
+
+    @Test func reconnectsAfterTheConnectionDrops() async throws {
+        let server = try await LocalWebSocketServer()
+        let socket = WebSocketConnection(url: server.url, options: fastReconnect)
+        let inbox = Inbox()
+        let reader = inbox.start(await socket.messages())
+        try await socket.send(.text("first"))
+        try await inbox.waitFor { $0.received.count == 1 }
+        try await socket.send(.text("drop"))
+        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
+        while true {
+            let state = await socket.state
+            if server.connectionCount >= 2, state == .connected { break }
+            guard ContinuousClock.now < deadline else { Issue.record("Did not reconnect"); return }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        try await socket.send(.text("second"))
+        try await inbox.waitFor { $0.received.count == 2 }
+        #expect(inbox.received == [.text("first"), .text("second")])
+        await socket.close()
+        await reader.value
+    }
+
+    @Test func normalCloseByTheServerEndsTheStream() async throws {
+        let server = try await LocalWebSocketServer()
+        let socket = WebSocketConnection(url: server.url, options: fastReconnect)
+        let inbox = Inbox()
+        let reader = inbox.start(await socket.messages())
+        try await socket.send(.text("close"))
+        await reader.value
+        #expect(inbox.end == "finished")
+        #expect(server.connectionCount == 1)
+        #expect(await socket.state == .closed)
+        await #expect(throws: WebSocketConnection.NotConnected.self) { try await socket.send(.text("late")) }
+    }
+
+    @Test func givesUpWhenTheServerStaysUnreachable() async throws {
+        let socket = WebSocketConnection(url: URL(string: "ws://127.0.0.1:9/socket")!, options: fastReconnect)
+        let inbox = Inbox()
+        let reader = inbox.start(await socket.messages())
+        await reader.value
+        #expect(inbox.end == "failed")
+        #expect(await socket.state == .closed)
+    }
+
+    @Test func oversizedMessagesEndTheConnection() async throws {
+        let server = try await LocalWebSocketServer()
+        var options = fastReconnect
+        options.reconnects = false
+        options.maximumMessageSize = 16
+        let socket = WebSocketConnection(url: server.url, options: options)
+        let inbox = Inbox()
+        let reader = inbox.start(await socket.messages())
+        try await socket.send(.text(String(repeating: "x", count: 100)))
+        await reader.value
+        #expect(inbox.received.isEmpty)
+        #expect(inbox.end == "failed")
+    }
+
+    @Test func aConsumerThatFallsBehindClosesTheConnection() async throws {
+        let server = try await LocalWebSocketServer()
+        var options = fastReconnect
+        options.maximumBufferedMessages = 3
+        let socket = WebSocketConnection(url: server.url, options: options)
+        let stream = await socket.messages()
+        // The connection may close because of the overflow before all ten are sent.
+        for index in 1...10 {
+            guard (try? await socket.send(.text("\(index)"))) != nil else { break }
+        }
+        // Read nothing until the echoes have piled up.
+        try await Task.sleep(for: .milliseconds(500))
+        var received: [WebSocketConnection.Message] = []
+        do {
+            for try await message in stream { received.append(message) }
+            Issue.record("Expected bufferOverflow")
+        } catch NetworkError.bufferOverflow(let limit) {
+            #expect(limit == 3)
+        }
+        #expect(received == [.text("1"), .text("2"), .text("3")])
+        #expect(await socket.state == .closed)
+        #expect(server.connectionCount == 1)
+    }
+
+    @Test func clientWebSocketsUseTheBaseURLAndInterceptors() async throws {
+        struct Token: RequestInterceptor {
+            func adapt(_ request: URLRequest, context: RequestContext) async throws -> URLRequest {
+                var request = request
+                request.setValue("Bearer ws-token", forHTTPHeaderField: "Authorization")
+                return request
+            }
+        }
+        let server = try await LocalWebSocketServer()
+        let client = NetworkClient(
+            baseURL: URL(string: "http://127.0.0.1:\(server.port)")!,
+            configuration: .init(interceptors: [Token()])
         )
-        
-        XCTAssertEqual(config.connectionTimeout, 60)
-        XCTAssertEqual(config.pingInterval, 15)
-        XCTAssertFalse(config.autoReconnect)
-        XCTAssertEqual(config.headers["X-Custom"], "Value")
+        let socket = try client.webSocket(.get("socket"), options: fastReconnect)
+        let inbox = Inbox()
+        let reader = inbox.start(await socket.messages())
+        try await socket.send(.text("ping"))
+        try await inbox.waitFor { $0.received.count == 1 }
+        #expect(server.authorizations == ["Bearer ws-token"])
+        await socket.close()
+        await reader.value
     }
-    
-    // MARK: - Message Tests
-    
-    func testTextMessageDecoding() throws {
-        let message = WebSocketMessage.text("{\"type\":\"chat\",\"content\":\"Hello\"}")
-        
-        struct ChatMessage: Decodable {
-            let type: String
-            let content: String
+
+    @Test func connectingDoesNotKeepACircuitBreakerHalfOpen() async throws {
+        let server = try await LocalWebSocketServer()
+        let opened = ContinuousClock.now
+        let later = Locked(false)
+        let breaker = CircuitBreaker(failureThreshold: 1, resetTimeout: .seconds(30)) {
+            later.withLock { $0 } ? opened.advanced(by: .seconds(31)) : opened
         }
-        
-        let decoded = try message.decode(as: ChatMessage.self)
-        XCTAssertEqual(decoded.type, "chat")
-        XCTAssertEqual(decoded.content, "Hello")
-    }
-    
-    func testDataMessageDecoding() throws {
-        let json = "{\"value\":42}"
-        let data = json.data(using: .utf8)!
-        let message = WebSocketMessage.data(data)
-        
-        struct TestData: Decodable {
-            let value: Int
+        let transport = MockTransport()
+        transport.register(.get, "x", .failure(.cannotConnectToHost), .status(200))
+        let client = NetworkClient(
+            baseURL: URL(string: "http://127.0.0.1:\(server.port)")!,
+            configuration: .init(interceptors: [breaker], retryPolicy: .none),
+            transport: transport
+        )
+        _ = try? await client.send(Endpoint<Void>.get("x"))
+        guard case .open = await breaker.state else {
+            Issue.record("Expected open")
+            return
         }
-        
-        let decoded = try message.decode(as: TestData.self)
-        XCTAssertEqual(decoded.value, 42)
-    }
-    
-    // MARK: - Error Tests
-    
-    func testWebSocketErrors() {
-        let notConnected = WebSocketError.notConnected
-        XCTAssertTrue(notConnected.localizedDescription.contains("not connected"))
-        
-        let connectionFailed = WebSocketError.connectionFailed("Timeout")
-        XCTAssertTrue(connectionFailed.localizedDescription.contains("Timeout"))
-        
-        let invalidMessage = WebSocketError.invalidMessage
-        XCTAssertTrue(invalidMessage.localizedDescription.contains("Invalid"))
-    }
-    
-    // MARK: - Connection State Tests
-    
-    func testConnectionStates() {
-        let disconnected = WebSocketConnectionState.disconnected(reason: "Server closed")
-        let connecting = WebSocketConnectionState.connecting
-        let connected = WebSocketConnectionState.connected
-        let reconnecting = WebSocketConnectionState.reconnecting(attempt: 2)
-        
-        switch disconnected {
-        case .disconnected(let reason):
-            XCTAssertEqual(reason, "Server closed")
-        default:
-            XCTFail("Expected disconnected state")
-        }
-        
-        switch reconnecting {
-        case .reconnecting(let attempt):
-            XCTAssertEqual(attempt, 2)
-        default:
-            XCTFail("Expected reconnecting state")
-        }
+        later.withLock { $0 = true }
+
+        let socket = try client.webSocket(.get("socket"), options: fastReconnect)
+        let inbox = Inbox()
+        let reader = inbox.start(await socket.messages())
+        try await socket.send(.text("ping"))
+        try await inbox.waitFor { $0.received.count == 1 }
+        #expect(await breaker.state == .halfOpen)
+
+        try await client.send(Endpoint<Void>.get("x"))
+        #expect(await breaker.state == .closed)
+        await socket.close()
+        await reader.value
     }
 }

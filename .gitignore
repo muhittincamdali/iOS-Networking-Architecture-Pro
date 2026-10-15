@@ -1,55 +1,51 @@
-# Build files
-.build/
-Build/
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# Build
+build/
 DerivedData/
-*.xcodeproj/project.xcworkspace/
-*.xcodeproj/xcuserdata/
-*.xcworkspace/xcuserdata/
+*.moved-aside
+*.ipa
+*.dSYM.zip
+*.dSYM
 
 # Swift Package Manager
+.build/
 .swiftpm/
+Packages/
 Package.resolved
 
 # CocoaPods
 Pods/
-*.xcworkspace
 
 # Carthage
 Carthage/Build/
 
-# Fastlane
+# fastlane
 fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 
-# Code Injection
-iOSInjectionProject/
-
-# OS generated files
+# macOS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# IDE
-*.idea/
 *.swp
 *~.nib
+*.pbxuser
+!default.pbxuser
 
-# Testing
-*.xcresult
+# IDE
+*.xcuserstate
+*.xcscmblueprint
+*.idea/
 
-# Archives
-*.xcarchive/
+# lychee link checker cache (local runs of the links job)
+.lycheecache
 
-# Playgrounds
-timeline.xctimeline
-playground.xcworkspace
-
-# Temporary files
-*.tmp
-*.temp
+# Working files that are not part of the repository
+_work/

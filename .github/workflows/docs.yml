@@ -1,19 +1,57 @@
-name: Docs Quality
+# Managed by the repository kit (muhittincamdali/.github). Pages source must be "GitHub Actions".
+name: Documentation
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [master]
   pull_request:
-    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions: {}
 
 jobs:
-  linkcheck:
-    runs-on: ubuntu-latest
+  docc:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: muhittincamdali/.github/.github/workflows/docc-pages.yml@85ec2fa95f3607e09168f14b744bd3154fdc7d43 # v1.1.0
+    with:
+      targets: NetworkingArchitecture
+      deploy: ${{ github.event_name != 'pull_request' }}
+      # HTTPHeaders is a Sequence and most types are Hashable, Codable or Sendable; without this
+      # every page would also list the members they inherit from those protocols' extensions.
+      skip-synthesized-members: true
+
+  # .lychee.toml checks the documentation links against the .docc sources, because a pull
+  # request cannot publish the site. This job checks the published pages instead, after each
+  # deploy, so a deploy that leaves an article or the root missing fails here.
+  live:
+    name: Check the published pages
+    needs: docc
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - name: Check links
-        uses: lycheeverse/lychee-action@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          args: --exclude "img.shields.io|starchart.cc" --verbose --no-progress "**/*.md"
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          persist-credentials: false
+
+      - name: Request the root and every article
+        run: |
+          base="https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture"
+          failed=0
+          for article in Sources/NetworkingArchitecture/NetworkingArchitecture.docc/*.md; do
+            name=$(basename "$article" .md | tr '[:upper:]' '[:lower:]')
+            if [ "$name" = networkingarchitecture ]; then url="$base/"; else url="$base/$name"; fi
+            if curl --fail --silent --show-error --location --output /dev/null \
+              --retry 5 --retry-delay 15 --retry-all-errors "$url"; then
+              echo "200 $url"
+            else
+              echo "::error::$url is not published"
+              failed=1
+            fi
+          done
+          exit "$failed"
