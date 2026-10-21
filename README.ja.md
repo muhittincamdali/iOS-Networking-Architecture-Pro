@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg" alt="Networking Architecture: URLSession 上の型付きエンドポイント、リトライ、トークン更新、キャッシュ、ストリーミング。依存関係なし。"></picture></p>
@@ -41,11 +41,11 @@ iOS 16+、macOS 13+、tvOS 16+、watchOS 9+、visionOS 1+ のアプリ向けの�
   token は指定したホストにしか送りません。
 - **ストリーミング** — HTML 標準の規則どおりに解析する server-sent events と、
   バックオフを挟んで再接続し、ping で接続を維持する WebSocket。
-- **デフォルトで安全** — 公開鍵ピンニング（public key pinning）、オリジンをまたぐリダイレクトでの
-  認証情報ヘッダーの破棄、redactor が理解できる部分だけを表示するログと `curl` 出力、
+- **デフォルトで安全** — 公開鍵ピンニング（public key pinning）、別オリジンへのリダイレクトを
+  たどらずに返す動作、redactor が理解できる部分だけを表示するログと `curl` 出力、
   レスポンスサイズ・バッファするメッセージ数・待ち時間の上限。
 - **テストしやすい** — `MockTransport` が用意したレスポンスでリクエストに応答します。
-  パッケージ自体の 778 個の Swift Testing テストは macOS で実行され、そのうち 773 個は
+  パッケージ自体の 911 個の Swift Testing テストは macOS で実行され、そのうち 906 個は
   iPhone シミュレータでも実行されます。ローカルの HTTP、TLS、WebSocket サーバーに対するテストも含まれます。
 
 ### 含まれるもの
@@ -252,7 +252,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   `password`・`token`・`api_key` などの秘密の名前の下にある値全体、識別子に見えるパスの
   セグメント（`:id` と書かれます）、multipart ボディのファイル部分、エラーの説明。
 - **プレーンな ASCII ではないキー**（キリル文字の `а` を使った `pаssword`、`pass\u200Bword`、
-  `şifre`）の値は、デフォルトで隠されます。
+  `şifre`）の値は、デフォルトで隠されます。そのような名前を持つフィールドの隣の値も隠され、
+  `{"name":"Ayşe","id":42}` は `{"name":"Ayşe","id":"[REDACTED]"}` として記録されます。
 - **解析できないボディ**（XML、HTML、Content-Type がない・不明、壊れた JSON、256 KiB 超）は
   記録されず、`[body omitted: 512 bytes, application/xml]` のような注記に置き換えられます。
 - **自由テキスト**（残されたヘッダーの値、`text/plain` のボディ、JSON やフォームの文字列）は、

@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg" alt="Networking Architecture: Typisierte Endpunkte, Wiederholungen, Token-Erneuerung, Caching und Streaming auf URLSession, ohne Abhängigkeiten."></picture></p>
@@ -42,12 +42,12 @@ Eine Netzwerkschicht für Apps auf iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ und 
   an deine Hosts.
 - **Streaming** — Server-sent Events, geparst nach den Regeln des HTML-Standards, und ein
   WebSocket, der sich mit Backoff neu verbindet und sich mit Pings am Leben hält.
-- **Standardmäßig sicher** — Public-Key-Pinning, Header mit Zugangsdaten werden bei
-  Weiterleitungen auf einen anderen Ursprung entfernt, Logs und `curl`-Ausgabe zeigen nur, was
+- **Standardmäßig sicher** — Public-Key-Pinning, Weiterleitungen auf einen anderen
+  Ursprung werden zurückgegeben statt verfolgt, Logs und `curl`-Ausgabe zeigen nur, was
   der Redactor versteht, und es gibt Grenzen für Antwortgröße, gepufferte Nachrichten und
   Wartezeiten.
-- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 778
-  Swift-Testing-Tests des Pakets laufen auf macOS, 773 davon auch in einem iPhone-Simulator,
+- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 911
+  Swift-Testing-Tests des Pakets laufen auf macOS, 906 davon auch in einem iPhone-Simulator,
   darunter Tests gegen einen lokalen HTTP-, TLS- und WebSocket-Server.
 
 ### Was enthalten ist
@@ -258,7 +258,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   Pfadsegmente, die wie Kennungen aussehen (geschrieben als `:id`), Dateiteile von
   Multipart-Bodys und Fehlerbeschreibungen.
 - **Schlüssel, die kein reines ASCII sind** (`pаssword` mit kyrillischem `а`, `pass\u200Bword`,
-  `şifre`), haben standardmäßig verborgene Werte.
+  `şifre`), haben standardmäßig verborgene Werte. Ebenso die Werte neben einem Feld, das einen
+  solchen Namen enthält: `{"name":"Ayşe","id":42}` wird als `{"name":"Ayşe","id":"[REDACTED]"}` protokolliert.
 - **Bodys, die sich nicht parsen lassen** (XML, HTML, ein fehlender oder unbekannter
   Content-Type, fehlerhaftes JSON, mehr als 256 KiB), werden durch einen Hinweis wie
   `[body omitted: 512 bytes, application/xml]` ersetzt.

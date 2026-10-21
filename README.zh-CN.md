@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg" alt="Networking Architecture: 基于 URLSession：类型化端点、重试、令牌刷新、缓存和流式传输，无依赖。"></picture></p>
@@ -39,10 +39,10 @@
   并把这些请求各重试一次，而且只会把 token 发给你指定的主机。
 - **流式传输**：按 HTML 标准规则解析的 server-sent events，以及带退避重连、
   并通过 ping 保持连接的 WebSocket。
-- **默认安全**：公钥固定（public key pinning）、跨源重定向时丢弃凭据请求头、
+- **默认安全**：公钥固定（public key pinning）、不跟随跨源重定向而是将其返回、
   日志和 `curl` 输出只显示 redactor 能理解的部分，并对响应大小、缓冲消息数量和等待时间设置上限。
-- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 778 个
-  Swift Testing 测试都在 macOS 上运行，其中 773 个也在 iPhone 模拟器上运行，
+- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 911 个
+  Swift Testing 测试都在 macOS 上运行，其中 906 个也在 iPhone 模拟器上运行，
   包括针对本地 HTTP、TLS 和 WebSocket 服务器的测试。
 
 ### 包含的内容
@@ -247,7 +247,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   请求头，即使在允许列表中也会隐藏），`password`、`token`、`api_key` 等敏感名称下的整个值，
   看起来像标识符的路径段（写作 `:id`），multipart 请求体中的文件部分，以及错误描述。
 - **不是纯 ASCII 的键**（含西里尔字母 `а` 的 `pаssword`、`pass\u200Bword`、`şifre`）的值
-  默认会被隐藏。
+  默认会被隐藏。含有这类名称的字段旁边的值也会被隐藏：`{"name":"Ayşe","id":42}`
+  会记录为 `{"name":"Ayşe","id":"[REDACTED]"}`。
 - **无法解析的请求体**（XML、HTML、缺少或未知的内容类型、格式错误的 JSON、超过 256 KiB）不会
   被记录，而是用 `[body omitted: 512 bytes, application/xml]` 这样的说明代替。
 - **自由文本**（保留的请求头值、`text/plain` 请求体、JSON 和表单中的字符串）从第一个触发点起

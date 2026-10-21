@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg" alt="Networking Architecture: Endpoints tipados, reintentos, renovación de tokens, caché y streaming sobre URLSession, sin dependencias."></picture></p>
@@ -42,12 +42,12 @@ Una capa de red para apps en iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ y visionOS
   envía el token a tus hosts.
 - **Streaming** — server-sent events analizados con las reglas del estándar HTML y un WebSocket
   que se reconecta con retroceso y se mantiene activo con pings.
-- **Seguro por defecto** — public key pinning, cabeceras de credenciales eliminadas en las
-  redirecciones a otro origen, registros y salida de `curl` que solo muestran lo que el redactor
+- **Seguro por defecto** — public key pinning, las redirecciones a otro origen
+  se devuelven en lugar de seguirse, registros y salida de `curl` que solo muestran lo que el redactor
   entiende, y límites para el tamaño de las respuestas, los mensajes en búfer y los tiempos de
   espera.
 - **Fácil de probar** — `MockTransport` responde a las peticiones con respuestas predefinidas; las
-  778 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 773 de ellas también en
+  911 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 906 de ellas también en
   un simulador de iPhone, incluidas pruebas contra un servidor local HTTP, TLS y WebSocket.
 
 ### Qué incluye
@@ -257,7 +257,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   `token` o `api_key`, los segmentos de ruta que parecen identificadores (escritos como `:id`),
   las partes de archivo de los cuerpos multipart y las descripciones de error.
 - **Las claves que no son ASCII simple** (`pаssword` con una `а` cirílica, `pass\u200Bword`,
-  `şifre`) tienen sus valores ocultos por defecto.
+  `şifre`) tienen sus valores ocultos por defecto. También los valores junto a un campo que
+  contiene un nombre así: `{"name":"Ayşe","id":42}` se registra como `{"name":"Ayşe","id":"[REDACTED]"}`.
 - **Los cuerpos que no se pueden analizar** (XML, HTML, un tipo de contenido ausente o
   desconocido, JSON mal formado, más de 256 KiB) se omiten con una nota como
   `[body omitted: 512 bytes, application/xml]`.

@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg" alt="Networking Architecture: Типизированные эндпоинты, повторы, обновление токенов, кэш и стриминг на URLSession, без зависимостей."></picture></p>
@@ -41,11 +41,11 @@
   вашим хостам.
 - **Стриминг** — server-sent events, разбираемые по правилам стандарта HTML, и WebSocket, который
   переподключается с нарастающей задержкой и поддерживает соединение пингами.
-- **Безопасность по умолчанию** — public key pinning, удаление заголовков с учётными данными при
-  редиректах на другой origin, логи и вывод `curl`, в которых видно только то, что понимает
+- **Безопасность по умолчанию** — public key pinning, редиректы на другой origin
+  возвращаются, а не выполняются, логи и вывод `curl`, в которых видно только то, что понимает
   redactor, а также ограничения на размер ответа, число буферизуемых сообщений и время ожидания.
 - **Удобство тестирования** — `MockTransport` отвечает на запросы заранее заготовленными ответами;
-  собственные 778 тестов пакета на Swift Testing запускаются на macOS, а 773 из них — ещё и на
+  собственные 911 тестов пакета на Swift Testing запускаются на macOS, а 906 из них — ещё и на
   симуляторе iPhone, включая тесты с локальным HTTP-, TLS- и WebSocket-сервером.
 
 ### Что входит в пакет
@@ -255,7 +255,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   сегменты пути, похожие на идентификаторы (пишутся как `:id`), файловые части тел multipart и
   описания ошибок.
 - **Ключи не из чистого ASCII** (`pаssword` с кириллической `а`, `pass\u200Bword`, `şifre`) по
-  умолчанию скрывают свои значения.
+  умолчанию скрывают свои значения. Так же скрываются значения рядом с полем, которое содержит
+  такое имя: `{"name":"Ayşe","id":42}` записывается как `{"name":"Ayşe","id":"[REDACTED]"}`.
 - **Тела, которые нельзя разобрать** (XML, HTML, отсутствующий или неизвестный тип содержимого,
   испорченный JSON, больше 256 КиБ), не пишутся; вместо них ставится пометка вроде
   `[body omitted: 512 bytes, application/xml]`.

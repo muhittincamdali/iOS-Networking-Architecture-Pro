@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg" alt="Networking Architecture: Endpoints typés, relances, renouvellement de jeton, cache et streaming sur URLSession, sans dépendance."></picture></p>
@@ -43,12 +43,12 @@ Une couche réseau pour les apps sur iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ et
   n’envoie le token qu’à vos hôtes.
 - **Streaming** — des server-sent events analysés selon les règles du standard HTML, et un
   WebSocket qui se reconnecte avec une attente progressive et reste actif grâce à des pings.
-- **Sûr par défaut** — épinglage de clé publique (public key pinning), en-têtes d’identifiants
-  supprimés lors des redirections vers une autre origine, journaux et sortie de `curl` qui ne
+- **Sûr par défaut** — épinglage de clé publique (public key pinning), redirections vers une
+  autre origine renvoyées au lieu d’être suivies, journaux et sortie de `curl` qui ne
   montrent que ce que le redactor comprend, et limites sur la taille des réponses, les messages
   mis en tampon et les délais d’attente.
-- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 778 tests
-  Swift Testing du paquet s’exécutent sur macOS, dont 773 aussi sur un simulateur d’iPhone, y
+- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 911 tests
+  Swift Testing du paquet s’exécutent sur macOS, dont 906 aussi sur un simulateur d’iPhone, y
   compris des tests contre un serveur local HTTP, TLS et WebSocket.
 
 ### Ce qui est inclus
@@ -259,7 +259,9 @@ un `Redactor`, qui masque tout ce qu’il ne comprend pas entièrement.
   `password`, `token` ou `api_key`, les segments de chemin qui ressemblent à des identifiants
   (écrits `:id`), les parties fichier des corps multipart et les descriptions d’erreur.
 - **Les clés qui ne sont pas en ASCII simple** (`pаssword` avec un `а` cyrillique,
-  `pass\u200Bword`, `şifre`) ont leurs valeurs masquées par défaut.
+  `pass\u200Bword`, `şifre`) ont leurs valeurs masquées par défaut. Les valeurs voisines d’un
+  champ qui contient un tel nom le sont aussi : `{"name":"Ayşe","id":42}` est journalisé comme
+  `{"name":"Ayşe","id":"[REDACTED]"}`.
 - **Les corps qui ne peuvent pas être analysés** (XML, HTML, un type de contenu absent ou
   inconnu, du JSON mal formé, plus de 256 Kio) sont omis avec une note comme
   `[body omitted: 512 bytes, application/xml]`.

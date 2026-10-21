@@ -40,11 +40,11 @@ streaming are settings of that client instead of code you write around every req
   that got a 401, retries each of them once, and only sends the token to your hosts.
 - **Streaming** — server-sent events parsed by the HTML standard's rules, and a WebSocket
   that reconnects with backoff and keeps itself alive with pings.
-- **Safe by default** — public key pinning, credential headers dropped on cross-origin
-  redirects, logs and `curl` output that show only what the redactor understands, and limits
+- **Safe by default** — public key pinning, redirects to another origin returned instead of
+  followed, logs and `curl` output that show only what the redactor understands, and limits
   on response size, buffered messages and wait times.
 - **Testable** — `MockTransport` answers requests from canned responses; the package's own
-  778 Swift Testing tests run on macOS, 773 of them also on an iPhone simulator, including
+  911 Swift Testing tests run on macOS, 906 of them also on an iPhone simulator, including
   tests against a local HTTP, TLS and WebSocket server.
 
 ### What's included
@@ -252,7 +252,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   such as `password`, `token` or `api_key`, path segments that look like identifiers (written
   `:id`), file parts of multipart bodies, and error descriptions.
 - **Keys that are not plain ASCII** (`pаssword` with a Cyrillic `а`, `pass​word`, `şifre`)
-  have their values hidden by default.
+  have their values hidden by default. So are the values beside a field that holds a name
+  written that way: `{"name":"Ayşe","id":42}` is logged as `{"name":"Ayşe","id":"[REDACTED]"}`.
 - **Bodies that cannot be parsed** (XML, HTML, a missing or unknown content type, malformed
   JSON, more than 256 KiB) are left out with a note such as
   `[body omitted: 512 bytes, application/xml]`.

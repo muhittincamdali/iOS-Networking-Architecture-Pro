@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg" alt="Networking Architecture: URLSession üzerinde tipli uç noktalar, yeniden deneme, token yenileme, önbellek ve akış; bağımlılık yok."></picture></p>
@@ -41,12 +41,12 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ ve visionOS 1+ uygulamaları için, `UR
   sunucularınıza gönderir.
 - **Akış** — HTML standardının kurallarına göre ayrıştırılan server-sent events ve geri çekilmeyle
   yeniden bağlanan, ping'lerle bağlantıyı canlı tutan bir WebSocket.
-- **Varsayılan olarak güvenli** — public key pinning, farklı kaynağa yönlendirmelerde kimlik
-  bilgisi başlıklarının düşürülmesi, günlüklerde ve `curl` çıktısında yalnızca redactor'ın
+- **Varsayılan olarak güvenli** — public key pinning, farklı kaynağa yönlendirmelerin
+  izlenmeyip geri döndürülmesi, günlüklerde ve `curl` çıktısında yalnızca redactor'ın
   anladığı kısmın gösterilmesi; ayrıca yanıt boyutu, arabelleğe alınan mesajlar ve bekleme
   süreleri için sınırlar.
-- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 778
-  Swift Testing testi macOS'ta çalışır, bunların 773'i ayrıca bir iPhone simülatöründe de
+- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 911
+  Swift Testing testi macOS'ta çalışır, bunların 906'sı ayrıca bir iPhone simülatöründe de
   çalışır. Bunlara yerel bir HTTP, TLS ve WebSocket sunucusuna karşı yazılmış testler de dahildir.
 
 ### Neler var
@@ -258,7 +258,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   değerlerin tamamı, kimliğe benzeyen yol parçaları (`:id` olarak yazılır), multipart
   gövdelerindeki dosya parçaları ve hata açıklamaları.
 - **Düz ASCII olmayan anahtarların** (Kiril `а` harfli `pаssword`, `pass\u200Bword`, `şifre`)
-  değerleri varsayılan olarak gizlenir.
+  değerleri varsayılan olarak gizlenir. Böyle bir ad taşıyan alanın yanındaki değerler de
+  gizlenir: `{"name":"Ayşe","id":42}`, `{"name":"Ayşe","id":"[REDACTED]"}` olarak kaydedilir.
 - **Ayrıştırılamayan gövdeler** (XML, HTML, eksik ya da bilinmeyen içerik türü, bozuk JSON,
   256 KiB'tan büyük gövde) yazılmaz; yerine `[body omitted: 512 bytes, application/xml]` gibi
   bir not konur.

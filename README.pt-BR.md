@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg" alt="Networking Architecture: Endpoints tipados, novas tentativas, renovação de token, cache e streaming sobre URLSession, sem dependências."></picture></p>
@@ -42,11 +42,11 @@ Uma camada de rede para apps no iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ e visio
   token para os seus hosts.
 - **Streaming** — server-sent events interpretados pelas regras do padrão HTML e um WebSocket que
   se reconecta com espera progressiva e se mantém ativo com pings.
-- **Seguro por padrão** — public key pinning, cabeçalhos de credenciais removidos em redirecionamentos
-  para outra origem, logs e saída do `curl` que mostram só o que o redactor entende, e limites para
+- **Seguro por padrão** — public key pinning, redirecionamentos para outra origem
+  devolvidos em vez de seguidos, logs e saída do `curl` que mostram só o que o redactor entende, e limites para
   o tamanho das respostas, as mensagens em buffer e os tempos de espera.
-- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 778
-  testes de Swift Testing do próprio pacote rodam no macOS e 773 deles também em um simulador de
+- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 911
+  testes de Swift Testing do próprio pacote rodam no macOS e 906 deles também em um simulador de
   iPhone, incluindo testes contra um servidor local HTTP, TLS e WebSocket.
 
 ### O que está incluído
@@ -256,7 +256,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   segmentos de caminho que parecem identificadores (escritos como `:id`), partes de arquivo de
   corpos multipart e descrições de erro.
 - **Chaves que não são ASCII simples** (`pаssword` com um `а` cirílico, `pass\u200Bword`,
-  `şifre`) têm seus valores ocultados por padrão.
+  `şifre`) têm seus valores ocultados por padrão. O mesmo vale para os valores ao lado de um
+  campo que contém um nome assim: `{"name":"Ayşe","id":42}` é registrado como `{"name":"Ayşe","id":"[REDACTED]"}`.
 - **Corpos que não podem ser analisados** (XML, HTML, tipo de conteúdo ausente ou desconhecido,
   JSON malformado, mais de 256 KiB) ficam de fora com uma nota como
   `[body omitted: 512 bytes, application/xml]`.

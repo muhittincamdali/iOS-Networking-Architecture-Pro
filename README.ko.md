@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
+<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg" alt="Networking Architecture: URLSession 기반 타입 엔드포인트, 재시도, 토큰 갱신, 캐싱, 스트리밍. 의존성 없음."></picture></p>
@@ -40,11 +40,11 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+, visionOS 1+ 앱을 위한 네트워킹
   각 요청을 한 번씩 다시 시도하며, token은 지정한 호스트에만 보냅니다.
 - **스트리밍** — HTML 표준의 규칙에 따라 파싱하는 server-sent events와, 백오프를 두고
   다시 연결하며 ping으로 연결을 유지하는 WebSocket.
-- **기본적으로 안전** — 공개 키 고정(public key pinning), 다른 출처로의 리디렉션 시 인증 헤더 제거,
+- **기본적으로 안전** — 공개 키 고정(public key pinning), 다른 출처로의 리디렉션은 따라가지 않고 반환,
   redactor가 이해하는 부분만 보여 주는 로그와 `curl` 출력, 응답 크기·버퍼링되는 메시지 수·대기
   시간에 대한 제한.
 - **테스트하기 쉬움** — `MockTransport`가 미리 준비한 응답으로 요청에 답합니다. 패키지 자체의
-  778개 Swift Testing 테스트가 macOS에서 실행되며, 그중 773개는 iPhone 시뮬레이터에서도 실행됩니다.
+  911개 Swift Testing 테스트가 macOS에서 실행되며, 그중 906개는 iPhone 시뮬레이터에서도 실행됩니다.
   로컬 HTTP, TLS, WebSocket 서버를 대상으로 한 테스트도 포함됩니다.
 
 ### 포함된 기능
@@ -250,7 +250,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   비밀 이름 아래의 값 전체, 식별자처럼 보이는 경로 세그먼트(`:id`로 기록), multipart 본문의 파일
   부분, 오류 설명.
 - **순수 ASCII가 아닌 키**(키릴 문자 `а`가 들어간 `pаssword`, `pass\u200Bword`, `şifre`)의 값은
-  기본적으로 숨겨집니다.
+  기본적으로 숨겨집니다. 그런 이름을 담은 필드 옆의 값도 숨겨지므로 `{"name":"Ayşe","id":42}`는
+  `{"name":"Ayşe","id":"[REDACTED]"}`로 기록됩니다.
 - **파싱할 수 없는 본문**(XML, HTML, 없거나 알 수 없는 콘텐츠 유형, 잘못된 JSON, 256 KiB 초과)은
   기록하지 않고 `[body omitted: 512 bytes, application/xml]` 같은 메모로 대신합니다.
 - **자유 텍스트**(남겨 둔 헤더 값, `text/plain` 본문, JSON과 폼 안의 문자열)는 첫 트리거부터 끝까지
