@@ -28,7 +28,8 @@ extension JSONDocument {
     ///   with the free-text rule applied to its decoded text, which may hold JSON again. They are
     ///   read with the document's ``nesting`` and the objects and arrays around them, so JSON in
     ///   them that goes past a limit of the budget hides the whole string.
-    /// - A number that holds a card number or a long token becomes the string `"[REDACTED]"`.
+    /// - A number that holds a card number or a long token becomes the string `"[REDACTED]"`; a
+    ///   number with an exponent is read as the decimal it stands for (`4.111111111111111E15`).
     func secretSpans(using redactor: Redactor, compatibility: CompatibilityText) -> [Redactor.Span] {
         var spans: [Redactor.Span] = []
         collect(root, nesting: nesting, into: &spans, redactor: redactor, compatibility: compatibility)
@@ -151,9 +152,20 @@ extension JSONDocument {
     }
 
     /// A number with a card number or a long token in it becomes a string, since ``Redactor/replacement``
-    /// is not a number.
+    /// is not a number. A number with an exponent is read as the decimal it stands for (see
+    /// ``JSONNumber``), and what is found there hides it whole: `4.111111111111111E15` and
+    /// `4111111111111111e0` become `"[REDACTED]"`. A number without one is read as written, and
+    /// only what is found is replaced: `-4111111111111111` becomes `"-[REDACTED]"`.
     private func numberSpans(_ node: Node, redactor: Redactor, compatibility: CompatibilityText) -> [Redactor.Span] {
         let digits = Array(scalars[node.range])
+        if let plain = JSONNumber.plainDecimal(digits) {
+            let found = redactor.detectorSpans(in: NormalizedText(plain, compatibility: compatibility))
+            if !found.isEmpty {
+                let kind = found.reduce(into: Redactor.Kinds()) { $0.formUnion($1.kind) }
+                let replacement = "\"\(Redactor.replacement)\""
+                return [Redactor.Span(start: node.range.lowerBound, end: node.range.upperBound, kind: kind, replacement: replacement)]
+            }
+        }
         let found = Redactor.merged(redactor.detectorSpans(in: NormalizedText(digits, compatibility: compatibility)))
         guard !found.isEmpty else { return [] }
         let kind = found.reduce(into: Redactor.Kinds()) { $0.formUnion($1.kind) }

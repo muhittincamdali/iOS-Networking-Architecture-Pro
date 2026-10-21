@@ -15,7 +15,9 @@ struct RedactionReviewProbeTests {
             ("a name and its value in two JSON objects", [177]),
             ("a name that is not on the list", [181]),
             ("a value before its name or glued to a flag", [311, 329]),
-            ("a card number grouped by . or _, glued to letters or written as a JSON float", [354, 355, 356, 411]),
+            // #411, a card number written as a JSON number with an exponent, is read as the
+            // decimal it stands for and hidden.
+            ("a card number grouped by . or _ or glued to letters", [354, 355, 356]),
         ]
         for (reason, ids) in byReason {
             for id in ids { limitations[id] = reason }
