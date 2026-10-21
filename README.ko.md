@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
+<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg" alt="Networking Architecture: URLSession 기반 타입 엔드포인트, 재시도, 토큰 갱신, 캐싱, 스트리밍. 의존성 없음."></picture></p>
@@ -41,9 +41,10 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+, visionOS 1+ 앱을 위한 네트워킹
 - **스트리밍** — HTML 표준의 규칙에 따라 파싱하는 server-sent events와, 백오프를 두고
   다시 연결하며 ping으로 연결을 유지하는 WebSocket.
 - **기본적으로 안전** — 공개 키 고정(public key pinning), 다른 출처로의 리디렉션 시 인증 헤더 제거,
-  로그와 `curl` 출력에서 비밀 값 마스킹, 응답 크기·버퍼링되는 메시지 수·대기 시간에 대한 제한.
+  redactor가 이해하는 부분만 보여 주는 로그와 `curl` 출력, 응답 크기·버퍼링되는 메시지 수·대기
+  시간에 대한 제한.
 - **테스트하기 쉬움** — `MockTransport`가 미리 준비한 응답으로 요청에 답합니다. 패키지 자체의
-  229개 Swift Testing 테스트가 macOS에서 실행되며, 그중 228개는 iPhone 시뮬레이터에서도 실행됩니다.
+  778개 Swift Testing 테스트가 macOS에서 실행되며, 그중 773개는 iPhone 시뮬레이터에서도 실행됩니다.
   로컬 HTTP, TLS, WebSocket 서버를 대상으로 한 테스트도 포함됩니다.
 
 ### 포함된 기능
@@ -234,6 +235,50 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 }
 ```
 
+### 비밀 값을 로그에 남기지 않기
+
+`NetworkLogger`와 `URLRequest.curlCommand()`는 모든 요청과 응답을 `Redactor`에 통과시킵니다.
+`Redactor`는 완전히 이해하지 못하는 것은 모두 숨깁니다.
+
+- **기록되는 것:** 메서드, 상태 코드, 소요 시간과 크기, 헤더 이름, 허용 목록에 있는 헤더의 값
+  (기본값은 `Accept`, `Accept-Encoding`, `Accept-Language`, `Cache-Control`, `Content-Encoding`,
+  `Content-Length`, `Content-Type`, `ETag`, `User-Agent`), URL의 스킴·호스트·경로·쿼리
+  매개변수 이름, 그리고 마스킹한 뒤의 JSON·폼·multipart·`text/plain` 본문.
+- **절대 기록되지 않는 것:** URL의 사용자 정보와 프래그먼트, 허용 목록에 없는 쿼리 값(기본적으로
+  모두), 그 밖의 모든 헤더 값(`Authorization`, `Cookie`, `X-API-Key`, 그리고 이름에 `token`,
+  `key`, `auth`가 들어간 헤더는 허용 목록에 있어도 숨김), `password`, `token`, `api_key` 같은
+  비밀 이름 아래의 값 전체, 식별자처럼 보이는 경로 세그먼트(`:id`로 기록), multipart 본문의 파일
+  부분, 오류 설명.
+- **순수 ASCII가 아닌 키**(키릴 문자 `а`가 들어간 `pаssword`, `pass\u200Bword`, `şifre`)의 값은
+  기본적으로 숨겨집니다.
+- **파싱할 수 없는 본문**(XML, HTML, 없거나 알 수 없는 콘텐츠 유형, 잘못된 JSON, 256 KiB 초과)은
+  기록하지 않고 `[body omitted: 512 bytes, application/xml]` 같은 메모로 대신합니다.
+- **자유 텍스트**(남겨 둔 헤더 값, `text/plain` 본문, JSON과 폼 안의 문자열)는 첫 트리거부터 끝까지
+  숨겨집니다. 트리거는 `allowedTextKeys`에 없는 키, 비밀 이름, 이스케이프, 마크업, 닫히지 않는
+  따옴표입니다. `login password=hunter2 status=200`은 `login password=[REDACTED]`로 기록됩니다.
+
+```swift
+func makeLoggingClient() -> NetworkClient {
+    let redactor = Redactor(
+        additionalSecretNames: ["license_number"],
+        allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"],
+        allowedQueryParameters: ["page"]
+    )
+    var configuration = NetworkClient.Configuration()
+    configuration.monitors = [NetworkLogger(detail: .bodies, redactor: redactor)]
+    return NetworkClient(baseURL: URL(string: "https://api.example.com/v1")!, configuration: configuration)
+}
+```
+
+마스킹은 안전망이지 보장이 아닙니다. 실수로 로그에 남긴 비밀 값을 위해 만들어졌습니다. 구조화된
+입력은 파서로 읽고, 파서가 완전히 이해하지 못하는 것은 모두 숨기며, 자유 텍스트는 최선의 노력으로
+처리합니다. `=`나 `:` 없이 쓰고 두 글자 이상을 비슷한 글자로 바꾼 비밀 이름(`pɑsswoʀd hunter2`),
+레이블 없는 비밀 값(`login -p hunter2`), 경로 세그먼트 안의 짧은 비밀 값(`/reset/abc123`)은
+반드시 찾는다고 보장하지 않습니다. 처음부터 로그에 남기는 요청에 비밀 값을 넣지 마세요. redactor의
+이전 개발 버전이 놓친 비밀 값은 모두 테스트로 남아 있으며, 모든 규칙은
+[Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
+문서에 있습니다.
+
 ### 응답 캐싱하기
 
 구성에 캐시가 있으면 endpoint가 `CachePolicy`를 선택합니다. 응답은 어디에서 왔는지 알려 줍니다.
@@ -343,6 +388,7 @@ server-sent events로 받는 가격 피드, 그리고 비밀번호, API key, tok
 - [Authenticating Requests](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/authenticatingrequests)
 - [Streaming Events](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents)
 - [Securing Traffic](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic)
+- [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 - [Testing Your API Layer](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer)
 
 ## 요구 사항

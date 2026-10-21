@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
+<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg" alt="Networking Architecture: Endpoints typés, relances, renouvellement de jeton, cache et streaming sur URLSession, sans dépendance."></picture></p>
@@ -44,11 +44,11 @@ Une couche réseau pour les apps sur iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ et
 - **Streaming** — des server-sent events analysés selon les règles du standard HTML, et un
   WebSocket qui se reconnecte avec une attente progressive et reste actif grâce à des pings.
 - **Sûr par défaut** — épinglage de clé publique (public key pinning), en-têtes d’identifiants
-  supprimés lors des redirections vers une autre origine, secrets masqués dans les journaux et
-  dans la sortie de `curl`, et limites sur la taille des réponses, les messages mis en tampon et
-  les délais d’attente.
-- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 229 tests
-  Swift Testing du paquet s’exécutent sur macOS, dont 228 aussi sur un simulateur d’iPhone, y
+  supprimés lors des redirections vers une autre origine, journaux et sortie de `curl` qui ne
+  montrent que ce que le redactor comprend, et limites sur la taille des réponses, les messages
+  mis en tampon et les délais d’attente.
+- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 778 tests
+  Swift Testing du paquet s’exécutent sur macOS, dont 773 aussi sur un simulateur d’iPhone, y
   compris des tests contre un serveur local HTTP, TLS et WebSocket.
 
 ### Ce qui est inclus
@@ -242,6 +242,56 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 }
 ```
 
+### Garder les secrets hors des journaux
+
+`NetworkLogger` et `URLRequest.curlCommand()` font passer chaque requête et chaque réponse par
+un `Redactor`, qui masque tout ce qu’il ne comprend pas entièrement.
+
+- **Journalisé :** la méthode, le statut, la durée et la taille, les noms des en-têtes, les
+  valeurs des en-têtes de la liste autorisée (par défaut `Accept`, `Accept-Encoding`, `Accept-Language`, `Cache-Control`, `Content-Encoding`,
+  `Content-Length`, `Content-Type`, `ETag`, `User-Agent`),
+  le schéma, l’hôte, le chemin et les noms des paramètres de requête de l’URL, ainsi que
+  les corps JSON, de formulaire, multipart et `text/plain` après masquage.
+- **Jamais journalisé :** les informations d’utilisateur et le fragment des URL, les valeurs de
+  requête qui ne sont pas autorisées (aucune par défaut), les valeurs de tous les autres
+  en-têtes (`Authorization`, `Cookie`, `X-API-Key` et les noms contenant `token`, `key` ou
+  `auth`, même s’ils sont autorisés), les valeurs entières sous des noms secrets comme
+  `password`, `token` ou `api_key`, les segments de chemin qui ressemblent à des identifiants
+  (écrits `:id`), les parties fichier des corps multipart et les descriptions d’erreur.
+- **Les clés qui ne sont pas en ASCII simple** (`pаssword` avec un `а` cyrillique,
+  `pass\u200Bword`, `şifre`) ont leurs valeurs masquées par défaut.
+- **Les corps qui ne peuvent pas être analysés** (XML, HTML, un type de contenu absent ou
+  inconnu, du JSON mal formé, plus de 256 Kio) sont omis avec une note comme
+  `[body omitted: 512 bytes, application/xml]`.
+- **Le texte libre** (valeurs d’en-têtes conservées, corps `text/plain`, chaînes dans le JSON et
+  les formulaires) est masqué de son premier déclencheur jusqu’à la fin : une clé absente de
+  `allowedTextKeys`, un nom secret, un échappement, du balisage ou un guillemet qui ne se ferme
+  pas. `login password=hunter2 status=200` est journalisé comme `login password=[REDACTED]`.
+
+```swift
+func makeLoggingClient() -> NetworkClient {
+    let redactor = Redactor(
+        additionalSecretNames: ["license_number"],
+        allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"],
+        allowedQueryParameters: ["page"]
+    )
+    var configuration = NetworkClient.Configuration()
+    configuration.monitors = [NetworkLogger(detail: .bodies, redactor: redactor)]
+    return NetworkClient(baseURL: URL(string: "https://api.example.com/v1")!, configuration: configuration)
+}
+```
+
+Le masquage est un filet de sécurité, pas une garantie. Il est conçu pour les secrets
+journalisés par accident : les entrées structurées sont analysées, et tout ce que l’analyseur ne
+comprend pas entièrement est masqué ; le texte libre est traité au mieux. Un nom secret écrit
+sans `=` ni `:` et déguisé par deux lettres ressemblantes ou plus (`pɑsswoʀd hunter2`), un secret
+sans étiquette (`login -p hunter2`) et un secret court dans un segment de chemin
+(`/reset/abc123`) ne sont pas trouvés à coup sûr. Gardez les secrets hors des requêtes que vous
+journalisez dès le départ. Chaque secret que les versions de développement précédentes du
+redactor laissaient passer est conservé comme test ; l’article
+[Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
+liste toutes les règles.
+
 ### Mettre les réponses en cache
 
 Lorsque la configuration contient un cache, chaque endpoint choisit sa `CachePolicy`. La réponse
@@ -355,6 +405,7 @@ couvre chaque type public, avec ces articles :
 - [Authenticating Requests](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/authenticatingrequests)
 - [Streaming Events](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents)
 - [Securing Traffic](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic)
+- [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 - [Testing Your API Layer](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer)
 
 ## Prérequis

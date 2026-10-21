@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
+<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg" alt="Networking Architecture: 基于 URLSession：类型化端点、重试、令牌刷新、缓存和流式传输，无依赖。"></picture></p>
@@ -40,9 +40,9 @@
 - **流式传输**：按 HTML 标准规则解析的 server-sent events，以及带退避重连、
   并通过 ping 保持连接的 WebSocket。
 - **默认安全**：公钥固定（public key pinning）、跨源重定向时丢弃凭据请求头、
-  在日志和 `curl` 输出中隐去敏感信息，并对响应大小、缓冲消息数量和等待时间设置上限。
-- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 229 个
-  Swift Testing 测试都在 macOS 上运行，其中 228 个也在 iPhone 模拟器上运行，
+  日志和 `curl` 输出只显示 redactor 能理解的部分，并对响应大小、缓冲消息数量和等待时间设置上限。
+- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 778 个
+  Swift Testing 测试都在 macOS 上运行，其中 773 个也在 iPhone 模拟器上运行，
   包括针对本地 HTTP、TLS 和 WebSocket 服务器的测试。
 
 ### 包含的内容
@@ -233,6 +233,48 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 }
 ```
 
+### 不让敏感信息进入日志
+
+`NetworkLogger` 和 `URLRequest.curlCommand()` 会让每个请求和响应都先经过一个 `Redactor`，
+它会隐藏所有无法完全理解的内容。
+
+- **会记录：**方法、状态码、耗时和大小、请求头名称、允许列表中请求头的值（默认为
+  `Accept`, `Accept-Encoding`, `Accept-Language`, `Cache-Control`, `Content-Encoding`,
+  `Content-Length`, `Content-Type`, `ETag`, `User-Agent`），URL 的 scheme、主机、路径和查询参数名，
+  以及脱敏后的 JSON、表单、multipart 和 `text/plain` 请求体。
+- **绝不记录：**URL 中的用户信息和片段、不在允许列表中的查询值（默认全部不在），其他所有
+  请求头的值（`Authorization`、`Cookie`、`X-API-Key` 以及名称含 `token`、`key` 或 `auth` 的
+  请求头，即使在允许列表中也会隐藏），`password`、`token`、`api_key` 等敏感名称下的整个值，
+  看起来像标识符的路径段（写作 `:id`），multipart 请求体中的文件部分，以及错误描述。
+- **不是纯 ASCII 的键**（含西里尔字母 `а` 的 `pаssword`、`pass\u200Bword`、`şifre`）的值
+  默认会被隐藏。
+- **无法解析的请求体**（XML、HTML、缺少或未知的内容类型、格式错误的 JSON、超过 256 KiB）不会
+  被记录，而是用 `[body omitted: 512 bytes, application/xml]` 这样的说明代替。
+- **自由文本**（保留的请求头值、`text/plain` 请求体、JSON 和表单中的字符串）从第一个触发点起
+  到末尾都会被隐藏：不在 `allowedTextKeys` 中的键、敏感名称、转义序列、标记或未闭合的引号。
+  `login password=hunter2 status=200` 会记录为 `login password=[REDACTED]`。
+
+```swift
+func makeLoggingClient() -> NetworkClient {
+    let redactor = Redactor(
+        additionalSecretNames: ["license_number"],
+        allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"],
+        allowedQueryParameters: ["page"]
+    )
+    var configuration = NetworkClient.Configuration()
+    configuration.monitors = [NetworkLogger(detail: .bodies, redactor: redactor)]
+    return NetworkClient(baseURL: URL(string: "https://api.example.com/v1")!, configuration: configuration)
+}
+```
+
+脱敏是一张安全网，而不是保证。它针对的是不小心写进日志的敏感信息：结构化输入会用解析器读取，
+解析器不能完全理解的内容都会被隐藏；自由文本只能尽力而为。不带 `=` 或 `:`、并用两个或更多
+形近字母伪装的敏感名称（`pɑsswoʀd hunter2`），没有标签的敏感值（`login -p hunter2`），以及路径段
+中的短敏感值（`/reset/abc123`），都不保证能被找到。请从一开始就不要把敏感信息放进要记录的
+请求里。redactor 早期开发版本漏掉的每个敏感值都保留为测试；所有规则见
+[Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
+一文。
+
 ### 缓存响应
 
 配置中有缓存时，endpoint 可以选择自己的 `CachePolicy`。响应会说明它来自哪里。
@@ -342,6 +384,7 @@ func makeTestClient() throws -> (NetworkClient, MockTransport) {
 - [Authenticating Requests](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/authenticatingrequests)
 - [Streaming Events](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents)
 - [Securing Traffic](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic)
+- [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 - [Testing Your API Layer](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer)
 
 ## 系统要求

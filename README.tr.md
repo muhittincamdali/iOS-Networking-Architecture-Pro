@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
+<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg" alt="Networking Architecture: URLSession üzerinde tipli uç noktalar, yeniden deneme, token yenileme, önbellek ve akış; bağımlılık yok."></picture></p>
@@ -42,10 +42,11 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ ve visionOS 1+ uygulamaları için, `UR
 - **Akış** — HTML standardının kurallarına göre ayrıştırılan server-sent events ve geri çekilmeyle
   yeniden bağlanan, ping'lerle bağlantıyı canlı tutan bir WebSocket.
 - **Varsayılan olarak güvenli** — public key pinning, farklı kaynağa yönlendirmelerde kimlik
-  bilgisi başlıklarının düşürülmesi, günlüklerden ve `curl` çıktısından gizli bilgilerin
-  maskelenmesi; ayrıca yanıt boyutu, arabelleğe alınan mesajlar ve bekleme süreleri için sınırlar.
-- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 229
-  Swift Testing testi macOS'ta çalışır, bunların 228'i ayrıca bir iPhone simülatöründe de
+  bilgisi başlıklarının düşürülmesi, günlüklerde ve `curl` çıktısında yalnızca redactor'ın
+  anladığı kısmın gösterilmesi; ayrıca yanıt boyutu, arabelleğe alınan mesajlar ve bekleme
+  süreleri için sınırlar.
+- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 778
+  Swift Testing testi macOS'ta çalışır, bunların 773'i ayrıca bir iPhone simülatöründe de
   çalışır. Bunlara yerel bir HTTP, TLS ve WebSocket sunucusuna karşı yazılmış testler de dahildir.
 
 ### Neler var
@@ -240,6 +241,56 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 }
 ```
 
+### Gizli bilgileri günlüklerin dışında tutun
+
+`NetworkLogger` ve `URLRequest.curlCommand()` her isteği ve yanıtı bir `Redactor`'dan geçirir;
+`Redactor` tam olarak anlamadığı her şeyi gizler.
+
+- **Yazılan:** HTTP metodu, durum kodu, süre ve boyut, başlık adları, izin listesindeki başlıkların
+  değerleri (varsayılan olarak `Accept`, `Accept-Encoding`, `Accept-Language`, `Cache-Control`, `Content-Encoding`,
+  `Content-Length`, `Content-Type`, `ETag`, `User-Agent`), URL'nin
+  şeması, sunucusu, yolu ve sorgu parametresi adları; maskelendikten sonra JSON, form,
+  multipart ve `text/plain` gövdeleri.
+- **Asla yazılmayan:** URL'deki kullanıcı bilgisi ve fragment, izin listesinde olmayan sorgu
+  değerleri (varsayılan olarak hiçbiri izinli değildir), diğer bütün başlıkların değerleri
+  (`Authorization`, `Cookie`, `X-API-Key` ve adında `token`, `key` ya da `auth` geçenler izin
+  listesinde olsalar bile), `password`, `token` ya da `api_key` gibi gizli adların altındaki
+  değerlerin tamamı, kimliğe benzeyen yol parçaları (`:id` olarak yazılır), multipart
+  gövdelerindeki dosya parçaları ve hata açıklamaları.
+- **Düz ASCII olmayan anahtarların** (Kiril `а` harfli `pаssword`, `pass\u200Bword`, `şifre`)
+  değerleri varsayılan olarak gizlenir.
+- **Ayrıştırılamayan gövdeler** (XML, HTML, eksik ya da bilinmeyen içerik türü, bozuk JSON,
+  256 KiB'tan büyük gövde) yazılmaz; yerine `[body omitted: 512 bytes, application/xml]` gibi
+  bir not konur.
+- **Serbest metin** (izin verilen başlık değerleri, `text/plain` gövdeleri, JSON ve formlardaki
+  metinler) ilk tetikleyiciden sonuna kadar gizlenir: `allowedTextKeys` listesinde olmayan bir
+  anahtar, gizli bir ad, bir kaçış dizisi, işaretleme ya da kapanmayan bir tırnak.
+  `login password=hunter2 status=200` günlüğe `login password=[REDACTED]` olarak yazılır.
+
+```swift
+func makeLoggingClient() -> NetworkClient {
+    let redactor = Redactor(
+        additionalSecretNames: ["license_number"],
+        allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"],
+        allowedQueryParameters: ["page"]
+    )
+    var configuration = NetworkClient.Configuration()
+    configuration.monitors = [NetworkLogger(detail: .bodies, redactor: redactor)]
+    return NetworkClient(baseURL: URL(string: "https://api.example.com/v1")!, configuration: configuration)
+}
+```
+
+Maskeleme bir güvenlik ağıdır, garanti değildir. Kazara günlüğe yazılan gizli bilgiler için
+tasarlanmıştır: yapılandırılmış girdi ayrıştırılır ve ayrıştırıcının tam olarak anlamadığı her
+şey gizlenir; serbest metinde ise elden gelenin en iyisi yapılır. `=` ya da `:` olmadan yazılıp
+iki ya da daha fazla harfi benzer harflerle değiştirilmiş bir gizli ad (`pɑsswoʀd hunter2`),
+etiketsiz bir gizli bilgi (`login -p hunter2`) ve bir yol parçasındaki kısa bir gizli bilgi
+(`/reset/abc123`) için bulunma garantisi yoktur. Gizli bilgileri en baştan günlüğe yazdığınız
+isteklerin dışında tutun. Redactor'ın geliştirme sürümlerinin kaçırdığı her gizli bilgi bir
+test olarak duruyor; bütün kurallar
+[Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
+makalesinde listelenir.
+
 ### Yanıtları önbelleğe alın
 
 Yapılandırmada bir önbellek varsa endpoint kendi `CachePolicy` değerini seçer. Yanıt, nereden
@@ -351,6 +402,7 @@ her herkese açık türü kapsar ve şu makaleleri içerir:
 - [Authenticating Requests](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/authenticatingrequests)
 - [Streaming Events](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents)
 - [Securing Traffic](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic)
+- [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 - [Testing Your API Layer](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer)
 
 ## Gereksinimler

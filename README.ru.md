@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
+<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg" alt="Networking Architecture: Типизированные эндпоинты, повторы, обновление токенов, кэш и стриминг на URLSession, без зависимостей."></picture></p>
@@ -42,10 +42,10 @@
 - **Стриминг** — server-sent events, разбираемые по правилам стандарта HTML, и WebSocket, который
   переподключается с нарастающей задержкой и поддерживает соединение пингами.
 - **Безопасность по умолчанию** — public key pinning, удаление заголовков с учётными данными при
-  редиректах на другой origin, скрытие секретов в логах и в выводе `curl`, а также ограничения на
-  размер ответа, число буферизуемых сообщений и время ожидания.
+  редиректах на другой origin, логи и вывод `curl`, в которых видно только то, что понимает
+  redactor, а также ограничения на размер ответа, число буферизуемых сообщений и время ожидания.
 - **Удобство тестирования** — `MockTransport` отвечает на запросы заранее заготовленными ответами;
-  собственные 229 тестов пакета на Swift Testing запускаются на macOS, а 228 из них — ещё и на
+  собственные 778 тестов пакета на Swift Testing запускаются на macOS, а 773 из них — ещё и на
   симуляторе iPhone, включая тесты с локальным HTTP-, TLS- и WebSocket-сервером.
 
 ### Что входит в пакет
@@ -238,6 +238,55 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 }
 ```
 
+### Не пускайте секреты в логи
+
+`NetworkLogger` и `URLRequest.curlCommand()` пропускают каждый запрос и каждый ответ через
+`Redactor`, который скрывает всё, что не понимает полностью.
+
+- **Пишется в лог:** метод, статус, длительность и размер, имена заголовков, значения
+  заголовков из списка разрешённых (по умолчанию `Accept`, `Accept-Encoding`, `Accept-Language`, `Cache-Control`, `Content-Encoding`,
+  `Content-Length`, `Content-Type`, `ETag`, `User-Agent`),
+  схема, хост, путь и имена параметров запроса в URL, а также тела JSON, форм, multipart и
+  `text/plain` после скрытия.
+- **Никогда не пишется:** данные пользователя и фрагмент URL, значения параметров запроса не из
+  списка разрешённых (по умолчанию разрешённых нет), значения всех остальных заголовков
+  (`Authorization`, `Cookie`, `X-API-Key` и имена с `token`, `key` или `auth`, даже если они в
+  списке), значения целиком под секретными именами вроде `password`, `token` или `api_key`,
+  сегменты пути, похожие на идентификаторы (пишутся как `:id`), файловые части тел multipart и
+  описания ошибок.
+- **Ключи не из чистого ASCII** (`pаssword` с кириллической `а`, `pass\u200Bword`, `şifre`) по
+  умолчанию скрывают свои значения.
+- **Тела, которые нельзя разобрать** (XML, HTML, отсутствующий или неизвестный тип содержимого,
+  испорченный JSON, больше 256 КиБ), не пишутся; вместо них ставится пометка вроде
+  `[body omitted: 512 bytes, application/xml]`.
+- **Свободный текст** (оставленные значения заголовков, тела `text/plain`, строки в JSON и
+  формах) скрывается от первого триггера до конца: ключ не из `allowedTextKeys`, секретное имя,
+  экранирование, разметка или незакрытая кавычка. `login password=hunter2 status=200` попадает в
+  лог как `login password=[REDACTED]`.
+
+```swift
+func makeLoggingClient() -> NetworkClient {
+    let redactor = Redactor(
+        additionalSecretNames: ["license_number"],
+        allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"],
+        allowedQueryParameters: ["page"]
+    )
+    var configuration = NetworkClient.Configuration()
+    configuration.monitors = [NetworkLogger(detail: .bodies, redactor: redactor)]
+    return NetworkClient(baseURL: URL(string: "https://api.example.com/v1")!, configuration: configuration)
+}
+```
+
+Скрытие — это страховочная сетка, а не гарантия. Оно рассчитано на секреты, попавшие в лог
+случайно: структурированный ввод разбирается парсером, и всё, что парсер не понимает полностью,
+скрывается; свободный текст обрабатывается по мере возможности. Секретное имя без `=` или `:`,
+замаскированное двумя или более похожими буквами (`pɑsswoʀd hunter2`), секрет без метки
+(`login -p hunter2`) и короткий секрет в сегменте пути (`/reset/abc123`) не обязательно будут
+найдены. С самого начала не включайте секреты в запросы, которые пишете в лог. Каждый секрет,
+который пропускали прежние версии redactor в разработке, сохранён как тест; все правила
+перечислены в статье
+[Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata).
+
 ### Кешируйте ответы
 
 Если в конфигурации задан кеш, каждый endpoint выбирает свою `CachePolicy`. Ответ сообщает, откуда он
@@ -350,6 +399,7 @@ func makeTestClient() throws -> (NetworkClient, MockTransport) {
 - [Authenticating Requests](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/authenticatingrequests)
 - [Streaming Events](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents)
 - [Securing Traffic](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic)
+- [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 - [Testing Your API Layer](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer)
 
 ## Требования

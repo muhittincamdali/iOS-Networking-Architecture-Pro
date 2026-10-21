@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@ce4eaf1718e4211f5d9cd662c3a78c661abb0a4c status=reviewed -->
+<!-- i18n-source: README.md@c3ccbd09f0723113c2c4a14d24a91a3a9f623078 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg" alt="Networking Architecture: URLSession 上の型付きエンドポイント、リトライ、トークン更新、キャッシュ、ストリーミング。依存関係なし。"></picture></p>
@@ -42,10 +42,10 @@ iOS 16+、macOS 13+、tvOS 16+、watchOS 9+、visionOS 1+ のアプリ向けの�
 - **ストリーミング** — HTML 標準の規則どおりに解析する server-sent events と、
   バックオフを挟んで再接続し、ping で接続を維持する WebSocket。
 - **デフォルトで安全** — 公開鍵ピンニング（public key pinning）、オリジンをまたぐリダイレクトでの
-  認証情報ヘッダーの破棄、ログと `curl` 出力での秘密情報のマスク、
+  認証情報ヘッダーの破棄、redactor が理解できる部分だけを表示するログと `curl` 出力、
   レスポンスサイズ・バッファするメッセージ数・待ち時間の上限。
 - **テストしやすい** — `MockTransport` が用意したレスポンスでリクエストに応答します。
-  パッケージ自体の 229 個の Swift Testing テストは macOS で実行され、そのうち 228 個は
+  パッケージ自体の 778 個の Swift Testing テストは macOS で実行され、そのうち 773 個は
   iPhone シミュレータでも実行されます。ローカルの HTTP、TLS、WebSocket サーバーに対するテストも含まれます。
 
 ### 含まれるもの
@@ -236,6 +236,53 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 }
 ```
 
+### 秘密情報をログに残さない
+
+`NetworkLogger` と `URLRequest.curlCommand()` は、すべてのリクエストとレスポンスを
+`Redactor` に通します。`Redactor` は完全には理解できないものをすべて隠します。
+
+- **記録されるもの:** メソッド、ステータス、所要時間とサイズ、ヘッダー名、許可リストにある
+  ヘッダーの値（デフォルトでは `Accept`, `Accept-Encoding`, `Accept-Language`, `Cache-Control`, `Content-Encoding`,
+  `Content-Length`, `Content-Type`, `ETag`, `User-Agent`）、URL の
+  スキーム・ホスト・パス・クエリパラメータ名、そしてマスク後の JSON・フォーム・multipart・
+  `text/plain` のボディ。
+- **決して記録されないもの:** URL のユーザー情報とフラグメント、許可リストにないクエリの値
+  （デフォルトではすべて）、その他すべてのヘッダーの値（`Authorization`、`Cookie`、
+  `X-API-Key`、名前に `token`・`key`・`auth` を含むものは許可リストにあっても隠されます）、
+  `password`・`token`・`api_key` などの秘密の名前の下にある値全体、識別子に見えるパスの
+  セグメント（`:id` と書かれます）、multipart ボディのファイル部分、エラーの説明。
+- **プレーンな ASCII ではないキー**（キリル文字の `а` を使った `pаssword`、`pass\u200Bword`、
+  `şifre`）の値は、デフォルトで隠されます。
+- **解析できないボディ**（XML、HTML、Content-Type がない・不明、壊れた JSON、256 KiB 超）は
+  記録されず、`[body omitted: 512 bytes, application/xml]` のような注記に置き換えられます。
+- **自由テキスト**（残されたヘッダーの値、`text/plain` のボディ、JSON やフォームの文字列）は、
+  最初のトリガーから末尾まで隠されます。トリガーは `allowedTextKeys` にないキー、秘密の名前、
+  エスケープ、マークアップ、閉じない引用符です。`login password=hunter2 status=200` は
+  `login password=[REDACTED]` として記録されます。
+
+```swift
+func makeLoggingClient() -> NetworkClient {
+    let redactor = Redactor(
+        additionalSecretNames: ["license_number"],
+        allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"],
+        allowedQueryParameters: ["page"]
+    )
+    var configuration = NetworkClient.Configuration()
+    configuration.monitors = [NetworkLogger(detail: .bodies, redactor: redactor)]
+    return NetworkClient(baseURL: URL(string: "https://api.example.com/v1")!, configuration: configuration)
+}
+```
+
+マスクは安全網であり、保証ではありません。誤ってログに書かれた秘密情報のために作られています。
+構造化された入力はパーサーで読み、パーサーが完全には理解できないものはすべて隠します。自由テキストは
+ベストエフォートです。`=` や `:` なしで書かれ、2 文字以上を似た文字に置き換えた秘密の名前
+（`pɑsswoʀd hunter2`）、ラベルのない秘密（`login -p hunter2`）、パスのセグメントにある短い秘密
+（`/reset/abc123`）は、必ず見つかるとは限りません。そもそもログに書くリクエストに秘密情報を
+入れないでください。redactor の以前の開発版が見逃した秘密はすべてテストとして残しています。
+すべてのルールは
+[Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
+の記事にあります。
+
 ### レスポンスをキャッシュする
 
 設定にキャッシュがあれば、endpoint ごとに `CachePolicy` を選べます。レスポンスは、どこから来たかを示します。
@@ -345,6 +392,7 @@ server-sent events による価格フィード、パスワード、API key、tok
 - [Authenticating Requests](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/authenticatingrequests)
 - [Streaming Events](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents)
 - [Securing Traffic](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic)
+- [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 - [Testing Your API Layer](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer)
 
 ## 動作要件
