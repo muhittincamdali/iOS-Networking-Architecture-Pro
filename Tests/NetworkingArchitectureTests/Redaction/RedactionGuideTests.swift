@@ -110,6 +110,14 @@ struct RedactionGuideTests {
         #expect(policy.redact(url: URL(string: "https://e.com/reset/abc123")!) == "https://e.com/reset/abc123")
         #expect(policy.redact(url: URL(string: "https://e.com/reset/abc123def456ghi789")!) == "https://e.com/reset/:id")
         #expect(policy.redact(text: "see https://x.example/reset/abc123") == "see https://x.example/reset/abc123")
+        // Digits that run into a letter are an identifier: a card number written with an exponent
+        // in text or in a JSON string is not found. As a JSON number it is read as the decimal it
+        // stands for, and hidden.
+        #expect(policy.redact(text: "paid 4111111111111111e0") == "paid 4111111111111111e0")
+        #expect(String(decoding: policy.redact(body: Data(#"{"amount":"4111111111111111e0"}"#.utf8), contentType: "application/json").body, as: UTF8.self)
+            == #"{"amount":"4111111111111111e0"}"#)
+        #expect(String(decoding: policy.redact(body: Data(#"{"amount":4111111111111111e0}"#.utf8), contentType: "application/json").body, as: UTF8.self)
+            == #"{"amount":"[REDACTED]"}"#)
         // Beside a `name` that is not plain ASCII, every other value is hidden, on purpose.
         #expect(String(decoding: policy.redact(body: Data(#"{"name":"Şifre","x":"hunter2"}"#.utf8), contentType: "application/json").body, as: UTF8.self)
             == #"{"name":"Şifre","x":"[REDACTED]"}"#)

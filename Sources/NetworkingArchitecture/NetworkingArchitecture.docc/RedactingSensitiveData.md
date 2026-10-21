@@ -158,6 +158,13 @@ from its start: when the domain read across the separator does not end in a top-
 (`alice@example.com`, a vertical tab and `1`), the address ends at the separator. A line feed or a
 carriage return written as such ends a finding, as it ends a line.
 
+A JSON number is read as the decimal it stands for. A number with an exponent, as Jackson and
+Gson write a `double` (`4.111111111111111E15`) or as any writer may (`4111111111111111e0`), is
+read written out (`4111111111111111`), and when a detector finds something there the whole number
+becomes `"[REDACTED]"`. Written out, a number with 32 or more digits in a row (`1e31`, `1e-32`) is
+a long token, as it is when written plainly, and is hidden too. A number without an exponent
+keeps what is not found: `-4111111111111111` is stored as `"-[REDACTED]"`.
+
 Strings in JSON, form values, query values and multipart text parts are free text; see below. A
 string that holds JSON, as GraphQL clients send `variables`, is parsed and redacted by the key
 rule.
@@ -437,6 +444,9 @@ Use ``Redactor/disabled`` only with test servers and test accounts, or pass `nil
 - A card number grouped with `+` or `.` (`4111+1111+1111+1111`), and a card number or an IBAN
   split over two lines by a line feed or a carriage return (`4111 1111 1111` on one line and
   `1111` on the next).
+- A card number written with an exponent in free text, in a JSON string or in a form value
+  (`paid 4111111111111111e0`, `{"amount":"4111111111111111e0"}`): digits that run into a letter
+  are read as an identifier. Written as a JSON number, it is found.
 - A short secret in a path segment, such as `/reset/abc123`; only identifiers, tokens of the shapes
   listed above and segments in which a rule finds something become `:id`. In free text the same
   holds for a clean URL (`see https://x.example/reset/abc123`).
