@@ -14,9 +14,14 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 
-# Swift Package Manager
+# Swift Package Manager (the shared package scheme is kept: it runs the tests one at a time)
 .build/
-.swiftpm/
+.swiftpm/*
+!.swiftpm/xcode/
+.swiftpm/xcode/*
+!.swiftpm/xcode/xcshareddata/
+.swiftpm/xcode/xcshareddata/*
+!.swiftpm/xcode/xcshareddata/xcschemes/
 Packages/
 Package.resolved
 

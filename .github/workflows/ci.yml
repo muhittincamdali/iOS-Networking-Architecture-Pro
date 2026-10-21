@@ -17,3 +17,4 @@ jobs:
     with:
       platforms: '["iOS","macOS","tvOS","watchOS","visionOS"]'
       test-on-simulator: true
+      swift-test-flags: --no-parallel

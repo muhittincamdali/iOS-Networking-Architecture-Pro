@@ -19,12 +19,17 @@ Open an issue with:
 3. Run the tests on macOS and on an iOS simulator:
 
     ```sh
-    swift test
+    swift test --no-parallel
+    swift test -c release --no-parallel --filter Redaction
     xcodebuild test -scheme NetworkingArchitecture-Package \
       -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
     ```
 
    The tests start HTTP, TLS and WebSocket servers on 127.0.0.1; nothing goes to the internet.
+   They run one at a time (the shared `NetworkingArchitecture-Package` scheme turns off
+   parallel testing): the redaction test corpus keeps every core busy for minutes in a debug
+   build, and the tests with a timeout fail when they wait behind it. The release run checks
+   the redaction time and memory limits in an optimized build.
 4. Add or update a test for every behaviour you change in `Tests/NetworkingArchitectureTests`.
    Use `MockTransport` for client logic and the local servers in `Tests/.../Support` when the
    behaviour depends on `URLSession` itself (streaming, redirects, TLS, WebSockets).
