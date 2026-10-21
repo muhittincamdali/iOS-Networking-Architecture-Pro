@@ -90,8 +90,9 @@ public protocol ResponseCache: Sendable {
 enum CacheKey {
     /// The method, the URL and the headers that change the response: `Accept`,
     /// `Accept-Language` and, hashed together, every credential header (each header whose
-    /// name or value a ``Redactor`` would hide, such as `Authorization`, `Cookie`, `X-API-Key`
-    /// or `X-Upstream: Bearer …`), so two users of one client never share a cached response.
+    /// name a ``Redactor`` always hides, such as `Authorization`, `Cookie` or `X-API-Key`, or
+    /// whose value starts with an authentication scheme or would be cut as free text, such as
+    /// `X-Upstream: Bearer …`), so two users of one client never share a cached response.
     static func make(for request: URLRequest) -> String {
         var key = (request.httpMethod ?? "GET") + " " + (request.url?.absoluteString ?? "")
         for name in ["Accept", "Accept-Language"] {
@@ -100,7 +101,7 @@ enum CacheKey {
             }
         }
         let credentials = (request.allHTTPHeaderFields ?? [:])
-            .filter { Redactor.default.isSensitive($0.key) || Redactor.default.containsSecret($0.value) }
+            .filter { Redactor.default.carriesCredential(headerName: $0.key, value: $0.value) }
             .map { "\($0.key.lowercased()): \($0.value)" }
             .sorted()
         if !credentials.isEmpty {

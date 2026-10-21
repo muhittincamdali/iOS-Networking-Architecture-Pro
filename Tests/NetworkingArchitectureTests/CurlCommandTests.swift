@@ -15,9 +15,10 @@ struct CurlCommandTests {
 
     @Test func redactsByDefault() {
         let command = request().curlCommand()
-        #expect(command.hasPrefix("curl -X 'POST' 'https://api.example.com/login?token=<redacted>&page=2'"))
-        #expect(command.contains("-H 'Authorization: <redacted>'"))
-        #expect(command.contains(#"--data-binary '{"password":"<redacted>","user":"ada"}'"#))
+        #expect(command.hasPrefix("curl -X 'POST' 'https://api.example.com/login?token=[REDACTED]&page=[REDACTED]'"))
+        #expect(command.contains("-H 'Authorization: [REDACTED]'"))
+        #expect(command.contains("-H 'Content-Type: application/json'"))
+        #expect(command.contains(#"--data-binary '{"user":"ada","password":"[REDACTED]"}'"#))
         #expect(!command.contains("secret") && !command.contains("t-1"))
     }
 

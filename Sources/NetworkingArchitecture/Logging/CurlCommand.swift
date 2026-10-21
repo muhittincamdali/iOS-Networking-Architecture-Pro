@@ -5,7 +5,7 @@ extension URLRequest {
     ///
     /// ```swift
     /// print(request.curlCommand())
-    /// // curl -X POST 'https://api.example.com/login' -H 'Authorization: <redacted>' --data-binary '{"user":"ada"}'
+    /// // curl -X 'POST' 'https://api.example.com/login' -H 'Authorization: [REDACTED]' --data-binary '{"user":"ada"}'
     /// ```
     ///
     /// Every argument is single-quoted for POSIX shells, so a value cannot run a command when
@@ -18,11 +18,11 @@ extension URLRequest {
         if method != "GET" {
             parts += ["-X", Self.quoted(method)]
         }
-        parts.append(Self.quoted(redactor?.redact(url) ?? url?.absoluteString ?? ""))
+        parts.append(Self.quoted(redactor?.displayText(of: url) ?? url?.absoluteString ?? ""))
 
         var headers = HTTPHeaders(allHTTPHeaderFields ?? [:])
         if let redactor {
-            headers = redactor.redact(headers)
+            headers = redactor.redact(headers: headers)
         }
         for field in headers {
             parts += ["-H", Self.quoted("\(field.name): \(field.value)")]
@@ -31,7 +31,7 @@ extension URLRequest {
         if let body = httpBody, !body.isEmpty {
             let text: String?
             if let redactor {
-                text = redactor.redact(body: body, contentType: value(forHTTPHeaderField: "Content-Type"))
+                text = redactor.displayText(ofBody: body, contentType: value(forHTTPHeaderField: "Content-Type"))
             } else {
                 text = String(data: body, encoding: .utf8)
             }

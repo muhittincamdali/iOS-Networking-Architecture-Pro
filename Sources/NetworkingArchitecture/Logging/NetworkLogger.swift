@@ -8,8 +8,11 @@ import os
 /// configuration.monitors = [NetworkLogger(detail: .headers)]
 /// ```
 ///
-/// Every line passes through a ``Redactor`` first, so tokens, passwords and cookies do not
-/// reach the log. By default the lines go to the unified logging system (`os.Logger`, visible
+/// Every line passes through a ``Redactor`` first, which keeps only what it understands: the
+/// values of allowlisted headers, parsed bodies with secret values hidden, and URLs without
+/// user info, fragments or query values that are not allowlisted (see
+/// <doc:RedactingSensitiveData>). Errors are written by their kind and code, never by their
+/// description. Redaction is a safety net, not a guarantee. By default the lines go to the unified logging system (`os.Logger`, visible
 /// in Xcode and Console) under the subsystem `NetworkingArchitecture`; pass `output` to send
 /// them elsewhere. Because the text is already redacted it is logged as public, so Console
 /// shows it outside the debugger too.
@@ -64,16 +67,16 @@ public struct NetworkLogger: NetworkEventMonitor {
         let id = String(context.id.uuidString.prefix(8))
         switch event {
         case .willSend(let request):
-            var line = "→ [\(id)] \(request.httpMethod ?? "GET") \(redactor.redact(request.url))"
+            var line = "→ [\(id)] \(request.httpMethod ?? "GET") \(redactor.displayText(of: request.url))"
             if context.attempt > 1 { line += " (attempt \(context.attempt))" }
             return line + details(headers: request.allHTTPHeaderFields.map { HTTPHeaders($0) }, body: request.httpBody,
                                   contentType: request.value(forHTTPHeaderField: "Content-Type"))
         case .didReceive(let request, let response, let duration):
-            let line = "← [\(id)] \(response.statusCode) \(request.httpMethod ?? "GET") \(redactor.redact(request.url))"
+            let line = "← [\(id)] \(response.statusCode) \(request.httpMethod ?? "GET") \(redactor.displayText(of: request.url))"
                 + " (\(Self.milliseconds(duration)) ms, \(response.value.count) bytes)"
             return line + details(headers: response.headers, body: response.value, contentType: response.headers["Content-Type"])
         case .didFail(let request, let error, let duration):
-            return "✕ [\(id)] \(request.httpMethod ?? "GET") \(redactor.redact(request.url))"
+            return "✕ [\(id)] \(request.httpMethod ?? "GET") \(redactor.displayText(of: request.url))"
                 + " failed after \(Self.milliseconds(duration)) ms: \(Self.summary(of: error))"
         case .willRetry(_, let delay, let reason):
             return "↻ [\(id)] retrying in \(Self.milliseconds(delay)) ms (\(reason.rawValue))"
@@ -83,12 +86,12 @@ public struct NetworkLogger: NetworkEventMonitor {
     private func details(headers: HTTPHeaders?, body: Data?, contentType: String?) -> String {
         var text = ""
         if detail >= .headers, let headers {
-            for field in redactor.redact(headers) {
+            for field in redactor.redact(headers: headers) {
                 text += "\n    \(field.name): \(field.value)"
             }
         }
         if detail >= .bodies {
-            let shown = redactor.redact(body: body, contentType: contentType)
+            let shown = redactor.displayText(ofBody: body, contentType: contentType)
             if !shown.isEmpty { text += "\n    \(shown)" }
         }
         return text
