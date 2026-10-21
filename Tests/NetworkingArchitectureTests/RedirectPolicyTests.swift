@@ -49,6 +49,20 @@ struct RedirectPolicyTests {
         #expect(header("X-API-Key", in: received.withLock { $0.first }) == "k-123")
     }
 
+    @Test func theDefaultReturnsACrossOriginRedirect() async throws {
+        let (start, target, received) = try await servers()
+        let client = NetworkClient(
+            baseURL: start.url(""),
+            configuration: .init(headers: ["X-API-Key": "k-123"], retryPolicy: .none),
+            transport: URLSessionTransport(session: URLSession(configuration: .ephemeral))
+        )
+        let response = try await client.response(for: Endpoint<Data>.get("start").with(\.acceptableStatusCodes, Set(200..<400)))
+        withExtendedLifetime(target) {}
+        #expect(URLSessionTransport(session: .shared).redirectPolicy == .followSameOrigin)
+        #expect(response.statusCode == 302)
+        #expect(received.withLock { $0.isEmpty })
+    }
+
     @Test func doNotFollowReturnsTheRedirect() async throws {
         let (start, target, received) = try await servers()
         let response = try await send(to: start, policy: .doNotFollow)
@@ -61,6 +75,7 @@ struct RedirectPolicyTests {
         let original = URLRequest(url: URL(string: "https://api.example.com/a")!)
         let redirect = URLRequest(url: URL(string: "http://api.example.com/b")!)
         #expect(RedirectPolicy.followSafely.request(redirecting: original, to: redirect) == nil)
+        #expect(RedirectPolicy.followSameOrigin.request(redirecting: original, to: redirect) == nil)
         #expect(RedirectPolicy.follow.request(redirecting: original, to: redirect) != nil)
     }
 
@@ -78,11 +93,64 @@ struct RedirectPolicyTests {
         #expect(followed.value(forHTTPHeaderField: "X-Trace") == "t-1")
     }
 
+    private func request(_ text: String, headers: [String: String] = [:], body: Data? = nil) throws -> URLRequest {
+        var request = URLRequest(url: try #require(URL(string: text)))
+        for (name, value) in headers { request.setValue(value, forHTTPHeaderField: name) }
+        request.httpBody = body
+        return request
+    }
+
+    private static let credentials = ["Authorization": "Bearer a", "Cookie": "s=1", "Proxy-Authorization": "Basic b", "X-Session-Id": "c"]
+
+    @Test("A redirect to another host, another port or another scheme is not followed by default", arguments: [
+        "https://cdn.example.net/b", "https://api.example.com:8443/b", "http://api.example.com/b", "wss://api.example.com/b",
+    ])
+    func crossOriginRedirectsStopByDefault(location: String) throws {
+        let original = try request("https://api.example.com/a")
+        let redirect = try request(location, headers: Self.credentials, body: Data("password=hunter2".utf8))
+        #expect(RedirectPolicy.followSameOrigin.request(redirecting: original, to: redirect) == nil)
+        #expect(RedirectPolicy.follow.request(redirecting: original, to: redirect) != nil)
+    }
+
+    @Test("Following safely drops credentials and the body on a redirect to another host or port", arguments: [
+        "https://cdn.example.net/b", "https://api.example.com:8443/b", "https://API.example.com.evil.example/b",
+    ])
+    func crossOriginRedirectsLoseCredentialsAndBody(location: String) throws {
+        let original = try request("https://api.example.com/a")
+        let headers = Self.credentials.merging(["Content-Type": "application/x-www-form-urlencoded", "X-Trace": "t-1"]) { first, _ in first }
+        let redirect = try request(location, headers: headers, body: Data("password=hunter2".utf8))
+        let followed = try #require(RedirectPolicy.followSafely.request(redirecting: original, to: redirect))
+        for name in Self.credentials.keys { #expect(followed.value(forHTTPHeaderField: name) == nil, "\(name)") }
+        #expect(followed.httpBody == nil && followed.httpBodyStream == nil)
+        #expect(followed.value(forHTTPHeaderField: "Content-Type") == nil)
+        #expect(followed.value(forHTTPHeaderField: "X-Trace") == "t-1")
+    }
+
+    @Test("A redirect whose Location holds user info is refused by every policy but follow", arguments: [
+        "https://user:pass@api.example.com/b", "https://user@api.example.com/b", "https://user:pass@cdn.example.net/b",
+    ])
+    func userInfoInLocationIsRefused(location: String) throws {
+        let original = try request("https://api.example.com/a")
+        let redirect = try request(location)
+        #expect(RedirectPolicy.followSameOrigin.request(redirecting: original, to: redirect) == nil)
+        #expect(RedirectPolicy.followSafely.request(redirecting: original, to: redirect) == nil)
+        #expect(RedirectPolicy.doNotFollow.request(redirecting: original, to: redirect) == nil)
+    }
+
+    @Test func downgradesAreRefusedEvenToTheSameHost() throws {
+        let original = try request("https://api.example.com/a")
+        let redirect = try request("http://api.example.com:443/b")
+        #expect(RedirectPolicy.followSameOrigin.request(redirecting: original, to: redirect) == nil)
+        #expect(RedirectPolicy.followSafely.request(redirecting: original, to: redirect) == nil)
+    }
+
     @Test func sameOriginRedirectsKeepEveryHeader() {
         let original = URLRequest(url: URL(string: "https://api.example.com/a")!)
         var redirect = URLRequest(url: URL(string: "https://API.example.com:443/b")!)
         redirect.setValue("k", forHTTPHeaderField: "X-API-Key")
-        let followed = RedirectPolicy.followSafely.request(redirecting: original, to: redirect)
-        #expect(followed?.value(forHTTPHeaderField: "X-API-Key") == "k")
+        for policy in [RedirectPolicy.followSameOrigin, .followSafely] {
+            let followed = policy.request(redirecting: original, to: redirect)
+            #expect(followed?.value(forHTTPHeaderField: "X-API-Key") == "k")
+        }
     }
 }

@@ -76,7 +76,7 @@ extension URLSessionTransport {
     public init(
         configuration: URLSessionConfiguration = .default,
         pinning: PublicKeyPinning,
-        redirectPolicy: RedirectPolicy = .followSafely
+        redirectPolicy: RedirectPolicy = .followSameOrigin
     ) {
         let delegate = PinningSessionDelegate(pinning: pinning)
         self.init(

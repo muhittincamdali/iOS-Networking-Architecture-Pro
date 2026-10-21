@@ -28,7 +28,7 @@ public struct URLSessionTransport: HTTPTransport {
     ///     at least 1. The default is 1 MB.
     public init(
         session: URLSession = .shared,
-        redirectPolicy: RedirectPolicy = .followSafely,
+        redirectPolicy: RedirectPolicy = .followSameOrigin,
         streamBufferLimit: Int = 1024 * 1024
     ) {
         self.session = session
