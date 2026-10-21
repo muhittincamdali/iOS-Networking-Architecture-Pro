@@ -41,10 +41,10 @@ streaming are settings of that client instead of code you write around every req
 - **Streaming** — server-sent events parsed by the HTML standard's rules, and a WebSocket
   that reconnects with backoff and keeps itself alive with pings.
 - **Safe by default** — public key pinning, credential headers dropped on cross-origin
-  redirects, secrets redacted from logs and `curl` output, and limits on response size,
-  buffered messages and wait times.
+  redirects, logs and `curl` output that show only what the redactor understands, and limits
+  on response size, buffered messages and wait times.
 - **Testable** — `MockTransport` answers requests from canned responses; the package's own
-  229 Swift Testing tests run on macOS, 228 of them also on an iPhone simulator, including
+  778 Swift Testing tests run on macOS, 773 of them also on an iPhone simulator, including
   tests against a local HTTP, TLS and WebSocket server.
 
 ### What's included
@@ -236,6 +236,54 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 }
 ```
 
+### Keep secrets out of logs
+
+`NetworkLogger` and `URLRequest.curlCommand()` pass every request and response through a
+`Redactor`, which hides what it does not fully understand.
+
+- **Logged:** method, status, duration and size, header names, the values of allowlisted
+  headers (`Accept`, `Accept-Encoding`, `Accept-Language`, `Cache-Control`, `Content-Encoding`,
+  `Content-Length`, `Content-Type`, `ETag` and `User-Agent` by default), the URL's scheme, host,
+  path and query parameter names, and JSON, form, multipart and `text/plain` bodies after
+  redaction.
+- **Never logged:** URL user info and fragments, query values that are not allowlisted (none
+  are by default), the values of all other headers (`Authorization`, `Cookie`, `X-API-Key` and
+  names with `token`, `key` or `auth` even when allowlisted), whole values under secret names
+  such as `password`, `token` or `api_key`, path segments that look like identifiers (written
+  `:id`), file parts of multipart bodies, and error descriptions.
+- **Keys that are not plain ASCII** (`pаssword` with a Cyrillic `а`, `pass​word`, `şifre`)
+  have their values hidden by default.
+- **Bodies that cannot be parsed** (XML, HTML, a missing or unknown content type, malformed
+  JSON, more than 256 KiB) are left out with a note such as
+  `[body omitted: 512 bytes, application/xml]`.
+- **Free text** (kept header values, `text/plain` bodies, strings in JSON and forms) is hidden
+  from its first trigger to its end: a key that is not on `allowedTextKeys`, a secret name, an
+  escape, markup or a quote that does not close. `login password=hunter2 status=200` is logged
+  as `login password=[REDACTED]`.
+
+```swift
+func makeLoggingClient() -> NetworkClient {
+    let redactor = Redactor(
+        additionalSecretNames: ["license_number"],
+        allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"],
+        allowedQueryParameters: ["page"]
+    )
+    var configuration = NetworkClient.Configuration()
+    configuration.monitors = [NetworkLogger(detail: .bodies, redactor: redactor)]
+    return NetworkClient(baseURL: URL(string: "https://api.example.com/v1")!, configuration: configuration)
+}
+```
+
+Redaction is a safety net, not a guarantee. It is built for secrets logged by accident:
+structured input is parsed, and whatever the parser does not fully understand is hidden; free
+text is a best effort. A secret name written without `=` or `:` and disguised with two or more
+look-alike letters (`pɑsswoʀd hunter2`), a secret with no label (`login -p hunter2`) and a
+short secret in a path segment (`/reset/abc123`) are not guaranteed to be found. Keep secrets
+out of the requests you log in the first place. Every secret that earlier development
+versions of the redactor missed is kept as a test; the
+[Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
+article lists every rule.
+
 ### Cache responses
 
 With a cache in the configuration, an endpoint chooses its `CachePolicy`. The response says
@@ -348,6 +396,7 @@ covers every public type, with these articles:
 - [Authenticating Requests](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/authenticatingrequests)
 - [Streaming Events](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents)
 - [Securing Traffic](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic)
+- [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 - [Testing Your API Layer](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer)
 
 ## Requirements

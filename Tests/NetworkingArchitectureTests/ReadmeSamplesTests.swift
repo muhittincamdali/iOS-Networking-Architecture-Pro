@@ -86,6 +86,20 @@ struct ReadmeSamplesTests {
         #expect(try await viewerLogin(with: client(transport)) == "muhittincamdali")
     }
 
+    @Test func theLoggingClientKeepsOnlyWhatItsRedactorAllows() throws {
+        let client = makeLoggingClient()
+        let monitor = try #require(client.configuration.monitors.first as? NetworkLogger)
+        var request = URLRequest(url: try #require(URL(string: "https://api.example.com/v1/users?page=2&token=t-1")))
+        request.setValue("r-1", forHTTPHeaderField: "X-Request-ID")
+        request.setValue("k-1", forHTTPHeaderField: "X-API-Key")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data(#"{"name":"Ada","license_number":"L-123"}"#.utf8)
+        let line = try #require(monitor.format(.willSend(request), context: RequestContext(retryPolicy: .none)))
+        #expect(line.contains("users?page=2&token=[REDACTED]"))
+        #expect(line.contains("X-Request-ID: r-1") && line.contains("X-API-Key: [REDACTED]"))
+        #expect(line.contains(#"{"name":"Ada","license_number":"[REDACTED]"}"#))
+    }
+
     @Test func testClientRetriesTheScripted503() async throws {
         let (client, transport) = try makeTestClient()
         let users = try await client.send(API.users(page: 1))

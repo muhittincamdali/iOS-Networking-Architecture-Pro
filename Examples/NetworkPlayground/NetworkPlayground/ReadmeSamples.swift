@@ -104,6 +104,19 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
     }
 }
 
+// MARK: - Keep secrets out of logs
+
+func makeLoggingClient() -> NetworkClient {
+    let redactor = Redactor(
+        additionalSecretNames: ["license_number"],
+        allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"],
+        allowedQueryParameters: ["page"]
+    )
+    var configuration = NetworkClient.Configuration()
+    configuration.monitors = [NetworkLogger(detail: .bodies, redactor: redactor)]
+    return NetworkClient(baseURL: URL(string: "https://api.example.com/v1")!, configuration: configuration)
+}
+
 // MARK: - Cache responses
 
 func cachedUsers(with client: NetworkClient) async throws -> HTTPResponse<[User]> {
