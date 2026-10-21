@@ -36,9 +36,11 @@ certificate does not lock your app out. A rejected server fails the request with
 
 `URLSession` drops `Authorization` when a redirect leads to another origin but forwards every
 other header. With the default ``RedirectPolicy/followSafely``, ``URLSessionTransport`` also
-removes on such a redirect every header whose name or value a ``Redactor`` would hide (such
-as `X-API-Key`, `Cookie` or `X-Upstream: Bearer …`), and refuses redirects from `https` to
-`http`. ``RedirectPolicy/doNotFollow``
+removes on such a redirect every header that carries a credential: a name that a ``Redactor``
+always hides (such as `X-API-Key`, `Cookie` or any name with `token`, `key` or `auth`), and a
+value that starts with an authentication scheme (`X-Upstream: Bearer …`) or that the free-text
+rule would cut (a URL with a query, a `key=value` pair, an escape). It also refuses redirects
+from `https` to `http`. ``RedirectPolicy/doNotFollow``
 returns every redirect to you instead.
 
 ``BearerTokenAuthenticator`` adds its token only to the hosts you list, so an absolute URL
@@ -47,28 +49,21 @@ to another server never receives it.
 ### Keep secrets out of logs
 
 ``NetworkLogger`` and `URLRequest.curlCommand(redactor:)` pass everything through a
-``Redactor``. It hides header, query, JSON and form values whose names look like credentials
-(`password`, `access_token`, `Access-Token`, `ACCESS%5FTOKEN`, `apiKey`, …), any value that
-starts with an HTTP authentication scheme (`Bearer …`, `Token …`, `Negotiate …`, …, and
-`Bearer+…` in a query, where `+` is a space) or is a JSON Web Token, and the user and
-password of a URL. A value that is itself a URL, a form or JSON is read too, however it is
-nested or encoded, so a `redirect` query value or a JSON string holding
-`https://x/cb?access_token=…`, and a `state` query value or a header holding
-`{"access_token":…}`, is hidden. Bodies it cannot parse, such as XML, are summarised
-by size only.
-
-Path parameters such as `;jsessionid=…` are treated like query fields. Redaction is a safety
-net, not a guarantee: a secret that is a whole path segment (`/reset/8f2a…`) or sits under an
-unusual name is not recognised. Add your own names:
+``Redactor``, which hides what it does not fully understand. Header values are kept only for a
+short allowlist (`Accept`, `Content-Type`, `User-Agent`, …), and never for `Authorization`,
+`Cookie` or a name with `token`, `key` or `auth`. A URL loses its user info and fragment, its
+query values unless you allow the parameter, and path segments that look like identifiers. JSON,
+form and multipart bodies are parsed, and the whole value under a secret key, or under any key that
+is not plain ASCII, is hidden. Bodies that cannot be parsed, such as XML, are left out with a
+note. Kept text is cut at its first sign of a secret.
 
 ```swift
-var redactor = Redactor()
-redactor.sensitiveNames.insert("customerReference")
+let redactor = Redactor(additionalSecretNames: ["customerReference"], allowedQueryParameters: ["page"])
 configuration.monitors = [NetworkLogger(detail: .headers, redactor: redactor)]
 ```
 
-Names are compared after lower-casing them and removing everything but letters and digits,
-so `customerReference` also covers `customer_reference` and `Customer-Reference`.
+Redaction is a safety net, not a guarantee: keep secrets out of what you log in the first place.
+<doc:RedactingSensitiveData> lists what is logged, what never is, and what the rules do not find.
 
 ### Keep user input in its place
 
@@ -97,4 +92,5 @@ clamped, so a server cannot make a request wait for years.
 - ``PublicKeyPinning``
 - ``RedirectPolicy``
 - ``Redactor``
+- <doc:RedactingSensitiveData>
 - ``PathSegment``

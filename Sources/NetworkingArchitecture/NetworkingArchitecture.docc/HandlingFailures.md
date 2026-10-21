@@ -68,8 +68,9 @@ if response.source == .staleCache {
 
 Only `GET` and `HEAD` responses with a `2xx` status and without `Cache-Control: no-store` are
 stored. Cache keys include a hash of the credential headers (`Authorization`, `Cookie`,
-`X-API-Key` and every other header whose name or value ``Redactor`` hides), so two users of
-one client never see each other's responses. Cookies that `URLSession` adds from its cookie storage are not part of
+`X-API-Key`, every other name that ``Redactor`` always hides, and every header whose value
+starts with an authentication scheme or that the free-text rule would cut), so two users of one
+client never see each other's responses. Cookies that `URLSession` adds from its cookie storage are not part of
 the request when the key is made, so an app that signs in with such cookies should call
 ``ResponseCache/removeAll()`` when the user signs out.
 
