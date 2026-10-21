@@ -18,7 +18,8 @@ cookies) on the app's behalf. Please report privately anything that makes it:
 - accept a server that `PublicKeyPinning` should reject, or accept an invalid certificate
   because a key is pinned;
 - write a secret that `Redactor` documents that it hides into `NetworkLogger` output or
-  `curlCommand()`;
+  `curlCommand()` (the cases that the Redacting Sensitive Data article lists under "What it
+  does not find" are known limits);
 - let input change a request's structure: a header line injected through a header value, a
   multipart part or header injected through a field or file name, or path segments and query
   items injected through a `PathSegment`;

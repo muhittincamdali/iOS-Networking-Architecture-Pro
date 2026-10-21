@@ -40,12 +40,12 @@ for this package rather than copied.
   client).
 - GraphQL: `GraphQLOperation`, `GraphQLResponse`, `GraphQLError` and `graphQL(_:path:)`.
 - Security: `PublicKeyPinning` and `PinningSessionDelegate` with OpenSSL-compatible pins
-  (based on SwiftNetwork's), `RedirectPolicy`, and `Redactor`.
+  (based on SwiftNetwork's), `RedirectPolicy`, and `Redactor` with `RedactionOutcome`.
 - Observability: `NetworkLogger`, `NetworkEventMonitor`, `ClosureEventMonitor` and
   `URLRequest.curlCommand(redactor:)`; `NetworkMonitor` for connectivity.
 - Testing: the `NetworkingArchitectureTesting` library with `MockTransport` and
   `MockResponse`, based on SwiftNetwork's mocks.
-- DocC catalog with six articles, the NetworkPlayground example app for iOS and macOS,
+- DocC catalog with seven articles, the NetworkPlayground example app for iOS and macOS,
   screenshots taken from it, and `.spi.yml`.
 
 ### Changed
@@ -77,22 +77,29 @@ for this package rather than copied.
   byte and count limits. A request is sent at most 10 times whatever an interceptor asks for.
 - Credentials stay where they belong: the bearer token is only sent to allowed hosts and
   only over `https` or `wss`, `RedirectPolicy.followSafely` (the default) removes credential
-  headers, by name or by value, on cross-origin redirects and refuses https-to-http
-  redirects, and cache keys include a hash of the credential headers (`Authorization`,
-  `Cookie`, API keys) so two users of one client never share a cached response.
+  headers on cross-origin redirects (names that `Redactor` always hides, and values that
+  start with an authentication scheme or that its free-text rule would cut) and refuses
+  https-to-http redirects, and cache keys include a hash of the same credential headers so
+  two users of one client never share a cached response.
 - Input cannot change the structure of a request: header names and values with line breaks
   are rejected, multipart field and file names are escaped, `PathSegment` keeps user input
   in one path segment, and query values encode `+`.
-- Logs and `curl` output pass through `Redactor`, which matches credential names in any
-  case, separator or percent-encoding (including zero-width and full-width characters),
-  hides values that start with an HTTP authentication scheme (`Bearer`, `Token`,
-  `Negotiate`, …) and JSON Web Tokens by their value (reading `+` in a query value as a
-  space, so `?note=Bearer+…` is hidden), also reads values that are
-  themselves URLs, forms or JSON (a `redirect` query value or a JSON string holding
-  `https://x/cb?access_token=…`, or a query value, header or JSON string holding
-  `{"access_token":…}`) however deeply they are nested or encoded, hides
-  sensitive path parameters such as `;jsessionid=…`, and does not print bodies it cannot
-  parse.
+- Logs and `curl` output pass through `Redactor`, which hides what it does not fully
+  understand. Header values are kept only for an allowlist (`Accept`, `Content-Type`,
+  `User-Agent`, …; never `Authorization`, `Cookie` or a name with `token`, `key` or
+  `auth`), query values only for parameters the app allows (none by default); URLs lose their
+  user info and fragment, path segments that look like identifiers become `:id`, and a path
+  with a dot segment or a `;` keeps only the scheme and host. JSON, form and multipart bodies
+  are parsed: the whole value under a secret name, or under a key that is not plain ASCII, is
+  hidden, and a body that cannot be parsed, has an unknown content type or is larger than
+  256 KiB is left out with a note. Free text (kept header values, `text/plain` bodies,
+  strings in JSON and forms) is hidden from its first trigger to its end. Depth, nesting and
+  time are bounded. The rules and their test corpus are shared with iOSDevelopmentTools and
+  iOSSecurityTools; the secrets that the name-based rules used during development missed
+  (values holding URLs, forms or JSON, `+` read as a space, `;jsessionid`, percent-encoded
+  path segments) are kept as tests. Redaction is a safety net, not a guarantee: a secret name
+  in free text disguised with look-alike letters and no separator, a secret with no label and
+  a short secret in a path segment are not guaranteed to be found.
 - Pinning failures surface as `URLError.serverCertificateUntrusted` instead of a
   cancellation, system certificate validation always runs before the pins are checked, and
   a host name with a trailing dot (`api.example.com.`) gets the same pins as without it.
