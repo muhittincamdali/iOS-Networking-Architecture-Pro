@@ -8,7 +8,7 @@ extension RedactionTimeLimitTests {
     // reading kept for each character.
     @Test("redacting a text of a million different characters takes less than a second a megabyte")
     func logMessageOfDifferentCharacters() {
-        let message = DistinctScalarShapes.logMessage()
+        let message = DistinctScalarShapes.distinct(from: 0x10000, size: 4 * Self.size) + "\n"
         let megabytes = Double(message.utf8.count) / 1_000_000
         var fastest = Duration.seconds(1_000)
         for _ in 0..<3 where fastest >= Self.limit * megabytes {

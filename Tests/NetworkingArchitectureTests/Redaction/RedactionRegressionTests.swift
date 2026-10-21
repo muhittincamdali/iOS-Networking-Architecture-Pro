@@ -271,11 +271,12 @@ struct RedactionRegressionTests {
         #expect(headers.first?.value.contains(Self.secret) == false)
     }
 
-    @Test("A look-alike separator with nothing after it, and a connector between words, hide nothing", arguments: [
-        "note\u{A789}", "status=200 done\u{A789}", "done \u{1F44D}",
+    // A character outside the safe alphabet cuts the text where it stands, also at the end of it.
+    @Test("A look-alike separator or an emoji at the end of the text is hidden with nothing after it", arguments: [
+        ("note\u{A789}", "note"), ("status=200 done\u{A789}", "status=200 done"), ("done \u{1F44D}", "done "),
     ])
-    func lookAlikeSeparatorWithoutValue(text: String) {
-        #expect(policy.redact(text: text) == text)
+    func lookAlikeSeparatorWithoutValue(text: String, kept: String) {
+        #expect(policy.redact(text: text) == kept + Redactor.replacement)
     }
 
     @Test("A key the app allows is read on wherever free text is stored", arguments: [

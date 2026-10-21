@@ -14,11 +14,12 @@ extension Redactor {
     /// (`text/plain; x=…`).
     public func redact(headers: HTTPHeaders) -> HTTPHeaders {
         guard isEnabled else { return headers }
-        // One table of readings serves every header of the list.
+        // One table of readings and one reader of values serve every header of the list.
         let compatibility = CompatibilityText(length: headers.reduce(0) { $0 + $1.value.utf8.count })
+        let reader = headerValueReader
         var result = HTTPHeaders()
         for field in headers {
-            result[field.name] = redactedHeaderValue(name: field.name, value: field.value, compatibility: compatibility)
+            result[field.name] = reader.redactedHeaderValue(name: field.name, value: field.value, compatibility: compatibility)
         }
         return result
     }
@@ -32,16 +33,22 @@ extension Redactor {
         if alwaysHidesHeader(named: name) || Self.startsWithAuthenticationScheme(value) { return true }
         let scalars = Array(value.unicodeScalars)
         let compatibility = CompatibilityText(length: scalars.count)
-        return !textSpans(in: scalars, compatibility: compatibility, nesting: .text(length: scalars.count), allowedKeys: headerValueKeys).isEmpty
+        return !headerValueReader.textSpans(in: scalars, compatibility: compatibility, nesting: .text(length: scalars.count)).isEmpty
     }
 
-    /// One header value as ``redact(headers:)`` stores it.
+    /// One header value as ``redact(headers:)`` stores it, read by ``headerValueReader``.
     func redactedHeaderValue(name: String, value: String, compatibility: CompatibilityText) -> String {
         guard !hidesHeader(named: name), !Self.startsWithAuthenticationScheme(value) else { return Self.replacement }
         let scalars = Array(value.unicodeScalars)
-        let spans = textSpans(in: scalars, compatibility: compatibility, nesting: .text(length: scalars.count), allowedKeys: headerValueKeys)
+        let spans = textSpans(in: scalars, compatibility: compatibility, nesting: .text(length: scalars.count))
         return spans.isEmpty ? value : Self.replacing(spans, in: scalars)
     }
+
+    /// This redactor, reading free text on after ``allowedTextKeys`` and the parameters of
+    /// ``headerParameterNames``, for header values.
+    var headerValueReader: Redactor { Redactor(self, textKeys: allowedTextKeys.union(Self.headerParameterFolds)) }
+
+    private static let headerParameterFolds = allowableFolds(headerParameterNames)
 
     /// The parameters that the values of the default ``allowedHeaders`` are written with, which
     /// a kept header value reads on after, besides ``allowedTextKeys``: `charset` and `boundary`
@@ -56,17 +63,16 @@ extension Redactor {
 
     /// Whether a header's value is hidden: it is not on ``allowedHeaders``, or it is always hidden.
     func hidesHeader(named name: String) -> Bool {
-        guard !alwaysHidesHeader(named: name), let plain = PlainName(name.unicodeScalars) else { return true }
-        return !allowedHeaders.contains(plain.folded)
+        guard !alwaysHidesHeader(named: name), let fold = FieldName.allowableFold(name.unicodeScalars) else { return true }
+        return !allowedHeaders.contains(fold)
     }
 
     /// Whether a header's value is hidden whatever it holds and whatever ``allowedHeaders`` lists.
     func alwaysHidesHeader(named name: String) -> Bool {
         let scalars = name.unicodeScalars
-        guard !scalars.isEmpty, scalars.allSatisfy(HeaderValueReader.isTokenCharacter), let plain = PlainName(scalars),
-              !plain.namesSecret(in: secretNameTable)
+        guard !scalars.isEmpty, scalars.allSatisfy(HeaderValueReader.isTokenCharacter), !hidesValue(ofKey: scalars),
+              let folded = FieldName.allowableFold(scalars)
         else { return true }
-        let folded = plain.folded
         return Self.alwaysHiddenHeaders.contains(folded) || Self.hiddenHeaderNameParts.contains(where: folded.contains)
     }
 

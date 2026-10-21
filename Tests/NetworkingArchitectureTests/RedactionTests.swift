@@ -98,7 +98,7 @@ struct RedactionTests {
     func unparsedBodiesAreOmitted(body: String, contentType: String?) {
         let (data, outcome) = redactor.redact(body: Data(body.utf8), contentType: contentType)
         #expect(outcome == .omitted)
-        #expect(String(decoding: data, as: UTF8.self) == "[body omitted: \(body.utf8.count) bytes, \(contentType.map { MediaType($0)?.essence ?? $0 } ?? "no known content type")]")
+        #expect(String(decoding: data, as: UTF8.self) == "[body omitted: \(body.utf8.count) bytes, \(contentType.map { MediaType($0)?.essence ?? $0 } ?? "no content type")]")
     }
 
     @Test func bodiesOverTheLimitAreOmittedUnread() {

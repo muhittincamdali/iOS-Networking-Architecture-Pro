@@ -3,20 +3,23 @@ import Foundation
 /// Decides what is hidden before a request or a response is logged, by ``NetworkLogger`` and
 /// `URLRequest.curlCommand(redactor:)`.
 ///
-/// The redactor follows one rule: what it does not fully understand is hidden, never shown.
+/// The redactor follows one rule: what it does not fully understand is hidden, never shown. It
+/// is a safety net for mistakes, not a guarantee: keep secrets out of logs in the first place.
 ///
 /// - **Keys** (JSON member names, form, query and multipart field names, header names) are read
 ///   after their escapes are decoded. Only a key made of ASCII letters, digits, `_`, `-`, `.` and
-///   spaces is compared with ``secretNames``; the separators are folded away and the letters
-///   lowercased, so `PASS-WORD` reads as `password`. Any other key, for example one with a
-///   Cyrillic letter, a full-width letter, a zero-width character or a `[`, has its value hidden.
+///   spaces is compared with ``defaultSecretNames``; the separators are folded away and the
+///   letters lowercased, so `PASS-WORD` reads as `password`. Any other key, for example one with
+///   a Cyrillic letter, a full-width letter, a zero-width character or a `[`, has its value
+///   hidden. One function makes this decision for every path, also for names written as values
+///   (`{"name":"Authorization","value":…}`, JSON Patch `path`, two-element arrays).
 /// - **Values** of secret keys are hidden whole, whatever their type. Other values are scanned
 ///   for JWTs, bearer tokens, long hex or Base64 strings, card numbers, IBANs and email addresses.
 /// - **Free text** (kept header values, `text/plain` bodies, strings in JSON and forms)
 ///   has no grammar, so it has one cut point: from the first trigger, such as a key that is not
 ///   on ``allowedTextKeys`` (`x=…`), a secret name or a quote that does not close, everything to
-///   the end of the text is hidden. JSON and URLs written in the text are read with their
-///   parsers. See ``redact(text:)``.
+///   the end of the text is hidden. JSON written in the text is read with its parser; a URL in it
+///   is shown only when it is clean. See ``redact(text:)``.
 /// - **Headers** keep their value only when the name is on ``allowedHeaders``.
 /// - **URLs** lose their user info and fragment; query values are hidden unless the name is on
 ///   ``allowedQueryParameters``, and path segments that look like identifiers become `:id`.
@@ -24,8 +27,7 @@ import Foundation
 ///   has an unknown content type or is larger than ``maximumBodySize`` (256 KiB by
 ///   default) is replaced by a note such as `[body omitted: 512 bytes, application/xml]`.
 ///
-/// Redaction is a safety net, not a guarantee. Keep secrets out of logs in the first place. See
-/// <doc:RedactingSensitiveData> for the full rules and what they do not find.
+/// See <doc:RedactingSensitiveData> for the full rules, the limits and what they do not find.
 public struct Redactor: Sendable, Hashable {
     /// How much of a URL is recorded.
     public enum URLDetail: Sendable, Hashable {
@@ -35,13 +37,35 @@ public struct Redactor: Sendable, Hashable {
         case hostOnly
     }
 
+    /// What a finding is, kept with each replacement so that overlapping findings join into one.
+    struct Kinds: OptionSet, Sendable, Hashable {
+        let rawValue: Int
+
+        static let cardNumbers = Kinds(rawValue: 1 << 0)
+        static let emailAddresses = Kinds(rawValue: 1 << 1)
+        static let jsonWebTokens = Kinds(rawValue: 1 << 2)
+        static let bearerTokens = Kinds(rawValue: 1 << 3)
+        /// Values hidden by their key, by the free-text rule or by the URL rules, and the password
+        /// in `user:password@host` in text.
+        static let secretFields = Kinds(rawValue: 1 << 4)
+        static let ibans = Kinds(rawValue: 1 << 5)
+        static let longTokens = Kinds(rawValue: 1 << 6)
+        static let all: Kinds = [.cardNumbers, .emailAddresses, .jsonWebTokens, .bearerTokens, .secretFields, .ibans, .longTokens]
+    }
+
+    /// A finding in a text: what it is and where.
+    struct Match: Sendable, Hashable {
+        let kind: Kinds
+        let range: Range<String.Index>
+    }
+
     /// The text that replaces a hidden value.
     public static let replacement = "[REDACTED]"
 
     /// The text that replaces a path segment that looks like an identifier or a secret.
     public static let identifierPlaceholder = ":id"
 
-    /// What is recorded for a URL that cannot be parsed and has no host.
+    /// What is recorded for a URL that `URLComponents` cannot parse or that has no scheme and host.
     public static let unparsedURL = "<unparsed URL>"
 
     /// The default of ``maximumBodySize``: 256 KiB.
@@ -66,20 +90,21 @@ public struct Redactor: Sendable, Hashable {
     /// port only: 128.
     public static let maximumQueryParameters = 128
 
-    /// The names whose values are always hidden, folded: the list the redaction rules share with
-    /// other packages (`password`, `passwd`, `pwd`, `secret`, `token`, `accesstoken`,
-    /// `refreshtoken`, `idtoken`, `apikey`, `key`, `auth`, `authorization`, `cookie`, `session`,
-    /// `sid`, `otp`, `pin`, `cvv`, `card`, `iban`, `ssn`, `privatekey`, `clientsecret`,
-    /// `signature`) and this library's extensions (`passphrase`, `passcode`, `credential`, `cvc`,
-    /// `sessid`, `pincode`, `verificationcode`, `cardnumber`, `pass`, `pw`, `jwt`, `sig`, `code`, …).
+    /// The words that make a key secret, folded: the list the redaction rules share with other
+    /// packages (`password`, `passwd`, `pwd`, `secret`, `token`, `accesstoken`, `refreshtoken`,
+    /// `idtoken`, `apikey`, `key`, `auth`, `authorization`, `cookie`, `session`, `sid`, `otp`,
+    /// `pin`, `cvv`, `card`, `iban`, `ssn`, `privatekey`, `clientsecret`, `signature`) and this
+    /// library's extensions (`passphrase`, `passcode`, `credential`, `cvc`, `sessid`, `pincode`,
+    /// `verificationcode`, `cardnumber`, `pass`, `pw`, `sig`, `jwt`, `code`, …).
     ///
-    /// Words of five or more letters count anywhere in a key (`dbPassword`), shorter ones as a
-    /// word of the key or at its end (`user_pin`, `X-Auth-Key`, `apitoken`), `pass`, `pw`, `sid`
-    /// and `sig` only as a word (`DB_PASS`, but not `bypass`, `inside` or `signal`), and `jwt`
-    /// and `code` only as the whole key or word (an OAuth authorization code, but not
-    /// `status_code`; in free text, `error code 7` is hidden from `code` on). A plural `s` after
-    /// the word counts too (`tokens`).
-    public static let defaultSecretNames: [String] = SecretNameTable.defaultWords
+    /// The long words count anywhere in a key (`dbPassword`, `session_data`, also `session_start`),
+    /// the short ones as a word of the key or at its end (`user_pin`, `X-Auth-Key`, `apitoken`),
+    /// `pass`, `pw`, `sid` and `sig` only as a word (`DB_PASS`, but not `bypass`, `inside` or
+    /// `signal`), and `jwt` and `code` only as the whole key or word (an OAuth authorization code,
+    /// but not `status_code`; in free text, `error code 7` is hidden from `code` on). A plural `s`
+    /// after the word counts too (`tokens`). The list is the same for every redactor; ``init(additionalSecretNames:allowedHeaders:allowedQueryParameters:allowedTextKeys:maximumBodySize:urlDetail:)``
+    /// adds names for the keys of structured input.
+    public static let defaultSecretNames: [String] = SecretNames.words
 
     /// The headers whose values are kept by default.
     public static let defaultAllowedHeaders: [String] = [
@@ -93,20 +118,28 @@ public struct Redactor: Sendable, Hashable {
     /// to them.
     public static let defaultAllowedTextKeys: [String] = ["status", "method", "path", "duration_ms", "count"]
 
-    /// The default redactor: the default secret names, allowed headers and allowed text keys, no
-    /// query values kept.
+    /// The default redactor: the default allowed headers and allowed text keys, no query values
+    /// kept.
     public static let `default` = Redactor()
 
     /// A redactor that logs everything as it was sent and received. Use it only with test
     /// servers and test accounts.
     public static let disabled = Redactor(
-        isEnabled: false, secretNames: [], allowedHeaders: [], allowedQueryParameters: [], allowedTextKeys: [], urlDetail: .full)
+        isEnabled: false, secretNames: [], allowedHeaders: [], allowedQueryParameters: [], allowedTextKeys: [],
+        maximumBodySize: defaultMaximumBodySize, urlDetail: .full)
+
+    /// A redactor with the default settings, made once and shared by the readings that need one
+    /// inside a redaction: the words of an array element, the value detectors of a path segment.
+    static let standard = Redactor()
 
     /// Whether the redactor changes anything at all.
     public let isEnabled: Bool
 
     /// The folded secret names: ``defaultSecretNames`` and the names passed to the initializer.
-    public var secretNames: Set<String> { secretNameTable.words }
+    public var secretNames: Set<String> { Set(Self.defaultSecretNames).union(addedSecretNames) }
+
+    /// The folded names passed to the initializer, compared with the keys of structured input.
+    let addedSecretNames: Set<String>
 
     /// The folded names of the headers whose values are kept. A name that is not plain ASCII or
     /// names a secret is never on it.
@@ -126,24 +159,22 @@ public struct Redactor: Sendable, Hashable {
     /// How much of a URL is recorded.
     public let urlDetail: URLDetail
 
-    /// Bodies larger than this, in bytes, are omitted without being parsed. Parsing keeps the
-    /// body's scalars, its scanning copy and its tree, up to about 60 bytes of memory for each byte
-    /// of a body of many small values: at the default of 256 KiB, less than 16 MB.
+    /// Bodies larger than this, in bytes, are omitted without being parsed. Reading a body takes
+    /// memory in proportion to its size: the tests check that a body of 256 KiB in any shape takes
+    /// less than 16 MB more, and the worst shapes take about 40 bytes for each byte of the body.
     public let maximumBodySize: Int
-
-    /// The secret words and where they count, built once for the redactor.
-    let secretNameTable: SecretNameTable
-
-    /// ``allowedTextKeys`` and the parameters that the values of kept headers are written with
-    /// (see ``headerParameterNames``), for the free text of a kept header value.
-    let headerValueKeys: Set<String>
 
     /// Creates a redactor.
     ///
     /// - Parameters:
-    ///   - additionalSecretNames: Names to hide in addition to ``defaultSecretNames``. The default
-    ///     names cannot be removed. A name that is not plain ASCII is dropped: it could only match
-    ///     keys that are hidden anyway.
+    ///   - additionalSecretNames: Names to hide in addition to ``defaultSecretNames`` in the keys
+    ///     of structured input: JSON member names, form, query and multipart field names and header
+    ///     names. An added name counts anywhere in a key once both are folded (`Ticket` hides
+    ///     `x-ticket-id` and `TicketNumber`), and an allowlist never holds a key with one. A name
+    ///     that is not plain ASCII is dropped: such keys are hidden anyway. Free text is cut after
+    ///     every key that is not on ``allowedTextKeys``, so `ticket=…` is hidden there as well; an
+    ///     added name written without a separator, or as the value of a field
+    ///     (`{"name":"ticket","value":…}`), is not compared with it.
     ///   - allowedHeaders: The headers whose values are kept. Headers that are always hidden
     ///     (`Authorization`, `Cookie`, names with `token`, `key`, …) stay hidden when listed.
     ///   - allowedQueryParameters: The query parameters whose values are kept in a recorded URL. A
@@ -163,35 +194,90 @@ public struct Redactor: Sendable, Hashable {
         urlDetail: URLDetail = .full
     ) {
         self.init(
-            isEnabled: true, secretNames: additionalSecretNames, allowedHeaders: allowedHeaders,
-            allowedQueryParameters: allowedQueryParameters, allowedTextKeys: Redactor.defaultAllowedTextKeys + allowedTextKeys,
-            maximumBodySize: maximumBodySize, urlDetail: urlDetail)
+            isEnabled: true, secretNames: additionalSecretNames, allowedHeaders: allowedHeaders, allowedQueryParameters: allowedQueryParameters,
+            allowedTextKeys: Redactor.defaultAllowedTextKeys + allowedTextKeys, maximumBodySize: maximumBodySize, urlDetail: urlDetail)
     }
 
     private init(
-        isEnabled: Bool, secretNames: [String], allowedHeaders: [String], allowedQueryParameters: [String],
-        allowedTextKeys: [String], maximumBodySize: Int = Redactor.defaultMaximumBodySize, urlDetail: URLDetail
+        isEnabled: Bool, secretNames: [String], allowedHeaders: [String], allowedQueryParameters: [String], allowedTextKeys: [String],
+        maximumBodySize: Int, urlDetail: URLDetail
     ) {
         self.isEnabled = isEnabled
         let added = Set(secretNames.compactMap { PlainName($0.unicodeScalars)?.folded })
-        let table = added.isEmpty ? SecretNameTable.standard : SecretNameTable(words: added)
+        addedSecretNames = added
         func allowable(_ names: [String]) -> Set<String> {
-            Set(names.compactMap { name in
-                PlainName(name.unicodeScalars).flatMap { $0.namesSecret(in: table) ? nil : $0.folded }
-            })
+            Self.allowableFolds(names).filter { fold in !added.contains { fold.contains($0) } }
         }
-        secretNameTable = table
         self.allowedHeaders = allowable(allowedHeaders)
         self.allowedQueryParameters = allowable(allowedQueryParameters)
         self.allowedTextKeys = allowable(allowedTextKeys)
-        headerValueKeys = self.allowedTextKeys.union(allowable(Self.headerParameterNames))
         self.maximumBodySize = min(max(maximumBodySize, 0), Self.bodySizeLimit)
         self.urlDetail = urlDetail
+    }
+
+    /// A redactor with the settings of `other` that reads free text on after `textKeys`, folded:
+    /// for kept header values, which are also read on after the parameters their headers are
+    /// written with (see ``headerParameterNames``).
+    init(_ other: Redactor, textKeys: Set<String>) {
+        isEnabled = other.isEnabled
+        addedSecretNames = other.addedSecretNames
+        allowedHeaders = other.allowedHeaders
+        allowedQueryParameters = other.allowedQueryParameters
+        allowedTextKeys = textKeys
+        maximumBodySize = other.maximumBodySize
+        urlDetail = other.urlDetail
+    }
+
+    static func allowableFolds(_ names: [String]) -> Set<String> {
+        Set(names.compactMap { FieldName.allowableFold($0.unicodeScalars) })
     }
 
     /// Whether a value under this key (a JSON field, a query or form name, a header name) is
     /// hidden: the key is a secret name, or it is not plain ASCII.
     public func isSensitive(name: String) -> Bool {
         isEnabled && hidesValue(ofKey: name.unicodeScalars)
+    }
+
+    /// Whether the value under a key of structured input is hidden: the one rule for keys
+    /// (``FieldName/hidesValue(_:)``), or the key holds a name of ``addedSecretNames``.
+    func hidesValue(ofKey name: some Collection<Unicode.Scalar>) -> Bool {
+        if FieldName.hidesValue(name) { return true }
+        guard !addedSecretNames.isEmpty, let fold = FieldName.allowableFold(name) else { return false }
+        return addedSecretNames.contains { fold.contains($0) }
+    }
+
+    /// Whether free text is read on after the key `name`, the one decision for every key of free
+    /// text (`key=value`, a quoted key, a JSON member name or pair in a line): it is plain
+    /// ASCII without a space, names no secret and is on ``allowedTextKeys`` once folded. A key
+    /// longer than ``PlainName/maximumKeyLength`` is turned down before it is read.
+    func allowsTextKey(_ name: some Collection<Unicode.Scalar>) -> Bool {
+        guard !name.contains(" "), let fold = FieldName.allowableFold(name) else { return false }
+        return allowedTextKeys.contains(fold)
+    }
+
+    /// The findings in a text, in order and without overlaps, as ``redact(text:)`` finds them.
+    func matches(in text: String) -> [Match] {
+        var spans = {
+            let scalars = Array(text.unicodeScalars)
+            return textSpans(in: scalars, compatibility: CompatibilityText(length: scalars.count), nesting: .text(length: scalars.count))
+        }()
+        spans.removeAll { $0.kind.isEmpty }
+        // The spans are in order and do not overlap, so one walk through the scalars finds the
+        // index of each start and end; no index is kept for any other scalar.
+        let view = text.unicodeScalars
+        var current = view.startIndex
+        var offset = 0
+        func index(at target: Int) -> String.Index {
+            current = view.index(current, offsetBy: target - offset)
+            offset = target
+            return current
+        }
+        var matches: [Match] = []
+        matches.reserveCapacity(spans.count)
+        for span in spans {
+            let start = index(at: span.start)
+            matches.append(Match(kind: span.kind, range: start..<index(at: span.end)))
+        }
+        return matches
     }
 }

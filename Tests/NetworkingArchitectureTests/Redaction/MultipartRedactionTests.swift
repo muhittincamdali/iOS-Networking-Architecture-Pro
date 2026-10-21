@@ -13,7 +13,8 @@ struct MultipartRedactionTests {
         for part in parts {
             text += "--\(boundary)\r\n\(part.headers)\r\n\r\n\(part.content)\r\n"
         }
-        text += "--\(boundary)--\r\n"
+        // Written as the redactor writes it: the closing delimiter without a line break after it.
+        text += "--\(boundary)--"
         return Data(text.utf8)
     }
 
@@ -140,11 +141,11 @@ struct MultipartRedactionTests {
         #expect(policy.redact(body: delimiters, contentType: "multipart/form-data; boundary=b").outcome == .omitted)
     }
 
-    @Test("A body written as the parser reads it is stored unchanged, with or without the last line break")
+    @Test("A body written as the redactor writes it is stored unchanged; a line break after the last delimiter is not written")
     func canonicalBody() {
         let body = multipart([("Content-Disposition: form-data; name=\"a\"", "v"), ("Content-Disposition: form-data; name=\"b\"", "w")])
         #expect(policy.redact(body: body, contentType: contentType) == (body, .unchanged))
-        let withoutBreak = body.dropLast(2)
-        #expect(policy.redact(body: Data(withoutBreak), contentType: contentType) == (Data(withoutBreak), .unchanged))
+        let withBreak = body + Data("\r\n".utf8)
+        #expect(policy.redact(body: withBreak, contentType: contentType) == (body, .redacted))
     }
 }

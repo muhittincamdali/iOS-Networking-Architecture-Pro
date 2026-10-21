@@ -53,7 +53,7 @@ struct RedactionDotSegmentTests {
         // `...` has no letter or digit, so it is a label as a name with none is.
         ("/v1/pin/4831", "/v1/pin/:id"), ("/v1/items.json", "/v1/items.json"), ("/a//b", "/a//b"), ("/.../x", "/.../:id"),
         ("/a.b/c..d", "/a.b/c..d"), ("/token//4831", "/token//:id"), ("/v1/users/12345678/orders", "/v1/users/:id/orders"),
-        ("/50%25off", "/50%25off"), ("/a%2Cb", "/a%2Cb"),
+        ("/50%25off", ""), ("/a%2Cb", "/a%2Cb"),
     ])
     func otherPaths(path: String, expected: String) throws {
         let url = try #require(URL(string: "https://h.example\(path)"))

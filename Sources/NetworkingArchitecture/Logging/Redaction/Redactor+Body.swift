@@ -72,14 +72,16 @@ extension Redactor {
         guard isComplete, body.count <= maximumBodySize, let mediaType,
               let (checked, changed) = redact(body: body, as: mediaType, nesting: nesting, compatibility: CompatibilityText(length: length))
         else {
-            return (Data(Self.omissionNote(byteCount: byteCount, mediaType: mediaType).utf8), .omitted)
+            let described = contentType == nil ? "no content type" : mediaType?.essence ?? "unreadable content type"
+            return (Data(Self.omitted(byteCount, described).utf8), .omitted)
         }
         return (checked, changed ? .redacted : .unchanged)
     }
 
-    /// The note stored in place of an omitted body.
-    static func omissionNote(byteCount: Int, mediaType: MediaType?) -> String {
-        "[body omitted: \(byteCount) bytes, \(mediaType?.essence ?? "no known content type")]"
+    /// The note stored in place of an omitted body: its size and its content type, `no content
+    /// type` or `unreadable content type`.
+    static func omitted(_ count: Int, _ type: String) -> String {
+        "[body omitted: \(count) \(count == 1 ? "byte" : "bytes"), \(type)]"
     }
 
     /// The number of scalars in UTF-8 bytes: the bytes that do not continue a scalar. Bytes that
@@ -93,7 +95,14 @@ extension Redactor {
     /// ``Nesting/document(length:)``, a multipart part one level deeper. `compatibility` is the
     /// one table of readings of the body a part is in, or of the body.
     func redact(body: Data, as type: MediaType, nesting: Nesting, compatibility: CompatibilityText) -> (Data, Bool)? {
-        if type.isMultipartFormData { return redact(multipart: body, type, nesting: nesting, compatibility: compatibility) }
+        if type.isMultipartFormData {
+            // The body is written again part by part; it is unchanged when it was written as the
+            // parser writes it and nothing in it was hidden.
+            return redactedMultipart(body, type, nesting: nesting, compatibility: compatibility).map { text in
+                let written = Data(text.utf8)
+                return (written, written != body)
+            }
+        }
         if type.isJSON {
             return type.isUnicode ? redact(jsonBody: body, charset: type.charset, nesting: nesting, compatibility: compatibility) : nil
         }
@@ -118,7 +127,9 @@ extension Redactor {
         guard Self.charset(charset, allows: encoding), let text = String(data: body, encoding: encoding) else { return nil }
         let isUTF8 = encoding == .utf8
         let scalars = Array(text.unicodeScalars)
-        guard let document = try? JSONDocument(scalars, allowsFragments: true, nesting: nesting) else { return nil }
+        // The body is the UTF-8 of the text unless decoding dropped a byte order mark.
+        let utf8 = isUTF8 && body.count == text.utf8.count ? body : nil
+        guard let document = try? JSONDocument(scalars, utf8: utf8, allowsFragments: true, nesting: nesting) else { return nil }
         let spans = Self.merged(document.secretSpans(using: self, compatibility: compatibility))
         guard !spans.isEmpty || !isUTF8 else { return (body, false) }
         return (Data(Self.replacing(spans, in: scalars).utf8), true)
@@ -165,19 +176,14 @@ extension Redactor {
     /// memory than its text.
     func redact(form text: String, nesting: Nesting, compatibility: CompatibilityText) -> String? {
         guard Self.isStrictForm(text) else { return nil }
-        let raws = text.unicodeScalars.split(separator: "&", omittingEmptySubsequences: false)
-        var decodes = true
-        let naming = NamingFields(raws.lazy.map { raw -> NamingFields.Field in
-            guard let field = FormField(raw) else {
-                decodes = false
-                return ([], .other)
-            }
-            return Self.namingField(name: field.name, value: field.value)
-        }, policy: self, compatibility: compatibility)
-        guard decodes else { return nil }
+        var naming = NamingFields()
+        for raw in FormFields(text) {
+            guard let field = FormField(raw) else { return nil }
+            naming.read(Self.namingField(name: field.name, value: field.value), compatibility: compatibility)
+        }
         var output = ""
         output.reserveCapacity(text.utf8.count)
-        for (index, raw) in raws.enumerated() {
+        for (index, raw) in FormFields(text).enumerated() {
             guard let field = FormField(raw) else { return nil }
             if index > 0 { output += "&" }
             let hidesValue = naming.hidesValue(at: index, of: Self.namingField(name: field.name, value: field.value))
@@ -189,6 +195,24 @@ extension Redactor {
     /// A field of a form or a URL query as ``NamingFields`` reads it.
     static func namingField(name: String, value: String?) -> NamingFields.Field {
         (Array(name.unicodeScalars), value.map { .string(Array($0.unicodeScalars)) } ?? .other)
+    }
+
+    /// The fields of a form, split at every `&`, one after another.
+    private struct FormFields: Sequence, IteratorProtocol {
+        private let scalars: String.UnicodeScalarView
+        private var start: String.UnicodeScalarView.Index?
+
+        init(_ text: String) {
+            scalars = text.unicodeScalars
+            start = scalars.startIndex
+        }
+
+        mutating func next() -> Substring.UnicodeScalarView? {
+            guard let fieldStart = start else { return nil }
+            let end = scalars[fieldStart...].firstIndex(of: "&") ?? scalars.endIndex
+            start = end == scalars.endIndex ? nil : scalars.index(after: end)
+            return scalars[fieldStart..<end]
+        }
     }
 
     /// A form field, as sent and decoded: `+` is a space, then percent-decoding as UTF-8.

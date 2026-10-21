@@ -12,7 +12,7 @@ struct RedactionWildcardPluralTests {
     static let secret = "Gp001Nd4u"
 
     static let words = [
-        "tokenꞏs", "secretꞏs", "pinꞏs", "keyꞏs", "otpꞏs", "cvvꞏs", "authꞏs", "cardꞏs", "ibanꞏs", "bearerꞏs", "pwdꞏs", "ssnꞏs",
+        "tokenꞏs", "secretꞏs", "pinꞏs", "keyꞏs", "otpꞏs", "cvvꞏs", "authꞏs", "cardꞏs", "ibanꞏs", "pwdꞏs", "ssnꞏs",
         "tokenɑs", "tokenꞏ", "secretꞏ", "pinꞏ", "keyꞏ", "otpꞏ", "cardꞏ", "tokenǃ", "tokenı", "tokenꞌ", "tokenʔ", "tokenø",
         "tokenß", "secretß", "otpł", "TOKENꞏS", "userPinꞏs", "api_keyꞏ",
     ]

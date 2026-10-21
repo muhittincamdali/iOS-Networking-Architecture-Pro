@@ -34,11 +34,11 @@ struct RedactionGuideTests {
         #expect(policy.redact(text: "t\u{0366}ken\u{0366} hunter2") == "t\u{0366}ken\u{0366} [REDACTED]")
         #expect(policy.redact(text: "p\u{0131}n\u{0131} hunter2") == "p\u{0131}n[REDACTED]")
         #expect(policy.redact(text: "login password=hunter2 status=200\nnext line") == "login password=[REDACTED]")
-        #expect(policy.redact(text: "p\u{0430}ssword=hunter2") == "[REDACTED]")
-        #expect(policy.redact(text: #"saved {"status":200,"name":"ada","card":"x"}"#) == #"saved {"status":200,"name":[REDACTED]"#)
+        #expect(policy.redact(text: "p\u{0430}ssword=hunter2") == "p\u{0430}ssword=[REDACTED]")
+        #expect(policy.redact(text: #"saved {"status":200,"name":"ada","card":"x"}"#) == #"saved {"status":200,[REDACTED]"#)
         #expect(policy.redact(text: #"payload {"a": "hunter2""#) == "payload [REDACTED]")
         #expect(policy.redact(text: #"msg="unterminated hunter2"#) == "msg=[REDACTED]")
-        #expect(policy.redact(text: #"field name="password" hunter2"#) == #"field name="[REDACTED]"#)
+        #expect(policy.redact(text: #"field name="password" hunter2"#) == "field name=[REDACTED]")
         #expect(policy.redact(text: #"<input value="hunter2" name="password">"#) == "[REDACTED]")
         #expect(policy.redact(text: "<key>password</key>\n<string>k-1</string>") == "[REDACTED]")
         #expect(policy.redact(text: "<status>200</status>") == "[REDACTED]")
@@ -55,10 +55,11 @@ struct RedactionGuideTests {
             #expect(policy.redact(text: kept) == kept)
         }
         #expect(policy.redact(text: "\"x \\\"y\\\" z\"") == "\"x [REDACTED]")
-        // An escape of any form cuts the text, and a letter or digit read as punctuation does too.
-        #expect(policy.redact(text: "status=200&count=3") == "status=200[REDACTED]")
-        #expect(policy.redact(text: "saved logs\\app.txt") == "saved logs[REDACTED]")
-        #expect(policy.redact(text: "R&D team") == "R[REDACTED]")
+        // An escape of any form cuts the text at the start of its word, and a letter or digit read
+        // as punctuation cuts it too; `&` before a field name and `=` starts a field instead.
+        #expect(policy.redact(text: "status=200&count=3") == "status=200&count=3")
+        #expect(policy.redact(text: "saved logs\\app.txt") == "saved [REDACTED]")
+        #expect(policy.redact(text: "R&D team") == "[REDACTED]")
         #expect(policy.redact(text: "\u{1F101}status=hunter2") == "[REDACTED]")
         #expect(policy.redact(text: #""x":"hunter2""#) == "[REDACTED]")
         #expect(policy.redact(text: #""hunter2":"v""#) == "[REDACTED]")
@@ -109,9 +110,9 @@ struct RedactionGuideTests {
         #expect(policy.redact(url: URL(string: "https://e.com/reset/abc123")!) == "https://e.com/reset/abc123")
         #expect(policy.redact(url: URL(string: "https://e.com/reset/abc123def456ghi789")!) == "https://e.com/reset/:id")
         #expect(policy.redact(text: "see https://x.example/reset/abc123") == "see https://x.example/reset/abc123")
-        // Beside a `name` in another script, a field that does not carry a value keeps it.
+        // Beside a `name` that is not plain ASCII, every other value is hidden, on purpose.
         #expect(String(decoding: policy.redact(body: Data(#"{"name":"Şifre","x":"hunter2"}"#.utf8), contentType: "application/json").body, as: UTF8.self)
-            == #"{"name":"Şifre","x":"hunter2"}"#)
+            == #"{"name":"Şifre","x":"[REDACTED]"}"#)
     }
 
     @Test("Bodies, URLs and headers")

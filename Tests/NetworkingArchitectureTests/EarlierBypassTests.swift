@@ -105,8 +105,9 @@ struct EarlierBypassTests {
         let text = String(decoding: Redactor.default.redact(body: body, contentType: "application/json").body, as: UTF8.self)
         #expect(!text.contains(Self.secret), "\(text)")
         #expect(!text.contains(#"\"pin\":1"#), "\(text)")
-        // JSON in a string is free text again: a key that is not an allowed text key hides the rest.
-        #expect(text.hasSuffix(#""page":"{\"n\":[REDACTED]"}"#), "\(text)")
+        // JSON in a string is free text again: a key that is not an allowed text key hides the rest
+        // from its opening quote.
+        #expect(text.hasSuffix(#""page":"{[REDACTED]"}"#), "\(text)")
     }
 
     // fix(logging): hide sensitive path parameters such as ;jsessionid, and the lost follow-up that

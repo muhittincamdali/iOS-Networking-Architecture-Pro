@@ -1,6 +1,5 @@
 import Foundation
 
-/// Redaction of URLs.
 extension Redactor {
     /// The URL as a display string, with its credentials, query values and identifiers hidden.
     ///
@@ -10,14 +9,13 @@ extension Redactor {
     /// - **Host:** the host is a key of the URL. It is written only when it is a name of ASCII
     ///   letters, digits and `-` in labels separated by `.`, an IPv4 address or an IPv6 address in
     ///   brackets, and the value detectors find nothing in it (a card number, a run of 32 hex
-    ///   digits, a token). Any other host, such as `password=hunter2` in
-    ///   `myapp://password=hunter2` or a host with `_`, `%` or letters outside ASCII, is written as
-    ///   ``replacement`` after the scheme, with nothing after it. A host that names a secret, by
-    ///   the key rule or as a word, is written with the scheme and port only, as the path after it
-    ///   is its value: with a scheme of the app's own `URLComponents` reads the first part after
-    ///   `//` as the host, so `myapp://pin/4831` has the host `pin` and is written as
-    ///   `myapp://pin`. A host such as `auth.example.com` names `auth` and hides its whole path
-    ///   too, which over-hides on purpose.
+    ///   digits, a token). Any other host — one with `=`, `;`, `%`, `_` or letters outside ASCII,
+    ///   such as `password=hunter2` in `myapp://password=hunter2` — is written as `[REDACTED]`
+    ///   after the scheme, with nothing after it. A host that names a secret, by the key rule or as
+    ///   a word, is written with the scheme and port only, as the path after it is its value: with
+    ///   a scheme of the app's own `URLComponents` reads the first part after `//` as the host, so
+    ///   `myapp://pin/4831` has the host `pin` and is written as `myapp://pin`. A host such as
+    ///   `auth.example.com` names `auth` and hides its whole path too, which over-hides on purpose.
     /// - **Query:** a parameter keeps its value only when its name, decoded, is plain ASCII and on
     ///   ``allowedQueryParameters``, which is empty by default; any other value is `[REDACTED]`,
     ///   and so is a parameter without `=` that is not on the list. A name that is not plain
@@ -27,84 +25,58 @@ extension Redactor {
     ///   ``redact(body:contentType:isComplete:)`` describes for forms: one with a `;`, a `%` that
     ///   does not start an escape, or a name spelled two ways.
     /// - **Path:** a segment that looks like an identifier or a secret becomes `:id`: a UUID, a
-    ///   number of six or more digits, a token of 16 or more letters and digits, a run of 32 or
-    ///   more hex or Base64 characters, a JSON Web Token, anything the value detectors find, and
-    ///   text the free-text rule would change. The segment after one that names a secret is a
-    ///   value too and becomes `:id` whatever it looks like (`/pin/4831`, `/token/…/info`), and so
-    ///   is the segment after one that, decoded, is not plain ASCII by the key rule: letters,
-    ///   digits, `_`, `-`, `.` and spaces with a letter or digit among them (`/caf%C3%A9/menu` is
-    ///   written `/caf%C3%A9/:id`, `/t%CD%A6ken/…` and `/a+b/…` hide what follows too).
-    /// - **Dot segments:** a path that servers resolve differently from how it is written is not
-    ///   read: only the scheme, host and port are written. That is a path with a `.` or `..`
-    ///   segment, `%2E` in any case, a `;` anywhere, raw or as `%3B` in any case
-    ///   (`/cart;jsessionid=…`, `/a;pin/4831`), or an escape escaped again (`%252E`).
-    ///   `URL.standardized` and servers resolve `/pin/./4831` and `/token/x/../4831` as
-    ///   `/pin/4831` and `/token/4831` (RFC 3986 §5.2.4), and a `;` starts parameters for some
-    ///   servers but is part of the segment for others, so the segment after a secret name could
-    ///   not be told from what the text shows. Parameters after a `;` are never read.
+    ///   number of six or more digits, a token of 16 or more letters and digits, a run of 32 or more
+    ///   hex or Base64 characters, a JSON Web Token, anything the value detectors find, and text
+    ///   the free-text rule would change. The segment after one that names a secret, or is not a
+    ///   plain-ASCII name of ASCII letters, digits, `_`, `-`, `.` and spaces, is a value too and
+    ///   becomes `:id` whatever it looks like (`/pin/4831`, `/token/…/info`, `/şifre/…`,
+    ///   `/p%0Ain/…`, `/a,b/…`).
+    /// - **A path that servers resolve differently** — with a dot segment (`/pin/./4831`,
+    ///   `/token/x/../…`), a `;` anywhere (`/a;pin/4831`, `/cart;jsessionid=…`), or an escaped
+    ///   `.`, `/`, `\`, `;` or `%` (`%2E`, `%2F`, `%5C`, `%3B`, `%25`, in either case) — is not
+    ///   written: only the scheme, host and port are, as which segment follows a secret name
+    ///   depends on the server (RFC 3986 §5.2.4). Parameters after a `;` are not read at all.
     /// - A path of more than ``maximumPathSegments`` segments, or a query of more than
     ///   ``maximumQueryParameters`` parameters, is not read: only the scheme, host and port are
     ///   written. So is every URL with ``URLDetail/hostOnly``.
     ///
-    /// A URL that `URLComponents` cannot parse is recorded as its scheme and host, or as
+    /// A URL that `URLComponents` cannot parse, or that has no scheme or no host, is written as
     /// ``unparsedURL``.
+    ///
+    /// ```swift
+    /// Redactor.default.redact(url: URL(string: "https://bob:pw@example.com/users/12345678/reset?code=x#y")!)
+    /// // https://example.com/users/:id/reset?code=[REDACTED]
+    /// ```
     public func redact(url: URL) -> String {
         guard isEnabled else { return url.absoluteString }
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return Self.unparsedURL }
         let length = url.absoluteString.unicodeScalars.count
-        // One table of readings serves the host, every path segment and every query parameter.
-        let compatibility = CompatibilityText(length: length)
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-            guard let scheme = url.scheme, let host = url.host(percentEncoded: true) else { return Self.unparsedURL }
-            return "\(scheme)://" + (showsHost(host, compatibility: compatibility) ? host : Self.replacement)
-        }
-        return redacted(components, nesting: .document(length: length), compatibility: compatibility)
-    }
-
-    /// The URL's host as ``redact(url:)`` records it: the host when it is written, ``replacement``
-    /// when it is not (a host that is not a name of ASCII labels or an address, or one in which
-    /// a value detector finds something); nil when the URL has no host.
-    func redactedHost(of url: URL) -> String? {
-        guard isEnabled else { return url.host() }
-        // Read as ``redact(url:)`` reads it: with `URLComponents`, or from the URL when they
-        // cannot read it.
-        let host = URLComponents(url: url, resolvingAgainstBaseURL: false).map(\.percentEncodedHost) ?? url.host(percentEncoded: true)
-        guard let host else { return nil }
-        return showsHost(host, compatibility: CompatibilityText(length: host.utf8.count)) ? host : Self.replacement
-    }
-
-    /// The URL's path as ``redact(url:)`` records it; empty when only the host is recorded.
-    func redactedPath(of url: URL) -> String {
-        guard isEnabled else { return url.path(percentEncoded: true) }
-        let length = url.absoluteString.unicodeScalars.count
-        let compatibility = CompatibilityText(length: length)
-        guard urlDetail == .full, let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              readsPath(of: components, compatibility: compatibility)
-        else { return "" }
-        return redacted(path: components.percentEncodedPath, nesting: .document(length: length), compatibility: compatibility)
+        return redacted(components, nesting: .document(length: length), compatibility: CompatibilityText(length: length))
     }
 
     /// A URL written in text, recorded as ``redact(url:)`` records it. `nesting` is the URL's own:
-    /// its query values and path segments are read as text inside it. `compatibility` is the table
-    /// of readings of the text.
+    /// its query values and path segments are read as text inside it; `compatibility` is the
+    /// readings table of the text.
     func redactedURL(_ text: String, nesting: Nesting, compatibility: CompatibilityText) -> String {
         guard let components = URLComponents(string: text) else { return Self.unparsedURL }
         return redacted(components, nesting: nesting, compatibility: compatibility)
     }
 
+    /// The URL; one readings table serves its host, every path segment and every parameter.
     private func redacted(_ components: URLComponents, nesting: Nesting, compatibility: CompatibilityText) -> String {
-        var result = components.scheme.map { "\($0):" } ?? ""
-        if let host = components.percentEncodedHost {
-            guard showsHost(host, compatibility: compatibility) else { return result + "//" + Self.replacement }
-            result += "//" + host
-            if let port = components.port { result += ":\(port)" }
-        }
-        guard urlDetail == .full, readsPath(of: components, compatibility: compatibility) else { return result.isEmpty ? Self.unparsedURL : result }
-        result += redacted(path: components.percentEncodedPath, nesting: nesting, compatibility: compatibility)
+        guard let scheme = components.scheme, let host = components.percentEncodedHost else { return Self.unparsedURL }
+        guard showsHost(host, compatibility: compatibility) else { return scheme + "://" + Self.replacement }
+        var result = scheme + "://" + host
+        if let port = components.port { result += ":\(port)" }
+        let path = components.percentEncodedPath
+        guard urlDetail == .full, !Self.exceedsLimits(components), !Self.resolvesDifferently(path: path) else { return result }
+        if Self.hostNamesSecret(host, compatibility: compatibility) { return result }
+        result += redacted(path: path, nesting: nesting, compatibility: compatibility)
         if let query = components.percentEncodedQuery, !Self.isStrictForm(query) { return result + "?" + Self.replacement }
         if let items = components.percentEncodedQueryItems {
             // `?label=Password&value=…`: a parameter that names a secret hides the others.
             let field = { (item: URLQueryItem) in Self.namingField(name: Self.formDecoded(item.name) ?? "", value: item.value.flatMap(Self.formDecoded)) }
-            let naming = NamingFields(items.lazy.map(field), policy: self, compatibility: compatibility)
+            let naming = NamingFields(items.lazy.map(field), compatibility: compatibility)
             let parameters = items.indices.map { index in
                 redacted(
                     parameter: items[index].name, value: items[index].value, hidesValue: naming.hidesValue(at: index, of: field(items[index])),
@@ -115,8 +87,8 @@ extension Redactor {
         return result
     }
 
-    /// Whether a host is written: empty, as in `file:///…`, or a host name or an address in which
-    /// the value detectors find nothing.
+    /// Whether a host is written: empty, as in `file:///…`, or an address, in which the value
+    /// detectors find nothing.
     func showsHost(_ host: String, compatibility: CompatibilityText) -> Bool {
         guard !host.isEmpty else { return true }
         let bytes = Array(host.utf8)
@@ -124,7 +96,18 @@ extension Redactor {
         return detectorSpans(in: NormalizedText(Array(host.unicodeScalars), compatibility: compatibility)).isEmpty
     }
 
-    /// The longest host name, in bytes, and the longest label in it (RFC 1035).
+    /// Whether a host names a secret, by the key rule (``FieldName/hidesValue(_:)``) or as a word
+    /// that makes the path segment after it a value (``FreeTextScanner/mentionsSecret(_:compatibility:)``).
+    /// In `myapp://pin/4831` `URLComponents` reads `pin` as the host, so the path after it is
+    /// the value a segment `pin` would label: only the scheme, host and port are written. An
+    /// IPv4 or IPv6 address names nothing.
+    static func hostNamesSecret(_ host: String, compatibility: CompatibilityText) -> Bool {
+        let bytes = Array(host.utf8)
+        guard !bytes.isEmpty, !isIPv4Address(bytes), !isIPv6Literal(bytes) else { return false }
+        return FieldName.hidesValue(host.unicodeScalars) || FreeTextScanner.mentionsSecret(Array(host.unicodeScalars), compatibility: compatibility)
+    }
+
+    /// The longest host name, in bytes, and the longest label in it.
     private static let longestHostName = 253
     private static let longestLabel = 63
 
@@ -136,7 +119,8 @@ extension Redactor {
         if labels.count > 1, labels.last?.isEmpty == true { labels.removeLast() }
         return labels.allSatisfy { label in
             guard let first = label.first, let last = label.last, label.count <= longestLabel else { return false }
-            return first != UInt8(ascii: "-") && last != UInt8(ascii: "-") && label.allSatisfy { ASCII.isAlphanumeric($0) || $0 == UInt8(ascii: "-") }
+            return first != UInt8(ascii: "-") && last != UInt8(ascii: "-")
+                && label.allSatisfy { ASCII.isAlphanumeric($0) || $0 == UInt8(ascii: "-") }
         }
     }
 
@@ -158,51 +142,6 @@ extension Redactor {
         }
     }
 
-    /// Whether the path and query of a URL are read: its host, when it has one, is written and
-    /// names no secret (see ``hostNamesSecret(_:compatibility:)``), the URL is within the limits
-    /// (see ``exceedsLimits(_:)``) and its path has no dot segment (see ``hasDotSegments(_:)``).
-    func readsPath(of components: URLComponents, compatibility: CompatibilityText) -> Bool {
-        if let host = components.percentEncodedHost,
-           !showsHost(host, compatibility: compatibility) || hostNamesSecret(host, compatibility: compatibility) { return false }
-        return !Self.exceedsLimits(components) && !Self.hasDotSegments(components.percentEncodedPath)
-    }
-
-    /// Whether a host names a secret, by the key rule (``hidesValue(ofKey:)``) or as a word that
-    /// makes the path segment after it a value (``FreeTextScanner/mentionsSecret(_:policy:compatibility:)``).
-    /// In `myapp://pin/4831` `URLComponents` reads `pin` as the host, so the path after it is the
-    /// value a segment `pin` would label. An IPv4 or IPv6 address names nothing.
-    func hostNamesSecret(_ host: String, compatibility: CompatibilityText) -> Bool {
-        let bytes = Array(host.utf8)
-        guard !bytes.isEmpty, !Self.isIPv4Address(bytes), !Self.isIPv6Literal(bytes) else { return false }
-        let scalars = Array(host.unicodeScalars)
-        return hidesValue(ofKey: scalars) || FreeTextScanner.mentionsSecret(scalars, policy: self, compatibility: compatibility)
-    }
-
-    /// Whether a percent-encoded path holds what servers resolve or decode apart from its text: a
-    /// segment `.` or `..`, `%2E` in any case, a `;` anywhere, raw or as `%3B` in any case, or an
-    /// escape escaped again (`%25` before two hex digits or another `%`). A `;` starts parameters
-    /// for a Java servlet but is part of the segment for most other servers (`/a;pin/4831` is the
-    /// segment `a` with the parameter `pin`, or the segment `a;pin`), and a server that decodes
-    /// before routing reads `%3B` as `;`, so no parameter after a `;` is parsed. Empty segments
-    /// (`//`) are not counted: no server resolves them away.
-    static func hasDotSegments(_ path: String) -> Bool {
-        let bytes = Array(path.utf8)
-        if bytes.contains(UInt8(ascii: ";")) { return true }
-        for (i, byte) in bytes.enumerated() where byte == UInt8(ascii: "%") && i + 2 < bytes.count {
-            let escape = (bytes[i + 1], bytes[i + 2] | 0x20)
-            if escape == (UInt8(ascii: "2"), UInt8(ascii: "e")) || escape == (UInt8(ascii: "3"), UInt8(ascii: "b")) { return true }
-            guard escape == (UInt8(ascii: "2"), UInt8(ascii: "5")), i + 3 < bytes.count else { continue }
-            if bytes[i + 3] == UInt8(ascii: "%") || (i + 4 < bytes.count && isHexDigit(bytes[i + 3]) && isHexDigit(bytes[i + 4])) { return true }
-        }
-        return bytes.split(separator: UInt8(ascii: "/"), omittingEmptySubsequences: true).contains { segment in
-            segment.count <= 2 && segment.allSatisfy { $0 == UInt8(ascii: ".") }
-        }
-    }
-
-    private static func isHexDigit(_ byte: UInt8) -> Bool {
-        ASCII.isDigit(byte) || (UInt8(ascii: "a")...UInt8(ascii: "f")).contains(byte | 0x20)
-    }
-
     /// Whether the path has more than ``maximumPathSegments`` segments, or the query more than
     /// ``maximumQueryParameters`` parameters. Each segment and parameter is read on its own, so
     /// the count bounds the work a URL can ask for; real URLs stay far below both.
@@ -212,10 +151,33 @@ extension Redactor {
         return query.utf8.count(where: { $0 == UInt8(ascii: "&") }) >= maximumQueryParameters
     }
 
-    /// The path segment by segment. A segment after one that names a secret, is not plain ASCII or
-    /// cannot be read (`/pin/4831`, `/password-reset/…`, `/token/…/info`, `/t%CD%A6ken/…`) is a
-    /// value, so it becomes `:id` whatever it looks like. A segment that comes again is not read
-    /// again.
+    /// Whether servers could resolve the path to other segments than it is written with: it has a
+    /// dot segment (`.`, `..`), a `;`, or a `.`, `/`, `\`, `;` or `%` written as an escape (`%2E`,
+    /// `%2F`, `%5C`, `%3B`, `%25`, in either case). Servers remove dot segments and decode escapes
+    /// before routing, and one that decodes twice reads `%25` as another escape; a `;` in a
+    /// segment starts parameters for a Java servlet but is part of the segment for Express, Go,
+    /// Rails, Django and ASP.NET Core (`/a;pin/4831` is `a` and the parameter `pin`, or the segment
+    /// `a;pin`). Which segment follows the one that names a secret then depends on the server
+    /// (`/pin/./4831`, `/token/x/../…`, `/a;pin/4831`), so no segment of such a path is written.
+    static func resolvesDifferently(path: String) -> Bool {
+        let bytes = Array(path.utf8)
+        if bytes.contains(UInt8(ascii: ";")) { return true }
+        for (i, byte) in bytes.enumerated() where byte == UInt8(ascii: "%") && i + 2 < bytes.count {
+            let escape = [bytes[i + 1], bytes[i + 2] | 0x20]
+            if Self.ambiguousEscapes.contains(escape) { return true }
+        }
+        return bytes.split(separator: UInt8(ascii: "/"), omittingEmptySubsequences: false).contains { segment in
+            segment.elementsEqual(".".utf8) || segment.elementsEqual("..".utf8)
+        }
+    }
+
+    /// The escapes of `.`, `/`, `\`, `;` and `%`, the hex letter in lowercase.
+    private static let ambiguousEscapes: Set<[UInt8]> = [Array("2e".utf8), Array("2f".utf8), Array("5c".utf8), Array("3b".utf8), Array("25".utf8)]
+
+    /// The path segment by segment. A segment after one that names a secret, cannot be read or is
+    /// not a plain-ASCII name (`/pin/4831`, `/password-reset/…`, `/token/…/info`, `/şifre/…`,
+    /// `/p%0Ain/…`, `/a,b/…`) is a value, so it becomes `:id` whatever it looks like. A segment that comes
+    /// again is not read again. The path has no `;` (see ``resolvesDifferently(path:)``).
     private func redacted(path: String, nesting: Nesting, compatibility: CompatibilityText) -> String {
         var readings: [Substring: PathSegmentReading] = [:]
         var segments: [String] = []
@@ -237,40 +199,45 @@ extension Redactor {
     private struct PathSegmentReading {
         /// It looks like an identifier or holds a secret, so it becomes `:id`.
         let hides: Bool
-        /// It is not plain ASCII, or has a word that names a secret or cannot be read, so the
-        /// segment after it is a value.
+        /// It has a word that names a secret or cannot be read, or it is not a plain-ASCII name
+        /// (see ``PlainName``), so the segment after it is a value.
         let isLabel: Bool
     }
 
     /// Reads a path segment once: it is decoded and scanned a single time, and the free-text rule,
     /// every value detector and the word reading all run on that scan. A segment that does not
-    /// decode is both. A segment is a label by the key rule (``hidesValue(ofKey:)``), as the name
-    /// of a field is: once decoded it is not plain ASCII (`t%CD%A6ken`, `passw%E3%80%87rd`,
-    /// `caf%C3%A9`), has no letter or digit, or names a secret. So is one in which free text reads
-    /// a word that names a secret or cannot be read (`pass word`).
+    /// decode is both. A segment is a label by the one rule for names (see
+    /// ``WrittenName/nameNamesSecret(_:byKeyRule:compatibility:)``), as a name held by a field
+    /// is: unless it is a plain-ASCII name — ASCII letters and digits, `_`, `-`, `.` and spaces —
+    /// that names no secret, the segment after it becomes `:id`, since a letter outside ASCII, a
+    /// control character or other punctuation may disguise a secret name. `:id`, which the
+    /// redactor writes for a segment, is not a label, so a path that is already redacted reads
+    /// the same again.
     private func read(pathSegment segment: Substring, nesting: Nesting, compatibility: CompatibilityText) -> PathSegmentReading {
         guard let decoded = segment.removingPercentEncoding else { return PathSegmentReading(hides: true, isLabel: true) }
         let scalars = Array(decoded.unicodeScalars)
         guard !scalars.isEmpty else { return PathSegmentReading(hides: false, isLabel: false) }
         let isIdentifier = UUID(uuidString: decoded) != nil || Self.isIdentifierShaped(scalars)
-        guard !isQuietWord(scalars) else { return PathSegmentReading(hides: isIdentifier, isLabel: false) }
+        guard !Self.isQuietWord(scalars) else { return PathSegmentReading(hides: isIdentifier, isLabel: false) }
         let text = NormalizedText(scalars, compatibility: compatibility)
         let holdsSecret = !textSpans(in: scalars, text: text, compatibility: compatibility, nesting: nesting, detectsInRegions: true).isEmpty
-        let isLabel = hidesValue(ofKey: scalars) || FreeTextScanner.mentionsSecret(scalars, text: text, policy: self, compatibility: compatibility)
+        let isLabel = decoded != Self.identifierPlaceholder
+            && (FreeTextScanner.mentionsSecret(scalars, text: text, compatibility: compatibility)
+                || WrittenName.nameNamesSecret(scalars, byKeyRule: true, compatibility: compatibility))
         return PathSegmentReading(hides: isIdentifier || holdsSecret, isLabel: isLabel)
     }
 
-    /// `name=value` from a query parameter, both percent-encoded. The value is kept only when the
-    /// name is allowed and no other parameter names a secret (`hidesValue`). An empty field, as
-    /// between `&&`, stays empty.
+    /// `name=value` from a query, both percent-encoded. The value is kept only when the name is
+    /// allowed and no other parameter names a secret (`hidesValue`). An empty field, as between
+    /// `&&`, stays empty.
     private func redacted(
         parameter rawName: String, value rawValue: String?, hidesValue: Bool, nesting: Nesting, compatibility: CompatibilityText
     ) -> String {
         if rawName.isEmpty, rawValue == nil { return "" }
         let name = Self.formDecoded(rawName)
-        let isShown = { (name: String) in PlainName(name.unicodeScalars) != nil && redactedName(name, nesting: nesting, compatibility: compatibility) == name }
-        let shownName = name.map(isShown) == true ? rawName : Self.replacement
-        let allowed = name.flatMap { allowableFold($0.unicodeScalars) }.map(allowedQueryParameters.contains) ?? false
+        let shownName = name.map { PlainName($0.unicodeScalars) != nil && redactedName($0, nesting: nesting, compatibility: compatibility) == $0 } == true
+            ? rawName : Self.replacement
+        let allowed = name.flatMap { FieldName.allowableFold($0.unicodeScalars) }.map(allowedQueryParameters.contains) ?? false
         guard let rawValue else { return allowed ? shownName : Self.replacement }
         guard !rawValue.isEmpty else { return shownName + "=" }
         guard allowed, !hidesValue, let value = Self.formDecoded(rawValue) else { return shownName + "=" + Self.replacement }

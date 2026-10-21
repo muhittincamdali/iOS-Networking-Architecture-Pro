@@ -134,13 +134,15 @@ struct RedactionCutPropertyTests {
         for value in Self.keptValues {
             let json = "{\"\(name)\":\"\(value)\",\"list\":[{\"\(name)\":\"\(value)\"}]}"
             #expect(redactor.redact(body: Data(json.utf8), contentType: "application/json") == json)
-            // JSON in a log line is read by the rule for keys in text.
-            #expect(allowing.redact("log \(json)") == "log \(json)")
+            // JSON in a log line is read by the rule for keys in text, where a key with a space
+            // is never allowed: it cuts the line at its opening quote.
+            #expect(allowing.redact("log \(json)") == (name.contains(" ") ? "log {" + Redactor.replacement : "log \(json)"))
             let form = "a=1&\(encoded)=\(value)"
             #expect(redactor.redact(body: Data(form.utf8), contentType: "application/x-www-form-urlencoded") == form)
             #expect(allowing.redact("\(name)=\(value) done") == "\(name)=\(value) done")
             guard !Redactor.defaultAllowedTextKeys.contains(name) else { continue }
-            #expect(redactor.redact("log \(json)") == "log {\"\(name)\":\(Redactor.replacement)")
+            // A member name that is not allowed cuts the line at its opening quote.
+            #expect(redactor.redact("log \(json)") == "log {" + Redactor.replacement)
             #expect(!redactor.redact("\(name)=\(value) done").hasSuffix("\(value) done"))
         }
     }
@@ -160,9 +162,11 @@ struct RedactionCutPropertyTests {
             let spaced = words.joined(separator: " ")
             let value = Self.keptValues.randomElement(using: &random)!
             let allowing = CorpusRedactor(allowedTextKeys: [name, "other"])
-            for json in ["{\"\(name)\":\"\(value)\"}", "{\"\(spaced)\":[\"\(value)\"]}"] {
+            for (json, key) in [("{\"\(name)\":\"\(value)\"}", name), ("{\"\(spaced)\":[\"\(value)\"]}", spaced)] {
                 #expect(redactor.redact(body: Data(json.utf8), contentType: "application/json") == json)
-                #expect(allowing.redact("got \(json) in 3 ms") == "got \(json) in 3 ms")
+                // A key with a space is never allowed in text.
+                let expected = key.contains(" ") ? "got {" + Redactor.replacement : "got \(json) in 3 ms"
+                #expect(allowing.redact("got \(json) in 3 ms") == expected)
             }
             let form = "a=1&\(name)=\(value)"
             #expect(redactor.redact(body: Data(form.utf8), contentType: "application/x-www-form-urlencoded") == form)
