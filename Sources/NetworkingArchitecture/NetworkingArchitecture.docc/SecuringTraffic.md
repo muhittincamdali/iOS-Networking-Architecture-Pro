@@ -35,13 +35,18 @@ certificate does not lock your app out. A rejected server fails the request with
 ### Keep credentials on their origin
 
 `URLSession` drops `Authorization` when a redirect leads to another origin but forwards every
-other header. With the default ``RedirectPolicy/followSafely``, ``URLSessionTransport`` also
-removes on such a redirect every header that carries a credential: a name that a ``Redactor``
-always hides (such as `X-API-Key`, `Cookie` or any name with `token`, `key` or `auth`), and a
-value that starts with an authentication scheme (`X-Upstream: Bearer …`) or that the free-text
-rule would cut (a URL with a query, a `key=value` pair, an escape). It also refuses redirects
-from `https` to `http`. ``RedirectPolicy/doNotFollow``
-returns every redirect to you instead.
+other header, and the body of a `307` or `308` redirect. An origin is a scheme, a host and a
+port. With the default ``RedirectPolicy/followSameOrigin``, ``URLSessionTransport`` follows a
+redirect only when it stays on the origin of the request it answers; a redirect to another
+origin is not followed, and the `3xx` response, with its `Location` header, is returned to you.
+``RedirectPolicy/followSafely`` follows redirects to other origins too, but sends the request
+there without its body and without every header that carries a credential: a name that a
+``Redactor`` always hides (such as `Authorization`, `Cookie`, `X-API-Key` or any name with
+`token`, `key` or `auth`), and a value that starts with an authentication scheme
+(`X-Upstream: Bearer …`) or that the free-text rule would cut (a URL with a query, a
+`key=value` pair, an escape). Both refuse a redirect from `https` to `http` and one whose
+`Location` holds a user name or password. ``RedirectPolicy/doNotFollow`` returns every redirect
+to you, and ``RedirectPolicy/follow`` behaves as `URLSession` does.
 
 ``BearerTokenAuthenticator`` adds its token only to the hosts you list, so an absolute URL
 to another server never receives it.

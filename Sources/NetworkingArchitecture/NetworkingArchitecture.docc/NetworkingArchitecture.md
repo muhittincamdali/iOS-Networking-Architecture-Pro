@@ -30,8 +30,8 @@ Around that core the package covers what most apps end up writing by hand:
   `ETag` revalidation.
 - **Streaming**: server-sent events with ``NetworkClient/events(_:options:)`` and a
   reconnecting ``WebSocketConnection``.
-- **Security**: ``PublicKeyPinning``, a ``RedirectPolicy`` that drops credentials on
-  cross-origin redirects, a ``Redactor`` that keeps secrets out of logs by hiding what it does not understand, and ``PathSegment``
+- **Security**: ``PublicKeyPinning``, a ``RedirectPolicy`` that by default does not follow
+  redirects to another origin, a ``Redactor`` that keeps secrets out of logs by hiding what it does not understand, and ``PathSegment``
   for user input in paths.
 - **Testing**: the `NetworkingArchitectureTesting` library's `MockTransport` answers
   requests from canned responses, so your API layer can be tested without a server.
