@@ -12,9 +12,9 @@ event streams and WebSocket messages, and it holds credentials (bearer tokens, A
 cookies) on the app's behalf. Please report privately anything that makes it:
 
 - send a credential somewhere it should not go: a bearer token to a host outside
-  `BearerTokenAuthenticator`'s allowed hosts, a credential header across a redirect that
-  `RedirectPolicy.followSafely` should have stripped, or one user's cached response to
-  another;
+  `BearerTokenAuthenticator`'s allowed hosts, a credential header or a body across a redirect
+  to another origin that `RedirectPolicy` should not have followed or should have stripped, or
+  one user's cached response to another;
 - accept a server that `PublicKeyPinning` should reject, or accept an invalid certificate
   because a key is pinned;
 - write a secret that `Redactor` documents that it hides into `NetworkLogger` output or

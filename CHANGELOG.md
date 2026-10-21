@@ -76,11 +76,14 @@ for this package rather than copied.
   messages by `maximumBufferedEvents` and `maximumBufferedMessages`, and the caches by their
   byte and count limits. A request is sent at most 10 times whatever an interceptor asks for.
 - Credentials stay where they belong: the bearer token is only sent to allowed hosts and
-  only over `https` or `wss`, `RedirectPolicy.followSafely` (the default) removes credential
-  headers on cross-origin redirects (names that `Redactor` always hides, and values that
-  start with an authentication scheme or that its free-text rule would cut) and refuses
-  https-to-http redirects, and cache keys include a hash of the same credential headers so
-  two users of one client never share a cached response.
+  only over `https` or `wss`. `RedirectPolicy.followSameOrigin` (the default) follows a
+  redirect only when it keeps the scheme, host and port of the request it answers, and
+  returns any other redirect to the caller; `RedirectPolicy.followSafely` follows redirects to
+  other origins without the body and without credential headers (names that `Redactor` always
+  hides, and values that start with an authentication scheme or that its free-text rule would
+  cut). Both refuse https-to-http redirects and a `Location` with a user name or password.
+  Cache keys include a hash of the same credential headers so two users of one client never
+  share a cached response.
 - Input cannot change the structure of a request: header names and values with line breaks
   are rejected, multipart field and file names are escaped, `PathSegment` keeps user input
   in one path segment, and query values encode `+`.
@@ -93,13 +96,20 @@ for this package rather than copied.
   are parsed: the whole value under a secret name, or under a key that is not plain ASCII, is
   hidden, and a body that cannot be parsed, has an unknown content type or is larger than
   256 KiB is left out with a note. Free text (kept header values, `text/plain` bodies,
-  strings in JSON and forms) is hidden from its first trigger to its end. Depth, nesting and
-  time are bounded. The rules and their test corpus are shared with iOSDevelopmentTools and
-  iOSSecurityTools; the secrets that the name-based rules used during development missed
-  (values holding URLs, forms or JSON, `+` read as a space, `;jsessionid`, percent-encoded
-  path segments) are kept as tests. Redaction is a safety net, not a guarantee: a secret name
-  in free text disguised with look-alike letters and no separator, a secret with no label and
-  a short secret in a path segment are not guaranteed to be found.
+  strings in JSON and forms) is hidden from its first trigger to its end. A field that holds a
+  name (`name`, `label`, `type`, `id`, …) that names a secret or is not plain ASCII hides the
+  values beside it, a Turkish `name` of a record included. Depth, nesting, reading and time
+  are bounded. The design, the rules and their test corpus are those of iOSSecurityTools 2.1.0
+  (one function classifies every name; separate readers for names, free text and JSON; one
+  cumulative depth and reading budget; shared static tables), with this package's header
+  allowlist and secret-name extensions (`sig`, `jwt`, `code`). The secrets that the rules used
+  during development missed — values holding URLs, forms or JSON, `+` read as a space,
+  `;jsessionid`, percent-encoded path segments, a value after a bracket that does not close,
+  `&#` before a value, an address before a vertical tab — are kept as tests, with the review
+  probes of iOSSecurityTools, iOSDevelopmentTools and this package. Redaction is a safety net,
+  not a guarantee: a secret name in free text disguised with look-alike letters and no
+  separator, a secret with no label and a short secret in a path segment are not guaranteed to
+  be found.
 - Pinning failures surface as `URLError.serverCertificateUntrusted` instead of a
   cancellation, system certificate validation always runs before the pins are checked, and
   a host name with a trailing dot (`api.example.com.`) gets the same pins as without it.
