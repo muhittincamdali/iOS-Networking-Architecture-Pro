@@ -27,7 +27,8 @@ let package = Package(
         .testTarget(
             name: "NetworkingArchitectureTests",
             dependencies: ["NetworkingArchitecture", "NetworkingArchitectureTesting"],
-            path: "Tests/NetworkingArchitectureTests"
+            path: "Tests/NetworkingArchitectureTests",
+            resources: [.copy("Resources/ReviewProbes.jsonl")]
         )
     ]
 )
