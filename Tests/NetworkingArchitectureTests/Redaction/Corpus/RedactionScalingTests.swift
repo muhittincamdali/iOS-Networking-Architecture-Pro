@@ -144,6 +144,30 @@ struct RedactionScalingTests {
     // 2.0.0 appended each piece of the output to a String.UnicodeScalarView, which copied the
     // output so far every time. That step is measured on its own here: in a debug build the scan
     // costs more than the copying until a text is hundreds of thousands of characters long.
+    // A JSON string that the free-text rule changed was escaped again one scalar at a time, each
+    // escape copying what was written before it: a megabyte of quotes took two seconds, two
+    // megabytes six (a review of this package; the shared corpus has no such test).
+    @Test("a JSON string full of quotes or line breaks is written again in time linear in its length", arguments: [
+        ("say \\\"hi\\\" ", "ayse@ornek.com"), ("INFO request ok\\n", "password hunter2"),
+    ])
+    func escapedStringScale(unit: String, last: String) {
+        func json(_ length: Int) -> String { RedactionTimeLimitTests.oneLongString(unit, then: last, total: length) }
+        let (small, large) = (json(50_000), json(200_000))
+        expectLinear(
+            "JSON body of one string of \(unit.debugDescription)",
+            small: { _ = redactor.redact(body: Data(small.utf8), contentType: "application/json") },
+            large: { _ = redactor.redact(body: Data(large.utf8), contentType: "application/json") },
+            maximumRatio: 10
+        )
+        let (smallText, largeText) = (String(repeating: unit, count: 50_000 / unit.count), String(repeating: unit, count: 200_000 / unit.count))
+        expectLinear(
+            "escaping \(unit.debugDescription)",
+            small: { _ = JSONDocument.escaped(smallText) },
+            large: { _ = JSONDocument.escaped(largeText) },
+            maximumRatio: 10
+        )
+    }
+
     @Test("building the output takes time linear in the number of replacements")
     func replacementScale() {
         func replaceEveryFinding(length: Int) -> () -> Void {
