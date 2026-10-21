@@ -85,6 +85,12 @@ struct RedactionTimeLimitTests {
         TimedInput(testDescription: "a JSON array of one-letter strings", make: { repeated("\"a\"") }, redact: body("application/json")),
         TimedInput(testDescription: "a JSON array of one-letter strings in a log line", make: { repeated("\"a\"") }, redact: redactor.redact),
         TimedInput(testDescription: "a JSON array of empty strings", make: { repeated("\"\"") }, redact: body("application/json")),
+        TimedInput(testDescription: "a JSON array of card numbers written with an exponent", make: {
+            repeated("4.111111111111111E15")
+        }, redact: body("application/json")),
+        TimedInput(testDescription: "a JSON array of numbers with exponents of a billion", make: {
+            repeated("1.5e999999999,-2e-999999999")
+        }, redact: body("application/json")),
         TimedInput(testDescription: "a JSON array of different strings of words", make: {
             "[" + (0..<(size / 12)).map { "\"a b \($0)\"" }.joined(separator: ",") + "]"
         }, redact: body("application/json")),

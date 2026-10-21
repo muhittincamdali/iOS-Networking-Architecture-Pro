@@ -39,6 +39,9 @@ struct RedactionPeakMemoryTests {
         TimedInput(testDescription: "lines of addresses", make: {
             RedactionTimeLimitTests.repeated("mail alice@example.com\n", to: RedactionTimeLimitTests.size)
         }, redact: redactor.redact),
+        TimedInput(testDescription: "a body of card numbers written with an exponent", make: {
+            "[" + RedactionTimeLimitTests.repeated("4.111111111111111E15,", to: bodySize - 20) + "0]"
+        }, redact: { redactor.redact(body: Data($0.utf8), contentType: "application/json") }),
     ] + ThirteenthReviewShapes.text + ThirteenthReviewShapes.bodies(size: bodySize, redactor: redactor) + FourteenthReviewShapes.text
         + URLInTextShapes.text + QuotedKeyShapes.text + MarkupQuoteShapes.text + DenseFindingShapes.text
         + DenseFindingShapes.bodies(size: bodySize, redactor: redactor) + deepArrayShapes + DistinctScalarShapes.text
