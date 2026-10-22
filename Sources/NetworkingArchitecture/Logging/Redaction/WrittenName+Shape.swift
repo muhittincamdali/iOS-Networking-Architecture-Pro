@@ -72,14 +72,14 @@ extension WrittenName {
         return scalars[...]
     }
 
-    /// Whether a string holds a label written outside printable ASCII: a separator that white
-    /// space, a line break or the end of the string follows, after words with a scalar outside
-    /// printable ASCII in them since the start of the string or the separator before (`ΡΙΝ:`,
-    /// `Enter your pɑsswoʀd:`, `Şifre: zorunlu`, `Пароль =`, `ＰＩＮ：`, `ΡΙΝ꞉`). A separator is a
-    /// `:` or an `=`, as written or as its compatibility form reads (`：`, `﹕`, `＝`, `⩴`), or a
-    /// punctuation mark of any kind but a dash, or a math or modifier symbol, with no ASCII form
-    /// and that does not end a sentence (`꞉`, `∶`, `·`, `→`, `」`, `»`, `“`, but not `。`, and not
-    /// a dash or `…`, which read as ASCII).
+    /// Whether a string holds a label written outside printable ASCII: a separator that anything
+    /// but a letter or a digit follows (white space, a line break, the end of the string, a mark),
+    /// after words with a scalar outside printable ASCII in them since the start of the string or
+    /// the separator before (`ΡΙΝ:`, `Enter your pɑsswoʀd:`, `Şifre: zorunlu`, `Пароль =`,
+    /// `Пароль:*`, `ＰＩＮ：`, `ΡΙΝ꞉`). A separator is a `:` or an `=`, as written or as its
+    /// compatibility form reads (`：`, `﹕`, `＝`, `⩴`), or a punctuation mark of any kind but a
+    /// dash, or a math or modifier symbol, with no ASCII form and that does not end a sentence
+    /// (`꞉`, `∶`, `·`, `→`, `」`, `»`, `“`, but not `。`, and not a dash or `…`, which read as ASCII).
     ///
     /// A label is a key written as a value, so the key rule decides it: a key that is not plain
     /// ASCII hides its value whatever it says, as a name held by a field that holds names does
@@ -90,7 +90,7 @@ extension WrittenName {
         var labelHasText = false
         for i in scalars.indices {
             let scalar = scalars[i]
-            if isLabelSeparator(scalar, compatibility: compatibility), separatorEnds(scalars, after: i) {
+            if isLabelSeparator(scalar, compatibility: compatibility), separatorEnds(scalars, after: i, compatibility: compatibility) {
                 if labelHasText, !labelIsPlain { return true }
                 labelIsPlain = true
                 labelHasText = false
@@ -117,13 +117,14 @@ extension WrittenName {
         }
     }
 
-    /// Whether white space, a line break or the end of the string follows the separator at `i`,
-    /// with only invisible scalars between (see ``ScalarClass/isInvisible(_:)``). Each scalar is
+    /// Whether anything but a letter or a digit follows the separator at `i`, with only invisible
+    /// scalars between (see ``ScalarClass/isInvisible(_:)``): white space, a line break, the end
+    /// of the string or a mark (`Пароль:*`, `ΡΙΝ:)`, `Şifre=?`), but not `12:30`. Each scalar is
     /// passed over for one separator at most, so the label is still read in one pass.
-    private static func separatorEnds(_ scalars: [Unicode.Scalar], after i: Int) -> Bool {
+    private static func separatorEnds(_ scalars: [Unicode.Scalar], after i: Int, compatibility: CompatibilityText) -> Bool {
         var j = i + 1
         while j < scalars.count, ScalarClass.isInvisible(scalars[j]) { j += 1 }
-        return j == scalars.count || scalars[j].properties.isWhitespace
+        return j == scalars.count || !isLetterOrDigit(scalars[j], compatibility: compatibility)
     }
 
     /// Whether a string reads as a name (see ``shape(of:compatibility:)``).
