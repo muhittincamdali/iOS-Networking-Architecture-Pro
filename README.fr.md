@@ -47,8 +47,8 @@ Une couche réseau pour les apps sur iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ et
   autre origine renvoyées au lieu d’être suivies, journaux et sortie de `curl` qui ne
   montrent que ce que le redactor comprend, et limites sur la taille des réponses, les messages
   mis en tampon et les délais d’attente.
-- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 953 tests
-  Swift Testing du paquet s’exécutent sur macOS, dont 948 aussi sur un simulateur d’iPhone, y
+- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 958 tests
+  Swift Testing du paquet s’exécutent sur macOS, dont 953 aussi sur un simulateur d’iPhone, y
   compris des tests contre un serveur local HTTP, TLS et WebSocket.
 
 ### Ce qui est inclus
@@ -268,8 +268,9 @@ un `Redactor`, qui masque tout ce qu’il ne comprend pas entièrement.
 - **Les étiquettes écrites comme valeurs** masquent la valeur voisine, même écrites comme des
   phrases : `{"question":"What's your PIN?","answer":"1234"}` et
   `{"title":"PIN (4 digits)","value":"1234"}` sont journalisés avec la réponse et la valeur
-  masquées. Une étiquette écrite hors ASCII et terminée par `:` ou `=` la masque quoi qu’elle dise
-  (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`), et une
+  masquées. Une étiquette écrite hors ASCII et terminée par `:`, `=`, un crochet ou un guillemet la
+  masque quoi qu’elle dise (`{"title":"ΡΙΝ:","value":"1234"}`,
+  `{"title":"Şifre: zorunlu","value":"1234"}`, `{"title":"«Пароль»","value":"1234"}`), et une
   chaîne est lue quelle que soit sa longueur : une étiquette à la fin d’une longue description
   compte aussi.
 - **Les valeurs des autres champs** et le texte libre sont examinés à la recherche de JWT,

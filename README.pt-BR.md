@@ -45,8 +45,8 @@ Uma camada de rede para apps no iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ e visio
 - **Seguro por padrão** — public key pinning, redirecionamentos para outra origem
   devolvidos em vez de seguidos, logs e saída do `curl` que mostram só o que o redactor entende, e limites para
   o tamanho das respostas, as mensagens em buffer e os tempos de espera.
-- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 953
-  testes de Swift Testing do próprio pacote rodam no macOS e 948 deles também em um simulador de
+- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 958
+  testes de Swift Testing do próprio pacote rodam no macOS e 953 deles também em um simulador de
   iPhone, incluindo testes contra um servidor local HTTP, TLS e WebSocket.
 
 ### O que está incluído
@@ -265,8 +265,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Rótulos escritos como valores** ocultam o valor ao lado, também quando são frases:
   `{"question":"What's your PIN?","answer":"1234"}` e
   `{"title":"PIN (4 digits)","value":"1234"}` são registrados com a resposta e o valor ocultos.
-  Um rótulo escrito fora do ASCII e terminado em `:` ou `=` o oculta, diga o que disser
-  (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`), e uma
+  Um rótulo escrito fora do ASCII e terminado em `:`, `=`, colchete ou aspas o oculta, diga o
+  que disser (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`,
+  `{"title":"«Пароль»","value":"1234"}`), e uma
   string é lida em qualquer tamanho, então um rótulo no fim de uma descrição longa também conta.
 - **Valores de outros campos** e texto livre são examinados em busca de JWTs, credenciais
   `Bearer`, strings hexadecimais ou Base64 de 32 caracteres ou mais, números de cartão, IBANs e

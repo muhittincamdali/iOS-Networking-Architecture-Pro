@@ -47,7 +47,7 @@ Una capa de red para apps en iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ y visionOS
   entiende, y límites para el tamaño de las respuestas, los mensajes en búfer y los tiempos de
   espera.
 - **Fácil de probar** — `MockTransport` responde a las peticiones con respuestas predefinidas; las
-  953 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 948 de ellas también en
+  958 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 953 de ellas también en
   un simulador de iPhone, incluidas pruebas contra un servidor local HTTP, TLS y WebSocket.
 
 ### Qué incluye
@@ -265,8 +265,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Las etiquetas escritas como valores** ocultan el valor de al lado, también cuando son
   frases: `{"question":"What's your PIN?","answer":"1234"}` y
   `{"title":"PIN (4 digits)","value":"1234"}` se registran con la respuesta y el valor ocultos.
-  Una etiqueta escrita fuera de ASCII y terminada en `:` o `=` lo oculta diga lo que diga
-  (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`), y una
+  Una etiqueta escrita fuera de ASCII y terminada en `:`, `=`, un corchete o unas comillas lo
+  oculta diga lo que diga (`{"title":"ΡΙΝ:","value":"1234"}`,
+  `{"title":"Şifre: zorunlu","value":"1234"}`, `{"title":"«Пароль»","value":"1234"}`), y una
   cadena se lee con cualquier longitud, así que también cuenta una etiqueta al final de una
   descripción larga.
 - **Los valores de otros campos** y el texto libre se examinan en busca de JWT, credenciales

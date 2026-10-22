@@ -45,8 +45,8 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ ve visionOS 1+ uygulamaları için, `UR
   izlenmeyip geri döndürülmesi, günlüklerde ve `curl` çıktısında yalnızca redactor'ın
   anladığı kısmın gösterilmesi; ayrıca yanıt boyutu, arabelleğe alınan mesajlar ve bekleme
   süreleri için sınırlar.
-- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 953
-  Swift Testing testi macOS'ta çalışır, bunların 948'i ayrıca bir iPhone simülatöründe de
+- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 958
+  Swift Testing testi macOS'ta çalışır, bunların 953'i ayrıca bir iPhone simülatöründe de
   çalışır. Bunlara yerel bir HTTP, TLS ve WebSocket sunucusuna karşı yazılmış testler de dahildir.
 
 ### Neler var
@@ -265,8 +265,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Değer olarak yazılmış etiketler**, cümle olarak yazıldıklarında da yanlarındaki değeri gizler:
   `{"question":"What's your PIN?","answer":"1234"}` ve
   `{"title":"PIN (4 digits)","value":"1234"}`, yanıt ve değer gizlenerek kaydedilir.
-  ASCII dışında yazılmış ve `:` ya da `=` ile biten bir etiket, ne derse desin yanındaki değeri
-  gizler (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`);
+  ASCII dışında yazılmış ve `:`, `=`, bir parantez ya da tırnak işaretiyle biten bir etiket, ne
+  derse desin yanındaki değeri gizler (`{"title":"ΡΙΝ:","value":"1234"}`,
+  `{"title":"Şifre: zorunlu","value":"1234"}`, `{"title":"«Пароль»","value":"1234"}`);
   bir dizge her uzunlukta okunur, bu yüzden uzun bir açıklamanın sonundaki etiket de sayılır.
 - **Diğer alanların değerleri** ve serbest metin; JWT, `Bearer` kimlik bilgileri, 32 ya da
   daha fazla karakterlik onaltılık veya Base64 metinler, kart numaraları, IBAN'lar ve e-posta

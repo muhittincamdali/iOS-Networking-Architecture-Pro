@@ -41,8 +41,8 @@
   并通过 ping 保持连接的 WebSocket。
 - **默认安全**：公钥固定（public key pinning）、不跟随跨源重定向而是将其返回、
   日志和 `curl` 输出只显示 redactor 能理解的部分，并对响应大小、缓冲消息数量和等待时间设置上限。
-- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 953 个
-  Swift Testing 测试都在 macOS 上运行，其中 948 个也在 iPhone 模拟器上运行，
+- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 958 个
+  Swift Testing 测试都在 macOS 上运行，其中 953 个也在 iPhone 模拟器上运行，
   包括针对本地 HTTP、TLS 和 WebSocket 服务器的测试。
 
 ### 包含的内容
@@ -253,8 +253,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   会记录为 `{"name":"Ayşe","id":"[REDACTED]"}`。
 - **作为值写出的标签**即使写成句子，也会隐藏旁边的值：
   `{"question":"What's your PIN?","answer":"1234"}` 和 `{"title":"PIN (4 digits)","value":"1234"}`
-  记录时回答和值都会被隐藏。用 ASCII 以外字符书写并以 `:` 或 `=` 结尾的标签，无论内容如何都会
-  隐藏旁边的值（`{"title":"ΡΙΝ:","value":"1234"}`、`{"title":"Şifre: zorunlu","value":"1234"}`）；
+  记录时回答和值都会被隐藏。用 ASCII 以外字符书写并以 `:`、`=`、括号或引号结尾的标签，无论内容
+  如何都会隐藏旁边的值（`{"title":"ΡΙΝ:","value":"1234"}`、`{"title":"Şifre: zorunlu","value":"1234"}`、
+  `{"title":"«Пароль»","value":"1234"}`）；
   字符串不论多长都会读取，所以长描述末尾的标签也算。
 - **其他字段的值**和自由文本会被扫描，查找 JWT、`Bearer` 凭据、32 个字符及以上的十六进制或
   Base64 字符串、银行卡号、IBAN 和电子邮件地址。JSON 数字按它所表示的十进制数读取：Jackson 和

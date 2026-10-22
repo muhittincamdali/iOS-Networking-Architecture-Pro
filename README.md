@@ -44,7 +44,7 @@ streaming are settings of that client instead of code you write around every req
   followed, logs and `curl` output that show only what the redactor understands, and limits
   on response size, buffered messages and wait times.
 - **Testable** — `MockTransport` answers requests from canned responses; the package's own
-  953 Swift Testing tests run on macOS, 948 of them also on an iPhone simulator, including
+  958 Swift Testing tests run on macOS, 953 of them also on an iPhone simulator, including
   tests against a local HTTP, TLS and WebSocket server.
 
 ### What's included
@@ -260,8 +260,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Labels written as values** hide the value beside them, also when they are written as
   sentences: `{"question":"What's your PIN?","answer":"1234"}` and
   `{"title":"PIN (4 digits)","value":"1234"}` are logged with the answer and the value hidden.
-  A label written outside ASCII and ended by `:` or `=` hides it whatever it says
-  (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`), and a
+  A label written outside ASCII and ended by `:`, `=`, a bracket or a quote mark hides it
+  whatever it says (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`,
+  `{"title":"«Пароль»","value":"1234"}`), and a
   string is read at any length, so a label at the end of a long description counts too.
 - **Values of other fields** and free text are scanned for JWTs, `Bearer` credentials, hex or
   Base64 strings of 32 or more characters, card numbers, IBANs and email addresses. A JSON

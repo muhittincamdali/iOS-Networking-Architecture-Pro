@@ -44,7 +44,7 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+, visionOS 1+ 앱을 위한 네트워킹
   redactor가 이해하는 부분만 보여 주는 로그와 `curl` 출력, 응답 크기·버퍼링되는 메시지 수·대기
   시간에 대한 제한.
 - **테스트하기 쉬움** — `MockTransport`가 미리 준비한 응답으로 요청에 답합니다. 패키지 자체의
-  953개 Swift Testing 테스트가 macOS에서 실행되며, 그중 948개는 iPhone 시뮬레이터에서도 실행됩니다.
+  958개 Swift Testing 테스트가 macOS에서 실행되며, 그중 953개는 iPhone 시뮬레이터에서도 실행됩니다.
   로컬 HTTP, TLS, WebSocket 서버를 대상으로 한 테스트도 포함됩니다.
 
 ### 포함된 기능
@@ -256,9 +256,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   `{"name":"Ayşe","id":"[REDACTED]"}`로 기록됩니다.
 - **값으로 쓴 레이블**은 문장으로 써도 옆의 값을 숨깁니다.
   `{"question":"What's your PIN?","answer":"1234"}`와 `{"title":"PIN (4 digits)","value":"1234"}`는
-  답과 값을 숨긴 채 기록됩니다. ASCII 밖의 문자로 쓰고 `:`나 `=`로 끝나는 레이블은 내용과
-  상관없이 옆의 값을 숨기며(`{"title":"ΡΙΝ:","value":"1234"}`,
-  `{"title":"Şifre: zorunlu","value":"1234"}`), 문자열은 길이와 상관없이 읽으므로 긴 설명 끝의
+  답과 값을 숨긴 채 기록됩니다. ASCII 밖의 문자로 쓰고 `:`, `=`, 괄호나 따옴표로 끝나는
+  레이블은 내용과 상관없이 옆의 값을 숨기며(`{"title":"ΡΙΝ:","value":"1234"}`,
+  `{"title":"Şifre: zorunlu","value":"1234"}`, `{"title":"«Пароль»","value":"1234"}`), 문자열은 길이와 상관없이 읽으므로 긴 설명 끝의
   레이블도 셉니다.
 - **다른 필드의 값**과 자유 텍스트에서는 JWT, `Bearer` 자격 증명, 32자 이상의 16진수 또는 Base64
   문자열, 카드 번호, IBAN, 이메일 주소를 찾습니다. JSON 숫자는 그 숫자가 나타내는 10진수로 읽으므로

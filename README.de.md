@@ -46,8 +46,8 @@ Eine Netzwerkschicht für Apps auf iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ und 
   Ursprung werden zurückgegeben statt verfolgt, Logs und `curl`-Ausgabe zeigen nur, was
   der Redactor versteht, und es gibt Grenzen für Antwortgröße, gepufferte Nachrichten und
   Wartezeiten.
-- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 953
-  Swift-Testing-Tests des Pakets laufen auf macOS, 948 davon auch in einem iPhone-Simulator,
+- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 958
+  Swift-Testing-Tests des Pakets laufen auf macOS, 953 davon auch in einem iPhone-Simulator,
   darunter Tests gegen einen lokalen HTTP-, TLS- und WebSocket-Server.
 
 ### Was enthalten ist
@@ -266,9 +266,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Als Werte geschriebene Bezeichnungen** verbergen den Wert daneben, auch als Satz:
   `{"question":"What's your PIN?","answer":"1234"}` und
   `{"title":"PIN (4 digits)","value":"1234"}` werden mit verborgener Antwort und verborgenem
-  Wert protokolliert. Eine Bezeichnung außerhalb von ASCII, die mit `:` oder `=` endet, verbirgt
-  ihn, was immer sie sagt (`{"title":"ΡΙΝ:","value":"1234"}`,
-  `{"title":"Şifre: zorunlu","value":"1234"}`), und ein String wird in jeder Länge gelesen, also
+  Wert protokolliert. Eine Bezeichnung außerhalb von ASCII, die mit `:`, `=`, einer Klammer oder einem
+  Anführungszeichen endet, verbirgt ihn, was immer sie sagt (`{"title":"ΡΙΝ:","value":"1234"}`,
+  `{"title":"Şifre: zorunlu","value":"1234"}`, `{"title":"«Пароль»","value":"1234"}`), und ein String wird in jeder Länge gelesen, also
   zählt auch eine Bezeichnung am Ende einer langen Beschreibung.
 - **Werte anderer Felder** und Freitext werden nach JWTs, `Bearer`-Anmeldedaten, Hex- oder
   Base64-Strings ab 32 Zeichen, Kartennummern, IBANs und E-Mail-Adressen durchsucht. Eine
