@@ -154,14 +154,18 @@ not as a name.
 
 A label is a key written as a value, so a label written outside printable ASCII hides the value
 beside it whatever it says, as a key that is not plain ASCII does: words with a character outside
-printable ASCII in them, then a `:` or an `=` (also as written in another form, `：`, `﹕`, `＝`)
-or a punctuation mark or a math or modifier symbol with no ASCII form (`꞉`, `∶`, `·`, `→`), and
-then white space, a line break or the end of the string. `{"title":"ΡΙΝ:","value":…}`,
-`{"prompt":"Enter your pɑsswoʀd:","answer":…}`, `{"title":"Şifre: zorunlu","value":…}` and
-`["note","Пароль:","…"]` hide the value, in forms, multipart bodies and allowed query parameters
-too. This hides on purpose: `{"title":"Цена: 100","id":7}` is stored with `id` hidden. A
-sentence end (`。`), a dash and `…` are not separators, and a string with no such label keeps
-what is beside it (`{"title":"Ayşe Yılmaz","id":7}`, `{"title":"Name: Ayşe","id":7}`).
+printable ASCII in them, then a `:` or an `=` (also as written in another form, `：`, `﹕`, `＝`,
+`⩴`) or a punctuation mark, a bracket, a quote mark or a math or modifier symbol with no ASCII
+form (`꞉`, `∶`, `·`, `→`, `」`, `»`, `“`), and then anything but a letter or a digit: white
+space, a line break, the end of the string or a mark (`Пароль:*`, `ΡΙΝ:)`).
+`{"title":"ΡΙΝ:","value":…}`, `{"prompt":"Enter your pɑsswoʀd:","answer":…}`,
+`{"title":"Şifre: zorunlu","value":…}`, `{"title":"【暗証番号】","value":…}` and
+`["note","«Пароль»","…"]` hide the value, in forms, multipart bodies and allowed query
+parameters too. This hides on purpose: `{"title":"Цена: 100","id":7}` and
+`{"title":"«Привет»","id":7}` are stored with `id` hidden. A sentence end (`。`), a dash and `…`
+are not separators, a separator with a letter or a digit after it is part of the words
+(`Saat 12:30`), and a string with no such label keeps what is beside it
+(`{"title":"Ayşe Yılmaz","id":7}`, `{"title":"Name: Ayşe","id":7}`).
 
 A string is read at any length, in one pass, its words longer than 256 characters too: the label
 at the end of a long description (`{"question":"<a paragraph> What is your PIN?","answer":…}`)
@@ -487,7 +491,8 @@ Use ``Redactor/disabled`` only with test servers and test accounts, or pass `nil
   not hold a name: `{"title":"Пароль","value":…}` and `{"title":"Пароль — ","value":…}` keep the
   value, as `пароль hunter2` does in free text; a dash is not a separator. With one
   (`{"title":"Пароль:","value":…}`), or in a member that holds a name
-  (`{"label":"Пароль","value":…}`), the value is hidden.
+  (`{"label":"Пароль","value":…}`), the value is hidden. A separator with a letter or a digit
+  right after it does not end a label: `{"title":"「パスワード」を入力","value":…}` keeps the value.
 - A value written before its name, with no key before it: `hunter2 is my password` is stored as
   it is.
 - A card number grouped with `+` or `.` (`4111+1111+1111+1111`), and a card number or an IBAN
