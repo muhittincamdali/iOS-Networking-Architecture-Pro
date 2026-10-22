@@ -13,19 +13,24 @@
 /// when it names a secret with its control characters left out or read as spaces, and a name of
 /// control characters and white space alone counts beside a field (see
 /// ``nameNamesSecret(_:byKeyRule:compatibility:)``, the one decision every place makes).
+/// In any other field and in an array, a label written outside ASCII and ended by a separator
+/// (`ΡΙΝ:`, `Şifre: zorunlu`) is a key that is not plain ASCII, and counts as one (see
+/// ``holdsLabelOutsideASCII(_:compatibility:)``).
 enum WrittenName {
     /// Where a name is written, which decides how it is read.
     enum Place {
         /// The value of the field `field` of an object, a form, a URL query or a multipart body.
         /// When the field holds a name (see ``holdsName(_:)``), the value is read by the key rule;
-        /// otherwise it names a secret when it is a name or a label (see ``shape(of:compatibility:)``)
-        /// whose words name a secret or cannot be read, or when it is control characters and white
-        /// space alone (see ``isBlankWithControl(_:)``).
+        /// otherwise it names a secret when it holds a label written outside ASCII (see
+        /// ``holdsLabelOutsideASCII(_:compatibility:)``), when it is a name or a label (see
+        /// ``shape(of:compatibility:)``) whose words name a secret or cannot be read, or when it is
+        /// control characters and white space alone (see ``isBlankWithControl(_:)``).
         case field([Unicode.Scalar])
         /// The first element of a two-element array, as fetch headers and `URLSearchParams`
         /// entries are written: read by the key rule.
         case pairName
-        /// An element of an array: any word of it that names a secret or cannot be read counts.
+        /// An element of an array: any word of it that names a secret or cannot be read counts, and
+        /// so does a label written outside ASCII (see ``holdsLabelOutsideASCII(_:compatibility:)``).
         case element
         /// A quoted or unquoted value in free text after the allowed key `key`: read by the key rule
         /// when `key` holds a name, and in any case for words that name a secret or cannot be read.
@@ -40,6 +45,9 @@ enum WrittenName {
             // A name of control characters and spaces alone has no letter or digit, so it is no
             // name to `isName`; it cannot be read, and what it stands for cannot be told.
             if isBlankWithControl(value) { return true }
+            // A label written outside ASCII (`ΡΙΝ:`, `Şifre: zorunlu`) is a key that is not
+            // plain ASCII.
+            if holdsLabelOutsideASCII(value, compatibility: compatibility) { return true }
             switch shape(of: value, compatibility: compatibility) {
             case nil: return false
             case .plain: return nameNamesSecret(value, byKeyRule: false, compatibility: compatibility)
@@ -52,7 +60,7 @@ enum WrittenName {
         case .pairName:
             return heldNameNamesSecret(value, field: nil, compatibility: compatibility)
         case .element:
-            return FreeTextScanner.mentionsSecret(value, compatibility: compatibility)
+            return holdsLabelOutsideASCII(value, compatibility: compatibility) || FreeTextScanner.mentionsSecret(value, compatibility: compatibility)
         case .quoted(let key):
             if let key, holdsNameInText(key), heldNameNamesSecret(value, field: key, compatibility: compatibility) { return true }
             return !value.isEmpty && nameNamesSecret(value, byKeyRule: false, compatibility: compatibility)

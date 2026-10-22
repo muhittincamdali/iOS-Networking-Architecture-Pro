@@ -63,6 +63,57 @@ extension WrittenName {
         return scalars[...]
     }
 
+    /// Whether a string holds a label written outside printable ASCII: a separator that white
+    /// space, a line break or the end of the string follows, after words with a scalar outside
+    /// printable ASCII in them since the start of the string or the separator before (`ΡΙΝ:`,
+    /// `Enter your pɑsswoʀd:`, `Şifre: zorunlu`, `Пароль =`, `ＰＩＮ：`, `ΡΙΝ꞉`). A separator is a
+    /// `:` or an `=`, as written or as its compatibility form reads (`：`, `﹕`, `＝`), or a
+    /// punctuation mark or a math or modifier symbol with no ASCII form that does not end a
+    /// sentence (`꞉`, `∶`, `·`, `→`, but not `。`, and not a dash or `…`, which read as ASCII).
+    ///
+    /// A label is a key written as a value, so the key rule decides it: a key that is not plain
+    /// ASCII hides its value whatever it says, as a name held by a field that holds names does
+    /// (`{"label":"ΡΙΝ:"}`). A label in printable ASCII is read by its words (see
+    /// ``shape(of:compatibility:)``). The string is read once, at any length.
+    static func holdsLabelOutsideASCII(_ scalars: [Unicode.Scalar], compatibility: CompatibilityText) -> Bool {
+        var labelIsPlain = true
+        var labelHasText = false
+        for i in scalars.indices {
+            let scalar = scalars[i]
+            if isLabelSeparator(scalar, compatibility: compatibility), separatorEnds(scalars, after: i) {
+                if labelHasText, !labelIsPlain { return true }
+                labelIsPlain = true
+                labelHasText = false
+            } else if !scalar.properties.isWhitespace {
+                labelHasText = true
+                if !printableASCII.contains(scalar.value) { labelIsPlain = false }
+            }
+        }
+        return false
+    }
+
+    private static let printableASCII: ClosedRange<UInt32> = 0x21...0x7E
+
+    private static func isLabelSeparator(_ scalar: Unicode.Scalar, compatibility: CompatibilityText) -> Bool {
+        let reading = compatibility.ascii(scalar)
+        guard reading.count == 1 else { return false }
+        if reading[0] == UInt8(ascii: ":") || reading[0] == UInt8(ascii: "=") { return true }
+        guard reading[0] == CompatibilityText.unreadable, !scalar.properties.isSentenceTerminal else { return false }
+        switch scalar.properties.generalCategory {
+        case .otherPunctuation, .mathSymbol, .modifierSymbol: return true
+        default: return false
+        }
+    }
+
+    /// Whether white space, a line break or the end of the string follows the separator at `i`,
+    /// with only invisible scalars between (see ``ScalarClass/isInvisible(_:)``). Each scalar is
+    /// passed over for one separator at most, so the label is still read in one pass.
+    private static func separatorEnds(_ scalars: [Unicode.Scalar], after i: Int) -> Bool {
+        var j = i + 1
+        while j < scalars.count, ScalarClass.isInvisible(scalars[j]) { j += 1 }
+        return j == scalars.count || scalars[j].properties.isWhitespace
+    }
+
     /// Whether a string reads as a name (see ``shape(of:compatibility:)``).
     static func isName(_ scalars: [Unicode.Scalar], compatibility: CompatibilityText) -> Bool {
         shape(of: scalars, compatibility: compatibility) != nil
