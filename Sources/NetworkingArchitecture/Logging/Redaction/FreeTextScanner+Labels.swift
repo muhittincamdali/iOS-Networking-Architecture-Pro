@@ -3,17 +3,19 @@
 extension FreeTextScanner {
     /// Whether the label of a sentence in a field that holds no name names a secret (see
     /// ``WrittenName/Shape/sentence``: `Enter PIN (4 digits)`, `PIN` of `PIN: required`,
-    /// `aws:secret-access-key`): read as ``nameNamesSecret(_:compatibility:)`` reads it, every
+    /// `aws:secret-access-key`): read as ``nameNamesSecret(_:compatibility:readsLongWords:)`` reads it, every
     /// word and every reading of it, but a secret word counts only when it ends a label (see
     /// ``NormalizedText/endsLabel(at:)``). `pin=1234` and `invalid, token\nretry` carry their
     /// value, which the free-text rule hides in the string, and name nothing beside it. A word
-    /// that cannot be read counts, as it does there.
-    static func labelNamesSecret(_ scalars: [Unicode.Scalar], compatibility: CompatibilityText) -> Bool {
+    /// that cannot be read counts, as it does there. With `readsLongWords`, a word longer than
+    /// ``longestWord`` is read as any other word is (see ``readsLongWords``).
+    static func labelNamesSecret(_ scalars: [Unicode.Scalar], compatibility: CompatibilityText, readsLongWords: Bool = false) -> Bool {
         guard !Redactor.isQuietWord(scalars) else { return false }
         if scalars.contains(where: ScalarClass.isHiding) || ScriptMix.mixesScripts(scalars) { return true }
         let text = NormalizedText(scalars, compatibility: compatibility)
         // Only words are read here, never JSON or URLs, so no nesting is entered.
-        let scanner = FreeTextScanner(source: scalars, text: text, redactor: .standard, compatibility: compatibility, nesting: .text(length: 0))
+        let scanner = FreeTextScanner(
+            source: scalars, text: text, redactor: .standard, compatibility: compatibility, nesting: .text(length: 0), readsLongWords: readsLongWords)
         if scanner.holdsLabel(in: 0..<text.count) { return true }
         let words = words(of: text)
         let endsLabel = { (end: Int) in text.endsLabel(at: end) }

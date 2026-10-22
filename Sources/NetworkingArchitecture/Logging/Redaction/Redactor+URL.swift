@@ -214,7 +214,7 @@ extension Redactor {
     /// Reads a path segment once: it is decoded and scanned a single time, and the free-text rule,
     /// every value detector and the word reading all run on that scan. A segment that does not
     /// decode is both. A segment is a label by the one rule for names (see
-    /// ``WrittenName/nameNamesSecret(_:byKeyRule:compatibility:)``), as a name held by a field
+    /// ``WrittenName/nameNamesSecret(_:byKeyRule:readsAsLabel:readsLongWords:compatibility:)``), as a name held by a field
     /// is: unless it is a plain-ASCII name — ASCII letters and digits, `_`, `-`, `.` and spaces —
     /// that names no secret, the segment after it becomes `:id`, since a letter outside ASCII, a
     /// control character or other punctuation may disguise a secret name. `:id`, which the

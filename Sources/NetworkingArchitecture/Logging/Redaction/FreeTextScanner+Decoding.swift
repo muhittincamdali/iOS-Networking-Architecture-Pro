@@ -61,12 +61,14 @@ extension FreeTextScanner {
     /// words of a key are (`pass word`, `id_tok e n`). A name with an escape is read the three ways
     /// a word is (see ``read(_:)``), and any of them that names a secret counts: as written
     /// (`%card`, `&#xcvv`, though decoding takes `ca` and `c` for hex digits), with the letter
-    /// that starts a hex escape read as punctuation (`&#xpass`) and decoded (`c v%2576`).
-    static func nameNamesSecret(_ scalars: [Unicode.Scalar], compatibility: CompatibilityText) -> Bool {
+    /// that starts a hex escape read as punctuation (`&#xpass`) and decoded (`c v%2576`). With
+    /// `readsLongWords`, a word longer than ``longestWord`` is read as any other word is (see
+    /// ``readsLongWords``).
+    static func nameNamesSecret(_ scalars: [Unicode.Scalar], compatibility: CompatibilityText, readsLongWords: Bool = false) -> Bool {
         // One short plain word holds no secret word, alone or read with others.
         guard !Redactor.isQuietWord(scalars) else { return false }
         let writtenText = NormalizedText(scalars, compatibility: compatibility)
-        if mentionsSecret(scalars, text: writtenText, compatibility: compatibility) { return true }
+        if mentionsSecret(scalars, text: writtenText, compatibility: compatibility, readsLongWords: readsLongWords) { return true }
         if ScriptMix.mixesScripts(scalars) { return true }
         let writtenWords = words(of: writtenText)
         if LooseReading(writtenText, writtenWords, source: scalars)?.secretEnd(where: { _ in true }) != nil { return true }
@@ -98,9 +100,12 @@ extension FreeTextScanner {
     }
 
     /// ``mentionsSecret(_:compatibility:)`` on a scanning copy that is already made.
-    static func mentionsSecret(_ scalars: [Unicode.Scalar], text: NormalizedText, compatibility: CompatibilityText) -> Bool {
+    static func mentionsSecret(
+        _ scalars: [Unicode.Scalar], text: NormalizedText, compatibility: CompatibilityText, readsLongWords: Bool = false
+    ) -> Bool {
         // Only words are read here, never JSON or URLs, so no nesting is entered.
-        let scanner = FreeTextScanner(source: scalars, text: text, redactor: .standard, compatibility: compatibility, nesting: .text(length: 0))
+        let scanner = FreeTextScanner(
+            source: scalars, text: text, redactor: .standard, compatibility: compatibility, nesting: .text(length: 0), readsLongWords: readsLongWords)
         return scanner.mentionsSecret(in: 0..<text.count) || scalars.contains(where: ScalarClass.isHiding)
     }
 

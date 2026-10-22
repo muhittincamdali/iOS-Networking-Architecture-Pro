@@ -42,6 +42,12 @@ struct FreeTextScanner {
     let role: Role
     /// The documents the text is in and the JSON objects and arrays around it.
     let nesting: Nesting
+    /// Whether a word longer than ``longestWord`` is read as any other word is, rather than as
+    /// one that cannot be read: for the words of a string in a field that holds no name, which is
+    /// read at any length for a label (see ``WrittenName/shape(of:compatibility:)``). A string of
+    /// a few hundred characters is no name, but the label at its end is one, and so is a secret
+    /// word glued to a long word (`…xxxPIN:`). Free text keeps the rule: such a word cuts it.
+    let readsLongWords: Bool
 
     private(set) var spans: [Redactor.Span] = []
     private(set) var regions: [Range<Int>] = []
@@ -61,7 +67,7 @@ struct FreeTextScanner {
 
     init(
         source: [Unicode.Scalar], text: NormalizedText, redactor: Redactor, compatibility: CompatibilityText, role: Role = .text,
-        nesting: Nesting
+        nesting: Nesting, readsLongWords: Bool = false
     ) {
         self.source = source
         self.text = text
@@ -69,6 +75,7 @@ struct FreeTextScanner {
         self.compatibility = compatibility
         self.role = role
         self.nesting = nesting
+        self.readsLongWords = readsLongWords
         scanEnd = text.count
     }
 

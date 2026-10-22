@@ -98,9 +98,10 @@ extension FreeTextScanner {
         return ASCII.isDigit(value) || (UInt8(ascii: "a")...UInt8(ascii: "f")).contains(value | 0x20)
     }
 
-    /// Whether the word in the bytes `range` is longer than ``longestWord`` scalars.
+    /// Whether the word in the bytes `range` is longer than ``longestWord`` scalars, and so cannot
+    /// be read; never when the scanner reads long words (see ``readsLongWords``).
     func isOpaque(_ range: Range<Int>) -> Bool {
-        text.offset(at: range.upperBound) - text.offset(at: range.lowerBound) > Self.longestWord
+        !readsLongWords && text.offset(at: range.upperBound) - text.offset(at: range.lowerBound) > Self.longestWord
     }
 }
 

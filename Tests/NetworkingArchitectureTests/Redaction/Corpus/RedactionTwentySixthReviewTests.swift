@@ -121,8 +121,9 @@ struct RedactionTwentySixthReviewTests {
     }
 
     /// The pinned behaviour this review's test called "known limitations" was written in neither
-    /// the README nor the logging guide. Keys that hold `token` or `secret` before more letters
-    /// kept their value there; they are hidden now.
+    /// the README nor the logging guide. Two of its cases leaked: keys that hold `token` or
+    /// `secret` before more letters, and a string of control characters and spaces longer than
+    /// 256 characters beside a value. Both are hidden now.
     @Test("the cases pinned as known limitations hide what they kept")
     func formerLimitations() {
         #expect(Self.json(#"{"name":"Hello\nWorld","value":"x"}"#) == #"{"name":"Hello\nWorld","value":"[REDACTED]"}"#)
@@ -134,6 +135,8 @@ struct RedactionTwentySixthReviewTests {
             #expect(Self.json(#"{"\#(key)":"x"}"#) == #"{"\#(key)":"x"}"#)
         }
         #expect(Self.json(#"{"title":"\n","data":"x"}"#) == #"{"title":"\n","data":"[REDACTED]"}"#)
+        let long = String(repeating: #"\n"#, count: 257)
+        #expect(Self.json(#"{"title":"\#(long)","data":"x"}"#) == #"{"title":"\#(long)","data":"[REDACTED]"}"#)
     }
 
     @Test("a name of spaces alone, or an empty one, beside a field that holds no name keeps the value")

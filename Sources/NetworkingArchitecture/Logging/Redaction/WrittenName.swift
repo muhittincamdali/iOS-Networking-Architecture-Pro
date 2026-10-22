@@ -12,7 +12,7 @@
 /// carriage return, a tab or any other. Elsewhere a name with a control character in it counts
 /// when it names a secret with its control characters left out or read as spaces, and a name of
 /// control characters and white space alone counts beside a field (see
-/// ``nameNamesSecret(_:byKeyRule:compatibility:)``, the one decision every place makes).
+/// ``nameNamesSecret(_:byKeyRule:readsAsLabel:readsLongWords:compatibility:)``, the one decision every place makes).
 /// In any other field and in an array, a label written outside ASCII and ended by a separator
 /// (`ΡΙΝ:`, `Şifre: zorunlu`) is a key that is not plain ASCII, and counts as one (see
 /// ``holdsLabelOutsideASCII(_:compatibility:)``).
@@ -24,7 +24,8 @@ enum WrittenName {
         /// otherwise it names a secret when it holds a label written outside ASCII (see
         /// ``holdsLabelOutsideASCII(_:compatibility:)``), when it is a name or a label (see
         /// ``shape(of:compatibility:)``) whose words name a secret or cannot be read, or when it is
-        /// control characters and white space alone (see ``isBlankWithControl(_:)``).
+        /// control characters and white space alone (see ``isBlankWithControl(_:)``). It is read
+        /// at any length.
         case field([Unicode.Scalar])
         /// The first element of a two-element array, as fetch headers and `URLSearchParams`
         /// entries are written: read by the key rule.
@@ -48,14 +49,15 @@ enum WrittenName {
             // A label written outside ASCII (`ΡΙΝ:`, `Şifre: zorunlu`) is a key that is not
             // plain ASCII.
             if holdsLabelOutsideASCII(value, compatibility: compatibility) { return true }
+            // The string is read at any length, its long words too: its label may end it.
             switch shape(of: value, compatibility: compatibility) {
             case nil: return false
-            case .plain: return nameNamesSecret(value, byKeyRule: false, compatibility: compatibility)
+            case .plain: return nameNamesSecret(value, byKeyRule: false, readsLongWords: true, compatibility: compatibility)
             case .sentence:
                 // A label without those marks (`PIN` of `PIN: required`) is read as a name is.
                 let label = Array(labelPart(of: value))
                 let readsAsLabel = shape(of: label, compatibility: compatibility) != .plain
-                return nameNamesSecret(label, byKeyRule: false, readsAsLabel: readsAsLabel, compatibility: compatibility)
+                return nameNamesSecret(label, byKeyRule: false, readsAsLabel: readsAsLabel, readsLongWords: true, compatibility: compatibility)
             }
         case .pairName:
             return heldNameNamesSecret(value, field: nil, compatibility: compatibility)
@@ -71,7 +73,7 @@ enum WrittenName {
     /// reads a name. With `byKeyRule`, for a field that holds a name or the name of a pair, a name
     /// that is not plain ASCII names one (see ``FieldName/hidesValue(_:)``), and so does a name
     /// with a control character (Cc) in it, whatever it says. Elsewhere a name names a secret when
-    /// its words do, as free text reads them (see ``FreeTextScanner/nameNamesSecret(_:compatibility:)``);
+    /// its words do, as free text reads them (see ``FreeTextScanner/nameNamesSecret(_:compatibility:readsLongWords:)``);
     /// a name with a control character in it is read twice, with its control characters left out
     /// and with each read as a space, as one reader trims or drops them and another splits there
     /// (`DbPassword\n`, `\r\npin`, `Db\nPassword`, `pa\nssword`), and either reading counts. So a
@@ -80,17 +82,25 @@ enum WrittenName {
     ///
     /// With `readsAsLabel`, the name is a sentence (see ``Shape/sentence``), and a secret word in
     /// it counts only when no value is written after it (see
-    /// ``FreeTextScanner/labelNamesSecret(_:compatibility:)``).
+    /// ``FreeTextScanner/labelNamesSecret(_:compatibility:readsLongWords:)``). With
+    /// `readsLongWords`, for a string in a field that holds no name, a word longer than
+    /// ``FreeTextScanner/longestWord`` is read as any other word is (see
+    /// ``FreeTextScanner/readsLongWords``).
     static func nameNamesSecret(
-        _ value: [Unicode.Scalar], byKeyRule: Bool, readsAsLabel: Bool = false, compatibility: CompatibilityText
+        _ value: [Unicode.Scalar], byKeyRule: Bool, readsAsLabel: Bool = false, readsLongWords: Bool = false,
+        compatibility: CompatibilityText
     ) -> Bool {
         if byKeyRule, FieldName.hidesValue(value) { return true }
-        let reads = readsAsLabel ? FreeTextScanner.labelNamesSecret : FreeTextScanner.nameNamesSecret
-        guard value.contains(where: isControl) else { return reads(value, compatibility) }
+        let reads = { (name: [Unicode.Scalar]) in
+            readsAsLabel
+                ? FreeTextScanner.labelNamesSecret(name, compatibility: compatibility, readsLongWords: readsLongWords)
+                : FreeTextScanner.nameNamesSecret(name, compatibility: compatibility, readsLongWords: readsLongWords)
+        }
+        guard value.contains(where: isControl) else { return reads(value) }
         if byKeyRule { return true }
         let dropped = value.filter { !isControl($0) }
         let split = value.map { isControl($0) ? " " : $0 }
-        return reads(dropped, compatibility) || reads(split, compatibility)
+        return reads(dropped) || reads(split)
     }
 
     /// The control characters, U+0000 to U+001F and U+007F to U+009F: the general category Cc.
@@ -98,11 +108,10 @@ enum WrittenName {
         scalar.value < 0x20 || (0x7F...0x9F).contains(scalar.value)
     }
 
-    /// Whether a string of at most ``PlainName/maximumKeyLength`` scalars holds a control
-    /// character and nothing but control characters and white space (`\n`, `\t`, `\u{0}`, ` \n `).
+    /// Whether a string of any length holds a control character and nothing but control
+    /// characters and white space (`\n`, `\t`, `\u{0}`, ` \n `).
     static func isBlankWithControl(_ value: [Unicode.Scalar]) -> Bool {
-        guard value.count <= PlainName.maximumKeyLength, value.contains(where: isControl) else { return false }
-        return value.allSatisfy { isControl($0) || $0.properties.isWhitespace }
+        value.contains(where: isControl) && value.allSatisfy { isControl($0) || $0.properties.isWhitespace }
     }
 
     // MARK: Fields that hold names
