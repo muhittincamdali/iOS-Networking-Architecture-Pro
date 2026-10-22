@@ -44,7 +44,7 @@ streaming are settings of that client instead of code you write around every req
   followed, logs and `curl` output that show only what the redactor understands, and limits
   on response size, buffered messages and wait times.
 - **Testable** — `MockTransport` answers requests from canned responses; the package's own
-  911 Swift Testing tests run on macOS, 906 of them also on an iPhone simulator, including
+  919 Swift Testing tests run on macOS, 914 of them also on an iPhone simulator, including
   tests against a local HTTP, TLS and WebSocket server.
 
 ### What's included
@@ -254,6 +254,10 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Keys that are not plain ASCII** (`pаssword` with a Cyrillic `а`, `pass​word`, `şifre`)
   have their values hidden by default. So are the values beside a field that holds a name
   written that way: `{"name":"Ayşe","id":42}` is logged as `{"name":"Ayşe","id":"[REDACTED]"}`.
+- **Values of other fields** and free text are scanned for JWTs, `Bearer` credentials, hex or
+  Base64 strings of 32 or more characters, card numbers, IBANs and email addresses. A JSON
+  number is read as the decimal it stands for: `{"amount":4.111111111111111E15}`, as Jackson
+  and Gson write a `double`, is logged as `{"amount":"[REDACTED]"}`.
 - **Bodies that cannot be parsed** (XML, HTML, a missing or unknown content type, malformed
   JSON, more than 256 KiB) are left out with a note such as
   `[body omitted: 512 bytes, application/xml]`.
@@ -278,9 +282,10 @@ func makeLoggingClient() -> NetworkClient {
 Redaction is a safety net, not a guarantee. It is built for secrets logged by accident:
 structured input is parsed, and whatever the parser does not fully understand is hidden; free
 text is a best effort. A secret name written without `=` or `:` and disguised with two or more
-look-alike letters (`pɑsswoʀd hunter2`), a secret with no label (`login -p hunter2`) and a
-short secret in a path segment (`/reset/abc123`) are not guaranteed to be found. Keep secrets
-out of the requests you log in the first place. Every secret that earlier development
+look-alike letters (`pɑsswoʀd hunter2`), a secret with no label (`login -p hunter2`), a short
+secret in a path segment (`/reset/abc123`) and a card number written with an exponent in text
+or in a JSON string (`"4111111111111111e0"`) are not guaranteed to be found. Keep secrets out of
+the requests you log in the first place. Every secret that earlier development
 versions of the redactor missed is kept as a test; the
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 article lists every rule.

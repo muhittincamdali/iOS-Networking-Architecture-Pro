@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
+<!-- i18n-source: README.md@58402df49de6ec0f9a265c2d45a050833bf0bf47 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg" alt="Networking Architecture: URLSession 上の型付きエンドポイント、リトライ、トークン更新、キャッシュ、ストリーミング。依存関係なし。"></picture></p>
@@ -45,7 +45,7 @@ iOS 16+、macOS 13+、tvOS 16+、watchOS 9+、visionOS 1+ のアプリ向けの�
   たどらずに返す動作、redactor が理解できる部分だけを表示するログと `curl` 出力、
   レスポンスサイズ・バッファするメッセージ数・待ち時間の上限。
 - **テストしやすい** — `MockTransport` が用意したレスポンスでリクエストに応答します。
-  パッケージ自体の 911 個の Swift Testing テストは macOS で実行され、そのうち 906 個は
+  パッケージ自体の 919 個の Swift Testing テストは macOS で実行され、そのうち 914 個は
   iPhone シミュレータでも実行されます。ローカルの HTTP、TLS、WebSocket サーバーに対するテストも含まれます。
 
 ### 含まれるもの
@@ -254,6 +254,10 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **プレーンな ASCII ではないキー**（キリル文字の `а` を使った `pаssword`、`pass\u200Bword`、
   `şifre`）の値は、デフォルトで隠されます。そのような名前を持つフィールドの隣の値も隠され、
   `{"name":"Ayşe","id":42}` は `{"name":"Ayşe","id":"[REDACTED]"}` として記録されます。
+- **その他のフィールドの値**と自由テキストからは、JWT、`Bearer` 資格情報、32 文字以上の 16 進数
+  または Base64 の文字列、カード番号、IBAN、メールアドレスを探します。JSON の数値は、それが表す
+  10 進数として読まれます。Jackson や Gson が `double` を書き出す形の
+  `{"amount":4.111111111111111E15}` は `{"amount":"[REDACTED]"}` として記録されます。
 - **解析できないボディ**（XML、HTML、Content-Type がない・不明、壊れた JSON、256 KiB 超）は
   記録されず、`[body omitted: 512 bytes, application/xml]` のような注記に置き換えられます。
 - **自由テキスト**（残されたヘッダーの値、`text/plain` のボディ、JSON やフォームの文字列）は、
@@ -278,7 +282,8 @@ func makeLoggingClient() -> NetworkClient {
 構造化された入力はパーサーで読み、パーサーが完全には理解できないものはすべて隠します。自由テキストは
 ベストエフォートです。`=` や `:` なしで書かれ、2 文字以上を似た文字に置き換えた秘密の名前
 （`pɑsswoʀd hunter2`）、ラベルのない秘密（`login -p hunter2`）、パスのセグメントにある短い秘密
-（`/reset/abc123`）は、必ず見つかるとは限りません。そもそもログに書くリクエストに秘密情報を
+（`/reset/abc123`）、テキストや JSON 文字列の中に指数付きで書かれたカード番号
+（`"4111111111111111e0"`）は、必ず見つかるとは限りません。そもそもログに書くリクエストに秘密情報を
 入れないでください。redactor の以前の開発版が見逃した秘密はすべてテストとして残しています。
 すべてのルールは
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)

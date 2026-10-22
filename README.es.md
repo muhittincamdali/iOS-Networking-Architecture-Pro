@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@b2138e9b345d9110c36e6ec75b88268bafb3c817 status=reviewed -->
+<!-- i18n-source: README.md@58402df49de6ec0f9a265c2d45a050833bf0bf47 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg" alt="Networking Architecture: Endpoints tipados, reintentos, renovación de tokens, caché y streaming sobre URLSession, sin dependencias."></picture></p>
@@ -47,7 +47,7 @@ Una capa de red para apps en iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ y visionOS
   entiende, y límites para el tamaño de las respuestas, los mensajes en búfer y los tiempos de
   espera.
 - **Fácil de probar** — `MockTransport` responde a las peticiones con respuestas predefinidas; las
-  911 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 906 de ellas también en
+  919 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 914 de ellas también en
   un simulador de iPhone, incluidas pruebas contra un servidor local HTTP, TLS y WebSocket.
 
 ### Qué incluye
@@ -259,6 +259,11 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Las claves que no son ASCII simple** (`pаssword` con una `а` cirílica, `pass\u200Bword`,
   `şifre`) tienen sus valores ocultos por defecto. También los valores junto a un campo que
   contiene un nombre así: `{"name":"Ayşe","id":42}` se registra como `{"name":"Ayşe","id":"[REDACTED]"}`.
+- **Los valores de otros campos** y el texto libre se examinan en busca de JWT, credenciales
+  `Bearer`, cadenas hexadecimales o Base64 de 32 caracteres o más, números de tarjeta, IBAN y
+  direcciones de correo. Un número JSON se lee como el decimal que representa:
+  `{"amount":4.111111111111111E15}`, como Jackson y Gson escriben un `double`, se registra como
+  `{"amount":"[REDACTED]"}`.
 - **Los cuerpos que no se pueden analizar** (XML, HTML, un tipo de contenido ausente o
   desconocido, JSON mal formado, más de 256 KiB) se omiten con una nota como
   `[body omitted: 512 bytes, application/xml]`.
@@ -284,8 +289,9 @@ Ocultar datos es una red de seguridad, no una garantía. Está pensado para secr
 por accidente: la entrada estructurada se analiza y todo lo que el analizador no entiende por
 completo se oculta; el texto libre se trata lo mejor posible. Un nombre secreto escrito sin `=`
 ni `:` y disfrazado con dos o más letras parecidas (`pɑsswoʀd hunter2`), un secreto sin
-etiqueta (`login -p hunter2`) y un secreto corto en un segmento de ruta (`/reset/abc123`) no
-tienen garantía de detectarse. Mantén los secretos fuera de las peticiones que registras desde
+etiqueta (`login -p hunter2`), un secreto corto en un segmento de ruta (`/reset/abc123`) y un
+número de tarjeta escrito con exponente en texto o en una cadena JSON (`"4111111111111111e0"`)
+no tienen garantía de detectarse. Mantén los secretos fuera de las peticiones que registras desde
 el principio. Cada secreto que las versiones de desarrollo anteriores del redactor dejaron pasar
 se conserva como prueba; el artículo
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
