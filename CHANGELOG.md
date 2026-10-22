@@ -105,7 +105,8 @@ for this package rather than copied.
   sentence in any other member (`{"question":"What's your PIN?","answer":…}`,
   `PIN (4 digits)`, `aws:secret-access-key`) unless its secret word is followed by a value the
   sentence carries (`Error: token expired`, `pin=1234`), a label written outside ASCII and
-  ended by `:` or `=` (`{"title":"ΡΙΝ:","value":…}`, `Şifre: zorunlu`), whatever it says, and a
+  ended by `:`, `=`, a bracket or a quote mark (`{"title":"ΡΙΝ:","value":…}`, `Şifre: zorunlu`,
+  `«Пароль»`, `Пароль:*`), whatever it says, and a
   label at the end of a string of any length. A byte order mark before a body is
   left out the same way on every OS version. Depth, nesting, reading and time are bounded,
   also for a response with tens of thousands of header fields. The design, the rules and their test corpus are those of iOSSecurityTools 2.1.0
@@ -120,7 +121,9 @@ for this package rather than copied.
   bracket, a comma or a colon (`What's your PIN?`, `PIN (4 digits)`, `PIN: required`), a value
   written in a URL host that names a secret or in its port (`https://pin-4831.example.com`), a
   key with `secret` or `token` before more letters (`secretanswer`, `tokenvalue`), a label in
-  one script outside ASCII ended by a separator (`ΡΙΝ:`, `Пароль:`, `비밀번호:`) and a label
+  one script outside ASCII ended by a separator (`ΡΙΝ:`, `Пароль:`, `비밀번호:`), by a bracket or
+  a quote mark (`【暗証番号】`, `«Пароль»`, `ΡΙΝ⩴`) or by a separator and a mark (`Пароль:*`,
+  `ΡΙΝ:)`) and a label
   after 256 characters of a string (`… What is your PIN?`) — are
   kept as tests, with the review
   probes of iOSSecurityTools, iOSDevelopmentTools and this package. Redaction is a safety net,
