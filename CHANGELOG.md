@@ -96,14 +96,17 @@ for this package rather than copied.
   with its port, path and query (`myapp://pin:4831` and `myapp://password.hunter2` are both
   logged as `myapp://[REDACTED]`). JSON, form and multipart bodies
   are parsed: the whole value under a secret name, or under a key that is not plain ASCII, is
-  hidden, and a body that cannot be parsed, has an unknown content type or is larger than
+  hidden (a secret word of five or more letters, `token` and `secret` included, counts anywhere
+  in a key: `secretAnswer`, `tokenValue`), and a body that cannot be parsed, has an unknown content type or is larger than
   256 KiB is left out with a note. Free text (kept header values, `text/plain` bodies,
   strings in JSON and forms) is hidden from its first trigger to its end. A field that holds a
   name (`name`, `label`, `type`, `id`, …) that names a secret or is not plain ASCII hides the
   values beside it, a Turkish `name` of a record included, and so does a label written as a
   sentence in any other member (`{"question":"What's your PIN?","answer":…}`,
   `PIN (4 digits)`, `aws:secret-access-key`) unless its secret word is followed by a value the
-  sentence carries (`Error: token expired`, `pin=1234`). A byte order mark before a body is
+  sentence carries (`Error: token expired`, `pin=1234`), a label written outside ASCII and
+  ended by `:` or `=` (`{"title":"ΡΙΝ:","value":…}`, `Şifre: zorunlu`), whatever it says, and a
+  label at the end of a string of any length. A byte order mark before a body is
   left out the same way on every OS version. Depth, nesting, reading and time are bounded,
   also for a response with tens of thousands of header fields. The design, the rules and their test corpus are those of iOSSecurityTools 2.1.0
   (one function classifies every name; separate readers for names, free text and JSON; one
@@ -115,11 +118,15 @@ for this package rather than copied.
   number with an exponent (`4.111111111111111E15`, as Jackson writes a `double`), which is now
   read as the decimal it stands for, a label written as a sentence with an apostrophe, a
   bracket, a comma or a colon (`What's your PIN?`, `PIN (4 digits)`, `PIN: required`), a value
-  written in a URL host that names a secret or in its port (`https://pin-4831.example.com`) — are
+  written in a URL host that names a secret or in its port (`https://pin-4831.example.com`), a
+  key with `secret` or `token` before more letters (`secretanswer`, `tokenvalue`), a label in
+  one script outside ASCII ended by a separator (`ΡΙΝ:`, `Пароль:`, `비밀번호:`) and a label
+  after 256 characters of a string (`… What is your PIN?`) — are
   kept as tests, with the review
   probes of iOSSecurityTools, iOSDevelopmentTools and this package. Redaction is a safety net,
   not a guarantee: a secret name in free text disguised with look-alike letters and no
-  separator, a secret with no label and a short secret in a path segment are not guaranteed to
+  separator, a secret with no label, a label in another language without `:` or `=`
+  (`{"title":"Пароль","value":…}`) and a short secret in a path segment are not guaranteed to
   be found.
 - Pinning failures surface as `URLError.serverCertificateUntrusted` instead of a
   cancellation, system certificate validation always runs before the pins are checked, and
