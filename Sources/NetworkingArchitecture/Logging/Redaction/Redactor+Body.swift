@@ -106,14 +106,14 @@ extension Redactor {
         if type.isJSON {
             return type.isUnicode ? redact(jsonBody: body, charset: type.charset, nesting: nesting, compatibility: compatibility) : nil
         }
-        guard type.isUTF8, let text = String(data: body, encoding: .utf8) else { return nil }
+        guard type.isUTF8, let text = BodyText.utf8(body, dropsByteOrderMark: true) else { return nil }
         if type.isForm {
             guard let redacted = redact(form: text, nesting: nesting, compatibility: compatibility) else { return nil }
-            return (Data(redacted.utf8), redacted != text)
+            return redacted == text ? (body, false) : (Data(redacted.utf8), true)
         }
         guard type.isPlainText else { return nil }
         let redacted = redact(text, nesting: nesting, compatibility: compatibility)
-        return (Data(redacted.utf8), redacted != text)
+        return redacted == text ? (body, false) : (Data(redacted.utf8), true)
     }
 
     // MARK: JSON
@@ -121,14 +121,15 @@ extension Redactor {
     /// A JSON body in UTF-8, UTF-16 or UTF-32, told apart by its first bytes as
     /// `JSONSerialization` tells them. A body in UTF-16 or UTF-32 is stored as UTF-8. A body whose
     /// bytes are in another encoding than its `charset` names is omitted: a server that decodes it
-    /// by the charset reads other text.
+    /// by the charset reads other text. A byte order mark at the start is left out on every OS
+    /// version (see ``BodyText``), and any other one is not JSON.
     private func redact(jsonBody body: Data, charset: String?, nesting: Nesting, compatibility: CompatibilityText) -> (Data, Bool)? {
         let encoding = Self.jsonEncoding(Array(body.prefix(4)))
-        guard Self.charset(charset, allows: encoding), let text = String(data: body, encoding: encoding) else { return nil }
+        guard Self.charset(charset, allows: encoding), let text = BodyText.json(body, in: encoding) else { return nil }
         let isUTF8 = encoding == .utf8
         let scalars = Array(text.unicodeScalars)
-        // The body is the UTF-8 of the text unless decoding dropped a byte order mark.
-        let utf8 = isUTF8 && body.count == text.utf8.count ? body : nil
+        // The UTF-8 of the text is the body after its byte order mark.
+        let utf8 = isUTF8 ? body.suffix(text.utf8.count) : nil
         guard let document = try? JSONDocument(scalars, utf8: utf8, allowsFragments: true, nesting: nesting) else { return nil }
         let spans = Self.merged(document.secretSpans(using: self, compatibility: compatibility))
         guard !spans.isEmpty || !isUTF8 else { return (body, false) }

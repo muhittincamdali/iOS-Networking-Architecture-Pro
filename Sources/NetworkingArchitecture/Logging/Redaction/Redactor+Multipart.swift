@@ -86,7 +86,7 @@ extension Redactor {
         guard part.filename == nil, part.contentType.map(\.isPlainText) ?? true, part.contentType?.isUTF8 ?? true else { return nil }
         let encodings = transferEncodings(of: part)
         guard encodings.count <= 1, encodings.allSatisfy(identityTransferEncodings.contains) else { return nil }
-        return String(bytes: part.content, encoding: .utf8)
+        return BodyText.utf8(part.content, dropsByteOrderMark: true)
     }
 
     /// The transfer encodings a part names, lowercased; servers differ in which of several they

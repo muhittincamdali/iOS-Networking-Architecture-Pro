@@ -14,6 +14,6 @@ extension Redactor {
         guard let body, !body.isEmpty else { return "" }
         let redacted = redact(body: body, contentType: contentType).body
         // Only a disabled redactor returns bytes it did not write; they may not be UTF-8.
-        return String(data: redacted, encoding: .utf8) ?? "[\(body.count) bytes of binary body not shown]"
+        return BodyText.utf8(redacted, dropsByteOrderMark: true) ?? "[\(body.count) bytes of binary body not shown]"
     }
 }
