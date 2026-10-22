@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg" alt="Networking Architecture: URLSession 上の型付きエンドポイント、リトライ、トークン更新、キャッシュ、ストリーミング。依存関係なし。"></picture></p>
@@ -292,6 +292,19 @@ func makeLoggingClient() -> NetworkClient {
 すべてのルールは
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 の記事にあります。
+
+変装した文字を読むルールは 1 つです。ASCII の単語の中にある、ASCII の形を持たない 1 つの文字・
+結合文字・数字は、任意の 1 文字としても、何もないものとしても読みます。そのため
+`tͦken hunter2`、`passw〇rd hunter2`、`piꞏn 1234` は見つかります。残りを追いかけるための
+似た文字の表は持ちません。どんな表も完全にはならないからです。構造化ログを使ってください。
+フィールドを分け、秘密情報はメッセージに入れないでください。
+
+このモデルにはさらに 2 つの制限があります。**コストの上限:** 1 つの入力に入れ子になったすべての
+ドキュメント（文字列内の JSON、テキスト内の URL）は、合わせて入力の長さの最大 4 倍までしか
+読み取りません。この予算を超えると、次のドキュメントを含む文字列は丸ごと隠します。自由テキストの
+**複数行のレイアウト**に特別な処理は要りません。独立した行にある property list の `<key>`、
+複数行にわたる JSON、テキストとして書かれた multipart ボディは、最初のトリガーからテキストの
+終わりまで隠すため、値はどこに書かれていても隠れます。
 
 ### レスポンスをキャッシュする
 

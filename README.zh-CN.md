@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg" alt="Networking Architecture: 基于 URLSession：类型化端点、重试、令牌刷新、缓存和流式传输，无依赖。"></picture></p>
@@ -283,6 +283,16 @@ func makeLoggingClient() -> NetworkClient {
 请求里。redactor 早期开发版本漏掉的每个敏感值都保留为测试；所有规则见
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 一文。
+
+伪装字母只由一条规则读取：ASCII 单词中没有 ASCII 形式的单个字母、组合用字符或数字，既可当作任意
+一个字母，也可当作不存在，所以 `tͦken hunter2`、`passw〇rd hunter2` 和 `piꞏn 1234` 能被发现。
+不维护用来追查其余写法的形近字母表，因为没有哪张表是完整的。请优先使用结构化日志：分开字段，
+并让敏感信息远离日志消息。
+
+这个模型还包括两个限制。**开销上限：** 一个输入中嵌套的所有文档（字符串中的 JSON、文本中的
+URL）合计最多读取输入长度的四倍；超出这个预算后，包含下一个文档的字符串会被整体隐藏。自由文本中的
+**多行布局**不需要特殊处理：单独一行的 property list `<key>`、分布在多行的 JSON 和以文本形式写出的
+multipart 消息体都会从第一个触发点隐藏到文本末尾，所以无论值写在哪里都会被隐藏。
 
 ### 缓存响应
 

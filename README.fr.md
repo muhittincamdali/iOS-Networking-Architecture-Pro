@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg" alt="Networking Architecture: Endpoints typés, relances, renouvellement de jeton, cache et streaming sur URLSession, sans dépendance."></picture></p>
@@ -304,6 +304,20 @@ journalisez dès le départ. Chaque secret que les versions de développement pr
 redactor laissaient passer est conservé comme test ; l’article
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 liste toutes les règles.
+
+Une règle lit les lettres déguisées : une seule lettre, marque ou chiffre sans forme ASCII dans
+un mot ASCII compte comme n’importe quelle lettre ou comme aucune, donc `tͦken hunter2`,
+`passw〇rd hunter2` et `piꞏn 1234` sont trouvés. Aucune table de lettres qui se ressemblent
+n’est tenue pour poursuivre le reste, car aucune n’est jamais complète. Préférez une
+journalisation structurée : des champs séparés, et les secrets hors des messages.
+
+Deux autres limites font partie de ce modèle. **Borne de coût :** tous les documents imbriqués
+dans une même entrée (du JSON dans une chaîne, une URL dans un texte) lisent ensemble au plus quatre
+fois la longueur de l’entrée ; au-delà de ce budget, la chaîne qui contient le document suivant est
+masquée entièrement. **Les mises en page sur plusieurs lignes** dans le texte libre ne demandent
+rien de particulier : un `<key>` de property list sur sa propre ligne, du JSON réparti sur
+plusieurs lignes et un corps multipart écrit comme du texte sont masqués du premier déclencheur
+jusqu’à la fin du texte, si bien que la valeur est masquée où qu’elle soit écrite.
 
 ### Mettre les réponses en cache
 

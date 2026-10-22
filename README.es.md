@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg" alt="Networking Architecture: Endpoints tipados, reintentos, renovación de tokens, caché y streaming sobre URLSession, sin dependencias."></picture></p>
@@ -300,6 +300,20 @@ el principio. Cada secreto que las versiones de desarrollo anteriores del redact
 se conserva como prueba; el artículo
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 enumera todas las reglas.
+
+Una regla lee letras disfrazadas: una sola letra, marca o cifra sin forma ASCII dentro de una
+palabra ASCII cuenta como cualquier letra o como ninguna, así que `tͦken hunter2`,
+`passw〇rd hunter2` y `piꞏn 1234` sí se encuentran. No se mantiene ninguna tabla de letras
+parecidas para perseguir el resto, porque ninguna está nunca completa. Prefiere el registro
+estructurado: campos separados y los secretos fuera de los mensajes.
+
+Dos límites más forman parte de ese modelo. **Límite de coste:** todos los documentos anidados
+en una entrada (JSON dentro de una cadena, una URL en un texto) leen juntos como mucho cuatro veces
+la longitud de la entrada; pasado ese presupuesto, la cadena que contiene el siguiente documento se
+oculta entera. **Los formatos de varias líneas** en texto libre no necesitan nada especial: un
+`<key>` de property list en su propia línea, un JSON repartido en varias líneas y un cuerpo
+multipart escrito como texto se ocultan desde el primer disparador hasta el final del texto, así
+que el valor queda oculto esté donde esté.
 
 ### Guarda las respuestas en caché
 

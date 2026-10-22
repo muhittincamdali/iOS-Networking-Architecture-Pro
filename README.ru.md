@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg" alt="Networking Architecture: Типизированные эндпоинты, повторы, обновление токенов, кэш и стриминг на URLSession, без зависимостей."></picture></p>
@@ -297,6 +297,19 @@ func makeLoggingClient() -> NetworkClient {
 который пропускали прежние версии redactor в разработке, сохранён как тест; все правила
 перечислены в статье
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata).
+
+Замаскированные буквы читает одно правило: одна буква, комбинируемый знак или цифра без формы в
+ASCII внутри ASCII-слова считается любой одной буквой или ничем, поэтому `tͦken hunter2`,
+`passw〇rd hunter2` и `piꞏn 1234` находятся. Таблицы похожих букв, чтобы гоняться за остальными,
+нет, потому что ни одна такая таблица не бывает полной. Используйте структурированное
+журналирование: отдельные поля, а секреты вне сообщений.
+
+К этой модели относятся ещё два ограничения. **Предел затрат:** все документы, вложенные в один
+вход (JSON в строке, URL в тексте), вместе читают не больше четырёх длин входа; сверх этого
+бюджета строка, содержащая следующий документ, скрывается целиком. **Многострочная разметка** в
+свободном тексте не требует ничего особого: `<key>` property list на отдельной строке, JSON на
+нескольких строках и multipart-тело, записанное как текст, скрываются от первого триггера до
+конца текста, так что значение скрыто, где бы оно ни было записано.
 
 ### Кешируйте ответы
 

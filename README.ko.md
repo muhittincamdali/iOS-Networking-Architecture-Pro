@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg" alt="Networking Architecture: URLSession 기반 타입 엔드포인트, 재시도, 토큰 갱신, 캐싱, 스트리밍. 의존성 없음."></picture></p>
@@ -288,6 +288,18 @@ func makeLoggingClient() -> NetworkClient {
 이전 개발 버전이 놓친 비밀 값은 모두 테스트로 남아 있으며, 모든 규칙은
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 문서에 있습니다.
+
+위장한 글자를 읽는 규칙은 하나입니다. ASCII 단어 안에 있는, ASCII 형태가 없는 글자, 결합 문자,
+숫자 하나는 아무 글자 하나로도, 없는 것으로도 읽습니다. 그래서 `tͦken hunter2`,
+`passw〇rd hunter2`, `piꞏn 1234`는 찾습니다. 나머지를 쫓기 위한 비슷한 글자 표는 두지 않습니다.
+어떤 표도 완전할 수 없기 때문입니다. 구조화된 로깅을 쓰세요. 필드를 나누고, 비밀 값은 메시지에
+넣지 마세요.
+
+이 모델에는 두 가지 한계가 더 있습니다. **비용 상한:** 한 입력 안에 중첩된 모든 문서(문자열 속
+JSON, 텍스트 속 URL)는 합쳐서 입력 길이의 최대 4배까지만 읽습니다. 이 예산을 넘으면 다음 문서를
+담은 문자열 전체를 숨깁니다. 자유 텍스트의 **여러 줄 레이아웃**에는 특별한 처리가 필요 없습니다.
+한 줄에 따로 쓴 property list `<key>`, 여러 줄에 걸친 JSON, 텍스트로 쓴 multipart 본문은 첫 번째
+트리거부터 텍스트 끝까지 숨겨지므로 값이 어디에 쓰였든 숨겨집니다.
 
 ### 응답 캐싱하기
 

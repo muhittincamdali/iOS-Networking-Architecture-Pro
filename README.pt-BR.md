@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg" alt="Networking Architecture: Endpoints tipados, novas tentativas, renovação de token, cache e streaming sobre URLSession, sem dependências."></picture></p>
@@ -299,6 +299,20 @@ início. Cada segredo que versões de desenvolvimento anteriores do redactor dei
 guardado como teste; o artigo
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 lista todas as regras.
+
+Uma regra lê letras disfarçadas: uma única letra, marca ou número sem forma ASCII dentro de uma
+palavra ASCII conta como qualquer letra ou como nenhuma, então `tͦken hunter2`,
+`passw〇rd hunter2` e `piꞏn 1234` são encontrados. Nenhuma tabela de letras parecidas é mantida
+para perseguir o resto, porque nenhuma fica completa. Prefira logs estruturados: campos
+separados, e segredos fora das mensagens.
+
+Mais dois limites fazem parte desse modelo. **Limite de custo:** todos os documentos aninhados
+em uma entrada (JSON dentro de uma string, uma URL em um texto) leem juntos no máximo quatro vezes
+o tamanho da entrada; passado esse orçamento, a string que contém o próximo documento é ocultada
+inteira. **Layouts de várias linhas** em texto livre não precisam de nada especial: um `<key>` de
+property list em sua própria linha, um JSON espalhado por várias linhas e um corpo multipart
+escrito como texto são ocultados do primeiro gatilho até o fim do texto, então o valor fica
+oculto onde quer que esteja.
 
 ### Guarde respostas em cache
 

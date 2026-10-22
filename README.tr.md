@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg" alt="Networking Architecture: URLSession üzerinde tipli uç noktalar, yeniden deneme, token yenileme, önbellek ve akış; bağımlılık yok."></picture></p>
@@ -301,6 +301,19 @@ isteklerin dışında tutun. Redactor'ın geliştirme sürümlerinin kaçırdı�
 test olarak duruyor; bütün kurallar
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 makalesinde listelenir.
+
+Gizlenmiş harfleri tek bir kural okur: bir ASCII sözcüğün içindeki, ASCII biçimi olmayan tek bir
+harf, birleşen işaret ya da sayı herhangi bir harf yerine ya da hiç yokmuş gibi sayılır; bu yüzden
+`tͦken hunter2`, `passw〇rd hunter2` ve `piꞏn 1234` bulunur. Geri kalanların peşine düşmek için
+benzer harf tablosu tutulmaz, çünkü hiçbir tablo tam olmaz. Yapılandırılmış günlük kaydını
+tercih edin: ayrı alanlar kullanın ve gizli bilgileri mesajların dışında tutun.
+
+Bu modele iki sınır daha dahildir. **Maliyet sınırı:** bir girdinin içine gömülü bütün
+belgeler (bir string içindeki JSON, metindeki bir URL) toplamda girdinin uzunluğunun en çok dört
+katı kadar okunur; bu bütçe aşılınca sıradaki belgeyi taşıyan string bütünüyle gizlenir. Serbest
+metindeki **çok satırlı düzenler** özel bir işlem gerektirmez: kendi satırındaki bir property
+list `<key>`'i, birden çok satıra yayılmış JSON ve metin olarak yazılmış bir multipart gövde ilk
+tetikleyiciden metnin sonuna kadar gizlenir; böylece değer nereye yazılmış olursa olsun gizlenir.
 
 ### Yanıtları önbelleğe alın
 

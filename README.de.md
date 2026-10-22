@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
+<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg" alt="Networking Architecture: Typisierte Endpunkte, Wiederholungen, Token-Erneuerung, Caching und Streaming auf URLSession, ohne Abhängigkeiten."></picture></p>
@@ -303,6 +303,21 @@ Geheimnisse von vornherein aus den Anfragen heraus, die du loggst. Jedes Geheimn
 Entwicklungsstände des Redactors übersehen haben, ist als Test erhalten; der Artikel
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 listet alle Regeln auf.
+
+Eine Regel liest verkleidete Buchstaben: Ein einzelner Buchstabe, ein kombinierendes Zeichen oder
+eine Zahl ohne ASCII-Form in einem ASCII-Wort zählt als ein beliebiger Buchstabe oder als keiner,
+daher werden `tͦken hunter2`, `passw〇rd hunter2` und `piꞏn 1234` gefunden. Eine Tabelle
+ähnlich aussehender Buchstaben, um die übrigen zu verfolgen, gibt es nicht, da keine je
+vollständig ist. Bevorzuge strukturiertes Logging: getrennte Felder, und Geheimnisse bleiben aus
+den Meldungen heraus.
+
+Zwei weitere Grenzen gehören zu diesem Modell. **Kostengrenze:** Alle in einer Eingabe
+verschachtelten Dokumente (JSON in einem String, eine URL im Text) lesen zusammen höchstens das
+Vierfache der Länge der Eingabe; jenseits dieses Budgets wird der String, der das nächste
+Dokument enthält, vollständig verborgen. **Mehrzeilige Layouts** im Freitext brauchen nichts
+Besonderes: Ein Property-List-`<key>` in einer eigenen Zeile, JSON über mehrere Zeilen und ein
+als Text geschriebener Multipart-Body werden ab dem ersten Auslöser bis zum Ende des Textes
+verborgen, der Wert also, wo immer er steht.
 
 ### Antworten cachen
 

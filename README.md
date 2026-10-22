@@ -295,6 +295,18 @@ versions of the redactor missed is kept as a test; the
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 article lists every rule.
 
+One rule reads disguised letters: a single letter, mark or number with no ASCII form inside an
+ASCII word counts as any one letter or as none, so `tͦken hunter2`, `passw〇rd hunter2` and
+`piꞏn 1234` are found. No table of look-alike letters is kept to chase the rest, since none is
+ever complete. Prefer structured logging: separate fields, and secrets kept out of messages.
+
+Two more limits belong to that model. **Cost bound:** all the documents nested in one input
+(JSON in a string, a URL in text) read at most four times the input's length together; past that
+budget, the string that holds the next document is hidden whole. **Multi-line layouts** in free
+text need nothing special: a property list `<key>` on its own line, JSON spread over several
+lines and a multipart body written as text are hidden from the first trigger to the end of the
+text, so the value is hidden wherever it is written.
+
 ### Cache responses
 
 With a cache in the configuration, an endpoint chooses its `CachePolicy`. The response says
