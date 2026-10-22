@@ -27,7 +27,8 @@ cookies) on the app's behalf. Please report privately anything that makes it:
   such as a `Retry-After` or `retry:` value, instead of throwing or clamping;
 - allocate memory or wait without bound because of what a server sends, beyond the limits
   `maximumResponseSize`, `maximumEventSize`, `maximumMessageSize` and the stream buffer limits
-  document;
+  document, or take time that grows faster than what it sends, such as the number of its
+  header fields;
 - write outside the directory given to `DiskResponseCache`.
 
 ## Reporting a vulnerability

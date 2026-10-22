@@ -98,8 +98,12 @@ for this package rather than copied.
   256 KiB is left out with a note. Free text (kept header values, `text/plain` bodies,
   strings in JSON and forms) is hidden from its first trigger to its end. A field that holds a
   name (`name`, `label`, `type`, `id`, …) that names a secret or is not plain ASCII hides the
-  values beside it, a Turkish `name` of a record included. Depth, nesting, reading and time
-  are bounded. The design, the rules and their test corpus are those of iOSSecurityTools 2.1.0
+  values beside it, a Turkish `name` of a record included, and so does a label written as a
+  sentence in any other member (`{"question":"What's your PIN?","answer":…}`,
+  `PIN (4 digits)`, `aws:secret-access-key`) unless its secret word is followed by a value the
+  sentence carries (`Error: token expired`, `pin=1234`). A byte order mark before a body is
+  left out the same way on every OS version. Depth, nesting, reading and time are bounded,
+  also for a response with tens of thousands of header fields. The design, the rules and their test corpus are those of iOSSecurityTools 2.1.0
   (one function classifies every name; separate readers for names, free text and JSON; one
   cumulative depth and reading budget; shared static tables), with this package's header
   allowlist and secret-name extensions (`sig`, `jwt`, `code`). The secrets that the rules used
@@ -107,7 +111,9 @@ for this package rather than copied.
   `;jsessionid`, percent-encoded path segments, a value after a bracket that does not close,
   `&#` before a value, an address before a vertical tab, a card number written as a JSON
   number with an exponent (`4.111111111111111E15`, as Jackson writes a `double`), which is now
-  read as the decimal it stands for — are kept as tests, with the review
+  read as the decimal it stands for, a label written as a sentence with an apostrophe, a
+  bracket, a comma or a colon (`What's your PIN?`, `PIN (4 digits)`, `PIN: required`) — are kept
+  as tests, with the review
   probes of iOSSecurityTools, iOSDevelopmentTools and this package. Redaction is a safety net,
   not a guarantee: a secret name in free text disguised with look-alike letters and no
   separator, a secret with no label and a short secret in a path segment are not guaranteed to
