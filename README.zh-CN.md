@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
+<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg" alt="Networking Architecture: 基于 URLSession：类型化端点、重试、令牌刷新、缓存和流式传输，无依赖。"></picture></p>
@@ -41,8 +41,8 @@
   并通过 ping 保持连接的 WebSocket。
 - **默认安全**：公钥固定（public key pinning）、不跟随跨源重定向而是将其返回、
   日志和 `curl` 输出只显示 redactor 能理解的部分，并对响应大小、缓冲消息数量和等待时间设置上限。
-- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 936 个
-  Swift Testing 测试都在 macOS 上运行，其中 931 个也在 iPhone 模拟器上运行，
+- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 953 个
+  Swift Testing 测试都在 macOS 上运行，其中 948 个也在 iPhone 模拟器上运行，
   包括针对本地 HTTP、TLS 和 WebSocket 服务器的测试。
 
 ### 包含的内容
@@ -244,7 +244,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   以及脱敏后的 JSON、表单、multipart 和 `text/plain` 请求体。
 - **绝不记录：**URL 中的用户信息和片段、不在允许列表中的查询值（默认全部不在），其他所有
   请求头的值（`Authorization`、`Cookie`、`X-API-Key` 以及名称含 `token`、`key` 或 `auth` 的
-  请求头，即使在允许列表中也会隐藏），`password`、`token`、`api_key` 等敏感名称下的整个值，
+  请求头，即使在允许列表中也会隐藏），`password`、`token`、`api_key` 等敏感名称下的整个值（五个及以上字母的敏感词出现在键的
+  任何位置都算：`secretAnswer`、`tokenValue`），
   看起来像标识符的路径段（写作 `:id`），指明敏感名称的 URL 主机及其端口、路径和查询
   （`myapp://pin/4831` 记录为 `myapp://[REDACTED]`），multipart 请求体中的文件部分，以及错误描述。
 - **不是纯 ASCII 的键**（含西里尔字母 `а` 的 `pаssword`、`pass\u200Bword`、`şifre`）的值
@@ -252,7 +253,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   会记录为 `{"name":"Ayşe","id":"[REDACTED]"}`。
 - **作为值写出的标签**即使写成句子，也会隐藏旁边的值：
   `{"question":"What's your PIN?","answer":"1234"}` 和 `{"title":"PIN (4 digits)","value":"1234"}`
-  记录时回答和值都会被隐藏。
+  记录时回答和值都会被隐藏。用 ASCII 以外字符书写并以 `:` 或 `=` 结尾的标签，无论内容如何都会
+  隐藏旁边的值（`{"title":"ΡΙΝ:","value":"1234"}`、`{"title":"Şifre: zorunlu","value":"1234"}`）；
+  字符串不论多长都会读取，所以长描述末尾的标签也算。
 - **其他字段的值**和自由文本会被扫描，查找 JWT、`Bearer` 凭据、32 个字符及以上的十六进制或
   Base64 字符串、银行卡号、IBAN 和电子邮件地址。JSON 数字按它所表示的十进制数读取：Jackson 和
   Gson 写出 `double` 时的 `{"amount":4.111111111111111E15}` 会记录为 `{"amount":"[REDACTED]"}`。
@@ -280,7 +283,8 @@ func makeLoggingClient() -> NetworkClient {
 形近字母伪装的敏感名称（`pɑsswoʀd hunter2`），没有标签的敏感值（`login -p hunter2`），路径段
 中的短敏感值（`/reset/abc123`），在文本或 JSON 字符串中用指数写出的银行卡号
 （`"4111111111111111e0"`），以及在敏感词之后自带取值的句子旁边的值
-（`{"error":"Error: PIN expired","answer":"1234"}`），都不保证能被找到。请从一开始就不要把敏感信息放进要记录的
+（`{"error":"Error: PIN expired","answer":"1234"}`），以及其他语言中不带 `:` 或 `=` 的标签
+（`{"title":"Пароль","value":"1234"}`），都不保证能被找到。请从一开始就不要把敏感信息放进要记录的
 请求里。redactor 早期开发版本漏掉的每个敏感值都保留为测试；所有规则见
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 一文。

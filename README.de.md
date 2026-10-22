@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
+<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg" alt="Networking Architecture: Typisierte Endpunkte, Wiederholungen, Token-Erneuerung, Caching und Streaming auf URLSession, ohne Abhängigkeiten."></picture></p>
@@ -46,8 +46,8 @@ Eine Netzwerkschicht für Apps auf iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ und 
   Ursprung werden zurückgegeben statt verfolgt, Logs und `curl`-Ausgabe zeigen nur, was
   der Redactor versteht, und es gibt Grenzen für Antwortgröße, gepufferte Nachrichten und
   Wartezeiten.
-- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 936
-  Swift-Testing-Tests des Pakets laufen auf macOS, 931 davon auch in einem iPhone-Simulator,
+- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 953
+  Swift-Testing-Tests des Pakets laufen auf macOS, 948 davon auch in einem iPhone-Simulator,
   darunter Tests gegen einen lokalen HTTP-, TLS- und WebSocket-Server.
 
 ### Was enthalten ist
@@ -254,7 +254,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Nie geloggt:** Benutzerinformationen und Fragmente von URLs, Query-Werte, die nicht auf der
   Allowlist stehen (standardmäßig keiner), die Werte aller anderen Header (`Authorization`,
   `Cookie`, `X-API-Key` und Namen mit `token`, `key` oder `auth` auch dann, wenn sie auf der
-  Allowlist stehen), ganze Werte unter geheimen Namen wie `password`, `token` oder `api_key`,
+  Allowlist stehen), ganze Werte unter geheimen Namen wie `password`, `token` oder `api_key`
+  (ein geheimes Wort mit fünf oder mehr Buchstaben zählt überall im Schlüssel: `secretAnswer`,
+  `tokenValue`),
   Pfadsegmente, die wie Kennungen aussehen (geschrieben als `:id`), ein URL-Host, der ein
   Geheimnis nennt, samt Port, Pfad und Query (`myapp://pin/4831` wird als `myapp://[REDACTED]`
   geloggt), Dateiteile von Multipart-Bodys und Fehlerbeschreibungen.
@@ -264,7 +266,10 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Als Werte geschriebene Bezeichnungen** verbergen den Wert daneben, auch als Satz:
   `{"question":"What's your PIN?","answer":"1234"}` und
   `{"title":"PIN (4 digits)","value":"1234"}` werden mit verborgener Antwort und verborgenem
-  Wert protokolliert.
+  Wert protokolliert. Eine Bezeichnung außerhalb von ASCII, die mit `:` oder `=` endet, verbirgt
+  ihn, was immer sie sagt (`{"title":"ΡΙΝ:","value":"1234"}`,
+  `{"title":"Şifre: zorunlu","value":"1234"}`), und ein String wird in jeder Länge gelesen, also
+  zählt auch eine Bezeichnung am Ende einer langen Beschreibung.
 - **Werte anderer Felder** und Freitext werden nach JWTs, `Bearer`-Anmeldedaten, Hex- oder
   Base64-Strings ab 32 Zeichen, Kartennummern, IBANs und E-Mail-Adressen durchsucht. Eine
   JSON-Zahl wird als die Dezimalzahl gelesen, für die sie steht: `{"amount":4.111111111111111E15}`,
@@ -299,7 +304,8 @@ ohne `=` oder `:`, bei dem zwei oder mehr Buchstaben durch ähnlich aussehende e
 Geheimnis in einem Pfadsegment (`/reset/abc123`), eine Kartennummer, die in Text oder in
 einem JSON-String mit Exponent geschrieben ist (`"4111111111111111e0"`), und der Wert neben einem
 Satz, der nach einem geheimen Wort seinen eigenen Wert trägt
-(`{"error":"Error: PIN expired","answer":"1234"}`), werden nicht garantiert gefunden. Halte
+(`{"error":"Error: PIN expired","answer":"1234"}`) und eine Bezeichnung in einer anderen Sprache
+ohne `:` oder `=` (`{"title":"Пароль","value":"1234"}`) werden nicht garantiert gefunden. Halte
 Geheimnisse von vornherein aus den Anfragen heraus, die du loggst. Jedes Geheimnis, das frühere
 Entwicklungsstände des Redactors übersehen haben, ist als Test erhalten; der Artikel
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)

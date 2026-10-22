@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
+<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg" alt="Networking Architecture: URLSession 기반 타입 엔드포인트, 재시도, 토큰 갱신, 캐싱, 스트리밍. 의존성 없음."></picture></p>
@@ -44,7 +44,7 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+, visionOS 1+ 앱을 위한 네트워킹
   redactor가 이해하는 부분만 보여 주는 로그와 `curl` 출력, 응답 크기·버퍼링되는 메시지 수·대기
   시간에 대한 제한.
 - **테스트하기 쉬움** — `MockTransport`가 미리 준비한 응답으로 요청에 답합니다. 패키지 자체의
-  936개 Swift Testing 테스트가 macOS에서 실행되며, 그중 931개는 iPhone 시뮬레이터에서도 실행됩니다.
+  953개 Swift Testing 테스트가 macOS에서 실행되며, 그중 948개는 iPhone 시뮬레이터에서도 실행됩니다.
   로컬 HTTP, TLS, WebSocket 서버를 대상으로 한 테스트도 포함됩니다.
 
 ### 포함된 기능
@@ -247,7 +247,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **절대 기록되지 않는 것:** URL의 사용자 정보와 프래그먼트, 허용 목록에 없는 쿼리 값(기본적으로
   모두), 그 밖의 모든 헤더 값(`Authorization`, `Cookie`, `X-API-Key`, 그리고 이름에 `token`,
   `key`, `auth`가 들어간 헤더는 허용 목록에 있어도 숨김), `password`, `token`, `api_key` 같은
-  비밀 이름 아래의 값 전체, 식별자처럼 보이는 경로 세그먼트(`:id`로 기록), 비밀 이름을 담은 URL
+  비밀 이름 아래의 값 전체(다섯 글자 이상의 비밀 단어는 키의 어디에 있어도 셉니다:
+  `secretAnswer`, `tokenValue`), 식별자처럼 보이는 경로 세그먼트(`:id`로 기록), 비밀 이름을 담은 URL
   호스트와 그 포트, 경로, 쿼리(`myapp://pin/4831`은 `myapp://[REDACTED]`로 기록), multipart
   본문의 파일 부분, 오류 설명.
 - **순수 ASCII가 아닌 키**(키릴 문자 `а`가 들어간 `pаssword`, `pass\u200Bword`, `şifre`)의 값은
@@ -255,7 +256,10 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   `{"name":"Ayşe","id":"[REDACTED]"}`로 기록됩니다.
 - **값으로 쓴 레이블**은 문장으로 써도 옆의 값을 숨깁니다.
   `{"question":"What's your PIN?","answer":"1234"}`와 `{"title":"PIN (4 digits)","value":"1234"}`는
-  답과 값을 숨긴 채 기록됩니다.
+  답과 값을 숨긴 채 기록됩니다. ASCII 밖의 문자로 쓰고 `:`나 `=`로 끝나는 레이블은 내용과
+  상관없이 옆의 값을 숨기며(`{"title":"ΡΙΝ:","value":"1234"}`,
+  `{"title":"Şifre: zorunlu","value":"1234"}`), 문자열은 길이와 상관없이 읽으므로 긴 설명 끝의
+  레이블도 셉니다.
 - **다른 필드의 값**과 자유 텍스트에서는 JWT, `Bearer` 자격 증명, 32자 이상의 16진수 또는 Base64
   문자열, 카드 번호, IBAN, 이메일 주소를 찾습니다. JSON 숫자는 그 숫자가 나타내는 10진수로 읽으므로
   Jackson과 Gson이 `double`을 쓰는 방식의 `{"amount":4.111111111111111E15}`는
@@ -284,8 +288,8 @@ func makeLoggingClient() -> NetworkClient {
 처리합니다. `=`나 `:` 없이 쓰고 두 글자 이상을 비슷한 글자로 바꾼 비밀 이름(`pɑsswoʀd hunter2`),
 레이블 없는 비밀 값(`login -p hunter2`), 경로 세그먼트 안의 짧은 비밀 값(`/reset/abc123`),
 텍스트나 JSON 문자열 안에 지수로 쓴 카드 번호(`"4111111111111111e0"`), 비밀 단어 뒤에 자기 값을
-담은 문장 옆의 값(`{"error":"Error: PIN expired","answer":"1234"}`)은 반드시 찾는다고 보장하지
-않습니다. 처음부터 로그에 남기는 요청에 비밀 값을 넣지 마세요. redactor의
+담은 문장 옆의 값(`{"error":"Error: PIN expired","answer":"1234"}`), `:`나 `=` 없이 다른 언어로
+쓴 레이블(`{"title":"Пароль","value":"1234"}`)은 반드시 찾는다고 보장하지 않습니다. 처음부터 로그에 남기는 요청에 비밀 값을 넣지 마세요. redactor의
 이전 개발 버전이 놓친 비밀 값은 모두 테스트로 남아 있으며, 모든 규칙은
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 문서에 있습니다.

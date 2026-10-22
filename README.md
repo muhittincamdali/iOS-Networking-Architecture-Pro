@@ -44,7 +44,7 @@ streaming are settings of that client instead of code you write around every req
   followed, logs and `curl` output that show only what the redactor understands, and limits
   on response size, buffered messages and wait times.
 - **Testable** — `MockTransport` answers requests from canned responses; the package's own
-  936 Swift Testing tests run on macOS, 931 of them also on an iPhone simulator, including
+  953 Swift Testing tests run on macOS, 948 of them also on an iPhone simulator, including
   tests against a local HTTP, TLS and WebSocket server.
 
 ### What's included
@@ -249,7 +249,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Never logged:** URL user info and fragments, query values that are not allowlisted (none
   are by default), the values of all other headers (`Authorization`, `Cookie`, `X-API-Key` and
   names with `token`, `key` or `auth` even when allowlisted), whole values under secret names
-  such as `password`, `token` or `api_key`, path segments that look like identifiers (written
+  such as `password`, `token` or `api_key` (a secret word of five or more letters counts
+  anywhere in a key: `secretAnswer`, `tokenValue`), path segments that look like identifiers (written
   `:id`), a URL host that names a secret together with its port, path and query
   (`myapp://pin/4831` is logged as `myapp://[REDACTED]`), file parts of multipart bodies, and
   error descriptions.
@@ -259,6 +260,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Labels written as values** hide the value beside them, also when they are written as
   sentences: `{"question":"What's your PIN?","answer":"1234"}` and
   `{"title":"PIN (4 digits)","value":"1234"}` are logged with the answer and the value hidden.
+  A label written outside ASCII and ended by `:` or `=` hides it whatever it says
+  (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`), and a
+  string is read at any length, so a label at the end of a long description counts too.
 - **Values of other fields** and free text are scanned for JWTs, `Bearer` credentials, hex or
   Base64 strings of 32 or more characters, card numbers, IBANs and email addresses. A JSON
   number is read as the decimal it stands for: `{"amount":4.111111111111111E15}`, as Jackson
@@ -290,9 +294,9 @@ text is a best effort. A secret name written without `=` or `:` and disguised wi
 look-alike letters (`pɑsswoʀd hunter2`), a secret with no label (`login -p hunter2`), a short
 secret in a path segment (`/reset/abc123`), a card number written with an exponent in text or
 in a JSON string (`"4111111111111111e0"`) and the value beside a sentence that carries its own
-value after a secret word (`{"error":"Error: PIN expired","answer":"1234"}`) are not
-guaranteed to be found. Keep secrets out of
-the requests you log in the first place. Every secret that earlier development
+value after a secret word (`{"error":"Error: PIN expired","answer":"1234"}`) and a label in
+another language without `:` or `=` (`{"title":"Пароль","value":"1234"}`) are not guaranteed
+to be found. Keep secrets out of the requests you log in the first place. Every secret that earlier development
 versions of the redactor missed is kept as a test; the
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 article lists every rule.

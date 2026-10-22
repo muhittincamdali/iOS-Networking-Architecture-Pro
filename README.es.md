@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
+<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg" alt="Networking Architecture: Endpoints tipados, reintentos, renovación de tokens, caché y streaming sobre URLSession, sin dependencias."></picture></p>
@@ -47,7 +47,7 @@ Una capa de red para apps en iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ y visionOS
   entiende, y límites para el tamaño de las respuestas, los mensajes en búfer y los tiempos de
   espera.
 - **Fácil de probar** — `MockTransport` responde a las peticiones con respuestas predefinidas; las
-  936 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 931 de ellas también en
+  953 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 948 de ellas también en
   un simulador de iPhone, incluidas pruebas contra un servidor local HTTP, TLS y WebSocket.
 
 ### Qué incluye
@@ -254,7 +254,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   consulta que no están en la lista permitida (por defecto, ninguno), los valores de las demás
   cabeceras (`Authorization`, `Cookie`, `X-API-Key` y los nombres con `token`, `key` o `auth`,
   aunque estén en la lista), los valores completos bajo nombres secretos como `password`,
-  `token` o `api_key`, los segmentos de ruta que parecen identificadores (escritos como `:id`),
+  `token` o `api_key` (una palabra secreta de cinco o más letras cuenta en cualquier parte de
+  la clave: `secretAnswer`, `tokenValue`), los segmentos de ruta que parecen identificadores (escritos como `:id`),
   un host de URL que nombra un secreto junto con su puerto, su ruta y su query
   (`myapp://pin/4831` se registra como `myapp://[REDACTED]`), las partes de archivo de los
   cuerpos multipart y las descripciones de error.
@@ -264,6 +265,10 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Las etiquetas escritas como valores** ocultan el valor de al lado, también cuando son
   frases: `{"question":"What's your PIN?","answer":"1234"}` y
   `{"title":"PIN (4 digits)","value":"1234"}` se registran con la respuesta y el valor ocultos.
+  Una etiqueta escrita fuera de ASCII y terminada en `:` o `=` lo oculta diga lo que diga
+  (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`), y una
+  cadena se lee con cualquier longitud, así que también cuenta una etiqueta al final de una
+  descripción larga.
 - **Los valores de otros campos** y el texto libre se examinan en busca de JWT, credenciales
   `Bearer`, cadenas hexadecimales o Base64 de 32 caracteres o más, números de tarjeta, IBAN y
   direcciones de correo. Un número JSON se lee como el decimal que representa:
@@ -297,7 +302,8 @@ ni `:` y disfrazado con dos o más letras parecidas (`pɑsswoʀd hunter2`), un s
 etiqueta (`login -p hunter2`), un secreto corto en un segmento de ruta (`/reset/abc123`), un
 número de tarjeta escrito con exponente en texto o en una cadena JSON (`"4111111111111111e0"`)
 y el valor junto a una frase que lleva su propio valor después de una palabra secreta
-(`{"error":"Error: PIN expired","answer":"1234"}`) no tienen garantía de detectarse. Mantén los secretos fuera de las peticiones que registras desde
+(`{"error":"Error: PIN expired","answer":"1234"}`) y una etiqueta en otro idioma sin `:` ni `=`
+(`{"title":"Пароль","value":"1234"}`) no tienen garantía de detectarse. Mantén los secretos fuera de las peticiones que registras desde
 el principio. Cada secreto que las versiones de desarrollo anteriores del redactor dejaron pasar
 se conserva como prueba; el artículo
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)

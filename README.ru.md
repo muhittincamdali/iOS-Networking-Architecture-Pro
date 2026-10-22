@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
+<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg" alt="Networking Architecture: Типизированные эндпоинты, повторы, обновление токенов, кэш и стриминг на URLSession, без зависимостей."></picture></p>
@@ -45,7 +45,7 @@
   возвращаются, а не выполняются, логи и вывод `curl`, в которых видно только то, что понимает
   redactor, а также ограничения на размер ответа, число буферизуемых сообщений и время ожидания.
 - **Удобство тестирования** — `MockTransport` отвечает на запросы заранее заготовленными ответами;
-  собственные 936 тестов пакета на Swift Testing запускаются на macOS, а 931 из них — ещё и на
+  собственные 953 тестов пакета на Swift Testing запускаются на macOS, а 948 из них — ещё и на
   симуляторе iPhone, включая тесты с локальным HTTP-, TLS- и WebSocket-сервером.
 
 ### Что входит в пакет
@@ -251,7 +251,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Никогда не пишется:** данные пользователя и фрагмент URL, значения параметров запроса не из
   списка разрешённых (по умолчанию разрешённых нет), значения всех остальных заголовков
   (`Authorization`, `Cookie`, `X-API-Key` и имена с `token`, `key` или `auth`, даже если они в
-  списке), значения целиком под секретными именами вроде `password`, `token` или `api_key`,
+  списке), значения целиком под секретными именами вроде `password`, `token` или `api_key`
+  (секретное слово из пяти и более букв считается в любом месте ключа: `secretAnswer`,
+  `tokenValue`),
   сегменты пути, похожие на идентификаторы (пишутся как `:id`), хост URL, который называет
   секрет, вместе с его портом, путём и query (`myapp://pin/4831` пишется в лог как
   `myapp://[REDACTED]`), файловые части тел multipart и описания ошибок.
@@ -261,6 +263,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Метки, записанные как значения**, скрывают значение рядом с собой, даже если это фраза:
   `{"question":"What's your PIN?","answer":"1234"}` и
   `{"title":"PIN (4 digits)","value":"1234"}` записываются со скрытыми ответом и значением.
+  Метка, записанная не в ASCII и оканчивающаяся на `:` или `=`, скрывает его, что бы она ни
+  означала (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`),
+  а строка читается при любой длине, так что метка в конце длинного описания тоже считается.
 - **Значения других полей** и свободный текст проверяются на JWT, учётные данные `Bearer`,
   шестнадцатеричные строки и строки Base64 длиной от 32 символов, номера карт, IBAN и адреса
   электронной почты. Число JSON читается как десятичное число, которое оно обозначает:
@@ -294,7 +299,8 @@ func makeLoggingClient() -> NetworkClient {
 (`login -p hunter2`), короткий секрет в сегменте пути (`/reset/abc123`), номер карты,
 записанный с экспонентой в тексте или в строке JSON (`"4111111111111111e0"`), и значение рядом
 с фразой, которая несёт собственное значение после секретного слова
-(`{"error":"Error: PIN expired","answer":"1234"}`), не обязательно будут найдены. С самого начала не включайте секреты в запросы, которые пишете в лог. Каждый секрет,
+(`{"error":"Error: PIN expired","answer":"1234"}`), и метка на другом языке без `:` или `=`
+(`{"title":"Пароль","value":"1234"}`) не обязательно будут найдены. С самого начала не включайте секреты в запросы, которые пишете в лог. Каждый секрет,
 который пропускали прежние версии redactor в разработке, сохранён как тест; все правила
 перечислены в статье
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata).

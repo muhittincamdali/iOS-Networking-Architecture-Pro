@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
+<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg" alt="Networking Architecture: Endpoints typés, relances, renouvellement de jeton, cache et streaming sur URLSession, sans dépendance."></picture></p>
@@ -47,8 +47,8 @@ Une couche réseau pour les apps sur iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ et
   autre origine renvoyées au lieu d’être suivies, journaux et sortie de `curl` qui ne
   montrent que ce que le redactor comprend, et limites sur la taille des réponses, les messages
   mis en tampon et les délais d’attente.
-- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 936 tests
-  Swift Testing du paquet s’exécutent sur macOS, dont 931 aussi sur un simulateur d’iPhone, y
+- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 953 tests
+  Swift Testing du paquet s’exécutent sur macOS, dont 948 aussi sur un simulateur d’iPhone, y
   compris des tests contre un serveur local HTTP, TLS et WebSocket.
 
 ### Ce qui est inclus
@@ -256,7 +256,8 @@ un `Redactor`, qui masque tout ce qu’il ne comprend pas entièrement.
   requête qui ne sont pas autorisées (aucune par défaut), les valeurs de tous les autres
   en-têtes (`Authorization`, `Cookie`, `X-API-Key` et les noms contenant `token`, `key` ou
   `auth`, même s’ils sont autorisés), les valeurs entières sous des noms secrets comme
-  `password`, `token` ou `api_key`, les segments de chemin qui ressemblent à des identifiants
+  `password`, `token` ou `api_key` (un mot secret de cinq lettres ou plus compte n’importe où
+  dans la clé : `secretAnswer`, `tokenValue`), les segments de chemin qui ressemblent à des identifiants
   (écrits `:id`), un hôte d’URL qui nomme un secret avec son port, son chemin et sa query
   (`myapp://pin/4831` est journalisé comme `myapp://[REDACTED]`), les parties fichier des corps
   multipart et les descriptions d’erreur.
@@ -267,7 +268,10 @@ un `Redactor`, qui masque tout ce qu’il ne comprend pas entièrement.
 - **Les étiquettes écrites comme valeurs** masquent la valeur voisine, même écrites comme des
   phrases : `{"question":"What's your PIN?","answer":"1234"}` et
   `{"title":"PIN (4 digits)","value":"1234"}` sont journalisés avec la réponse et la valeur
-  masquées.
+  masquées. Une étiquette écrite hors ASCII et terminée par `:` ou `=` la masque quoi qu’elle dise
+  (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`), et une
+  chaîne est lue quelle que soit sa longueur : une étiquette à la fin d’une longue description
+  compte aussi.
 - **Les valeurs des autres champs** et le texte libre sont examinés à la recherche de JWT,
   d’identifiants `Bearer`, de chaînes hexadécimales ou Base64 de 32 caractères ou plus, de
   numéros de carte, d’IBAN et d’adresses e-mail. Un nombre JSON est lu comme le nombre décimal
@@ -301,7 +305,8 @@ sans `=` ni `:` et déguisé par deux lettres ressemblantes ou plus (`pɑsswoʀd
 sans étiquette (`login -p hunter2`), un secret court dans un segment de chemin
 (`/reset/abc123`), un numéro de carte écrit avec un exposant dans du texte ou dans une chaîne
 JSON (`"4111111111111111e0"`) et la valeur voisine d’une phrase qui porte sa propre valeur après
-un mot secret (`{"error":"Error: PIN expired","answer":"1234"}`) ne sont pas trouvés à coup sûr. Gardez les secrets hors des requêtes que vous
+un mot secret (`{"error":"Error: PIN expired","answer":"1234"}`) et une étiquette dans une autre
+langue sans `:` ni `=` (`{"title":"Пароль","value":"1234"}`) ne sont pas trouvés à coup sûr. Gardez les secrets hors des requêtes que vous
 journalisez dès le départ. Chaque secret que les versions de développement précédentes du
 redactor laissaient passer est conservé comme test ; l’article
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)

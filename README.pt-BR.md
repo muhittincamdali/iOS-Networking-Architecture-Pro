@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
+<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg" alt="Networking Architecture: Endpoints tipados, novas tentativas, renovação de token, cache e streaming sobre URLSession, sem dependências."></picture></p>
@@ -45,8 +45,8 @@ Uma camada de rede para apps no iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ e visio
 - **Seguro por padrão** — public key pinning, redirecionamentos para outra origem
   devolvidos em vez de seguidos, logs e saída do `curl` que mostram só o que o redactor entende, e limites para
   o tamanho das respostas, as mensagens em buffer e os tempos de espera.
-- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 936
-  testes de Swift Testing do próprio pacote rodam no macOS e 931 deles também em um simulador de
+- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 953
+  testes de Swift Testing do próprio pacote rodam no macOS e 948 deles também em um simulador de
   iPhone, incluindo testes contra um servidor local HTTP, TLS e WebSocket.
 
 ### O que está incluído
@@ -252,7 +252,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Nunca registrado:** informações de usuário e fragmentos de URLs, valores de consulta que não
   estão na lista permitida (nenhum, por padrão), os valores de todos os outros cabeçalhos
   (`Authorization`, `Cookie`, `X-API-Key` e nomes com `token`, `key` ou `auth`, mesmo quando
-  permitidos), valores inteiros sob nomes secretos como `password`, `token` ou `api_key`,
+  permitidos), valores inteiros sob nomes secretos como `password`, `token` ou `api_key`
+  (uma palavra secreta de cinco ou mais letras conta em qualquer parte da chave:
+  `secretAnswer`, `tokenValue`),
   segmentos de caminho que parecem identificadores (escritos como `:id`), um host de URL que
   nomeia um segredo junto com sua porta, seu caminho e sua query (`myapp://pin/4831` é
   registrado como `myapp://[REDACTED]`), partes de arquivo de corpos multipart e descrições de
@@ -263,6 +265,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Rótulos escritos como valores** ocultam o valor ao lado, também quando são frases:
   `{"question":"What's your PIN?","answer":"1234"}` e
   `{"title":"PIN (4 digits)","value":"1234"}` são registrados com a resposta e o valor ocultos.
+  Um rótulo escrito fora do ASCII e terminado em `:` ou `=` o oculta, diga o que disser
+  (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`), e uma
+  string é lida em qualquer tamanho, então um rótulo no fim de uma descrição longa também conta.
 - **Valores de outros campos** e texto livre são examinados em busca de JWTs, credenciais
   `Bearer`, strings hexadecimais ou Base64 de 32 caracteres ou mais, números de cartão, IBANs e
   endereços de e-mail. Um número JSON é lido como o decimal que representa:
@@ -296,7 +301,8 @@ ocultado; o texto livre é tratado da melhor forma possível. Um nome secreto es
 (`login -p hunter2`), um segredo curto em um segmento de caminho (`/reset/abc123`), um número
 de cartão escrito com expoente em texto ou em uma string JSON (`"4111111111111111e0"`) e o
 valor ao lado de uma frase que traz o próprio valor depois de uma palavra secreta
-(`{"error":"Error: PIN expired","answer":"1234"}`) não têm garantia de ser encontrados. Mantenha segredos fora das requisições que você registra desde o
+(`{"error":"Error: PIN expired","answer":"1234"}`) e um rótulo em outro idioma sem `:` nem `=`
+(`{"title":"Пароль","value":"1234"}`) não têm garantia de ser encontrados. Mantenha segredos fora das requisições que você registra desde o
 início. Cada segredo que versões de desenvolvimento anteriores do redactor deixaram passar está
 guardado como teste; o artigo
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)

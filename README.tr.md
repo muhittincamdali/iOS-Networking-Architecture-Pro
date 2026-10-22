@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
+<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg" alt="Networking Architecture: URLSession üzerinde tipli uç noktalar, yeniden deneme, token yenileme, önbellek ve akış; bağımlılık yok."></picture></p>
@@ -45,8 +45,8 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ ve visionOS 1+ uygulamaları için, `UR
   izlenmeyip geri döndürülmesi, günlüklerde ve `curl` çıktısında yalnızca redactor'ın
   anladığı kısmın gösterilmesi; ayrıca yanıt boyutu, arabelleğe alınan mesajlar ve bekleme
   süreleri için sınırlar.
-- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 936
-  Swift Testing testi macOS'ta çalışır, bunların 931'i ayrıca bir iPhone simülatöründe de
+- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 953
+  Swift Testing testi macOS'ta çalışır, bunların 948'i ayrıca bir iPhone simülatöründe de
   çalışır. Bunlara yerel bir HTTP, TLS ve WebSocket sunucusuna karşı yazılmış testler de dahildir.
 
 ### Neler var
@@ -255,7 +255,8 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   değerleri (varsayılan olarak hiçbiri izinli değildir), diğer bütün başlıkların değerleri
   (`Authorization`, `Cookie`, `X-API-Key` ve adında `token`, `key` ya da `auth` geçenler izin
   listesinde olsalar bile), `password`, `token` ya da `api_key` gibi gizli adların altındaki
-  değerlerin tamamı, kimliğe benzeyen yol parçaları (`:id` olarak yazılır), gizli bir ad
+  değerlerin tamamı (beş ya da daha çok harfli gizli bir sözcük anahtarın her yerinde sayılır:
+  `secretAnswer`, `tokenValue`), kimliğe benzeyen yol parçaları (`:id` olarak yazılır), gizli bir ad
   taşıyan URL host'u ile portu, yolu ve sorgusu (`myapp://pin/4831`, `myapp://[REDACTED]`
   olarak yazılır), multipart gövdelerindeki dosya parçaları ve hata açıklamaları.
 - **Düz ASCII olmayan anahtarların** (Kiril `а` harfli `pаssword`, `pass\u200Bword`, `şifre`)
@@ -264,6 +265,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Değer olarak yazılmış etiketler**, cümle olarak yazıldıklarında da yanlarındaki değeri gizler:
   `{"question":"What's your PIN?","answer":"1234"}` ve
   `{"title":"PIN (4 digits)","value":"1234"}`, yanıt ve değer gizlenerek kaydedilir.
+  ASCII dışında yazılmış ve `:` ya da `=` ile biten bir etiket, ne derse desin yanındaki değeri
+  gizler (`{"title":"ΡΙΝ:","value":"1234"}`, `{"title":"Şifre: zorunlu","value":"1234"}`);
+  bir dizge her uzunlukta okunur, bu yüzden uzun bir açıklamanın sonundaki etiket de sayılır.
 - **Diğer alanların değerleri** ve serbest metin; JWT, `Bearer` kimlik bilgileri, 32 ya da
   daha fazla karakterlik onaltılık veya Base64 metinler, kart numaraları, IBAN'lar ve e-posta
   adresleri için taranır. Bir JSON sayısı, gösterdiği ondalık sayı olarak okunur: Jackson ve
@@ -297,7 +301,8 @@ iki ya da daha fazla harfi benzer harflerle değiştirilmiş bir gizli ad (`pɑs
 etiketsiz bir gizli bilgi (`login -p hunter2`), bir yol parçasındaki kısa bir gizli bilgi
 (`/reset/abc123`), metinde ya da bir JSON metninde üslü yazılmış bir kart numarası
 (`"4111111111111111e0"`) ve gizli bir sözcükten sonra kendi değerini taşıyan bir cümlenin
-yanındaki değer (`{"error":"Error: PIN expired","answer":"1234"}`) için bulunma garantisi yoktur. Gizli bilgileri en baştan günlüğe yazdığınız
+yanındaki değer (`{"error":"Error: PIN expired","answer":"1234"}`) ve başka bir dilde `:` ya da `=`
+olmadan yazılmış bir etiket (`{"title":"Пароль","value":"1234"}`) için bulunma garantisi yoktur. Gizli bilgileri en baştan günlüğe yazdığınız
 isteklerin dışında tutun. Redactor'ın geliştirme sürümlerinin kaçırdığı her gizli bilgi bir
 test olarak duruyor; bütün kurallar
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
