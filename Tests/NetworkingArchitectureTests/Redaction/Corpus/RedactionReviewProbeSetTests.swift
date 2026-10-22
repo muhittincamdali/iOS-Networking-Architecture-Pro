@@ -57,7 +57,7 @@ struct RedactionReviewProbeSetTests {
         }
     }
 
-    @Test("no large probe the documentation says is hidden shows its secret", arguments: large)
+    @Test("no large probe the documentation says is hidden shows its secret", .enabled(if: isOptimized, "the large probes take minutes in a debug build: swift test -c release"), arguments: large)
     func largeProbesHideTheirSecrets(name: String) throws {
         expectHidden(try #require(ReviewProbes.all.first { $0.name == name }))
     }

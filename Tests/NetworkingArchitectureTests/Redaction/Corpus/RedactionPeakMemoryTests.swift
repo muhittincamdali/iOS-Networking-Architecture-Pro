@@ -19,7 +19,7 @@ import Testing
 /// a body of arrays 63 deep (see ``DeepArrayShapes``), which are now held to 12 MiB. The
 /// twenty-first measured 17.39 MiB for a megabyte of different scalars and 68.15 MiB for 4 MB (see
 /// ``DistinctScalarShapes``); 4 MB of them are held to four times the limit of one.
-@Suite("Redaction corpus: peak memory", .serialized)
+@Suite("Redaction corpus: peak memory", .serialized, .enabled(if: isOptimized, "memory is measured in a release build: swift test -c release"))
 struct RedactionPeakMemoryTests {
     static let limit = 16 * 1_048_576
     /// The limit of the bodies of arrays 63 deep, which keeps a margin below ``limit``.

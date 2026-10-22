@@ -1,7 +1,7 @@
-# Repository-specific: runs the redaction tests in an optimized build. The time limits are only
-# checked there, and the peak-memory and large-probe suites take about three minutes each in a
-# debug build on a laptop; with them a hosted runner cannot finish the shared SwiftPM job in its
-# 30 minutes. ci.yml skips those two suites and this job runs them.
+# Repository-specific: runs the redaction tests in an optimized build. The time limits, the peak
+# memory of the corpus and the 105 large review probes are only checked there: in a debug build
+# they take minutes each (about 35 minutes for the whole serial run on a hosted runner, which
+# the shared SwiftPM job of ci.yml cannot fit into its 30 and the simulator job into its 40).
 name: Release tests
 
 on:

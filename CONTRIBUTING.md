@@ -29,9 +29,9 @@ Open an issue with:
    They run one at a time (the shared `NetworkingArchitecture-Package` scheme turns off
    parallel testing): the redaction test corpus keeps every core busy for minutes in a debug
    build, and the tests with a timeout fail when they wait behind it. The release run checks
-   the redaction time and memory limits in an optimized build. CI skips the two heaviest
-   suites (`RedactionPeakMemoryTests`, `RedactionReviewProbeSetTests`) in the debug run, and
-   `release-tests.yml` runs them with the rest of the redaction tests in the release build.
+   the redaction time and memory limits in an optimized build. The peak memory of the corpus
+   and the large review probes are checked there too, because in a debug build they take
+   minutes each; CI runs them in `release-tests.yml`.
 4. Add or update a test for every behaviour you change in `Tests/NetworkingArchitectureTests`.
    Use `MockTransport` for client logic and the local servers in `Tests/.../Support` when the
    behaviour depends on `URLSession` itself (streaming, redirects, TLS, WebSockets).
