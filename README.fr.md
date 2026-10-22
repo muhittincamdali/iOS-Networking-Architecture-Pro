@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
+<!-- i18n-source: README.md@798a57667b0600ba76ec45729ec9660d5942ceca status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg" alt="Networking Architecture: Endpoints typés, relances, renouvellement de jeton, cache et streaming sur URLSession, sans dépendance."></picture></p>

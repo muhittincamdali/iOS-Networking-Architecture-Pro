@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@a0b6cf9d7d82b23f5e165df74ac719c7823497aa status=reviewed -->
+<!-- i18n-source: README.md@798a57667b0600ba76ec45729ec9660d5942ceca status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg" alt="Networking Architecture: URLSession 기반 타입 엔드포인트, 재시도, 토큰 갱신, 캐싱, 스트리밍. 의존성 없음."></picture></p>
