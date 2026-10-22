@@ -76,9 +76,10 @@ extension WrittenName {
     /// space, a line break or the end of the string follows, after words with a scalar outside
     /// printable ASCII in them since the start of the string or the separator before (`ΡΙΝ:`,
     /// `Enter your pɑsswoʀd:`, `Şifre: zorunlu`, `Пароль =`, `ＰＩＮ：`, `ΡΙΝ꞉`). A separator is a
-    /// `:` or an `=`, as written or as its compatibility form reads (`：`, `﹕`, `＝`), or a
-    /// punctuation mark or a math or modifier symbol with no ASCII form that does not end a
-    /// sentence (`꞉`, `∶`, `·`, `→`, but not `。`, and not a dash or `…`, which read as ASCII).
+    /// `:` or an `=`, as written or as its compatibility form reads (`：`, `﹕`, `＝`, `⩴`), or a
+    /// punctuation mark of any kind but a dash, or a math or modifier symbol, with no ASCII form
+    /// and that does not end a sentence (`꞉`, `∶`, `·`, `→`, `」`, `»`, `“`, but not `。`, and not
+    /// a dash or `…`, which read as ASCII).
     ///
     /// A label is a key written as a value, so the key rule decides it: a key that is not plain
     /// ASCII hides its value whatever it says, as a name held by a field that holds names does
@@ -105,11 +106,13 @@ extension WrittenName {
 
     private static func isLabelSeparator(_ scalar: Unicode.Scalar, compatibility: CompatibilityText) -> Bool {
         let reading = compatibility.ascii(scalar)
-        guard reading.count == 1 else { return false }
-        if reading[0] == UInt8(ascii: ":") || reading[0] == UInt8(ascii: "=") { return true }
-        guard reading[0] == CompatibilityText.unreadable, !scalar.properties.isSentenceTerminal else { return false }
+        // `⩴` reads as `::=`, `⩵` as `==`: a separator however many `:` and `=` it reads as.
+        if !reading.isEmpty, reading.allSatisfy({ $0 == UInt8(ascii: ":") || $0 == UInt8(ascii: "=") }) { return true }
+        guard reading.count == 1, reading.first == CompatibilityText.unreadable, !scalar.properties.isSentenceTerminal else { return false }
         switch scalar.properties.generalCategory {
-        case .otherPunctuation, .mathSymbol, .modifierSymbol: return true
+        case .otherPunctuation, .openPunctuation, .closePunctuation, .initialPunctuation, .finalPunctuation,
+             .connectorPunctuation, .mathSymbol, .modifierSymbol:
+            return true
         default: return false
         }
     }
