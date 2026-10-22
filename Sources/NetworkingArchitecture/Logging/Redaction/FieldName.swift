@@ -102,7 +102,7 @@ struct PlainName {
 
     /// Whether the name holds a secret word where ``SecretNames/Placement`` requires it:
     /// `password`, `aws_secret_access_key`, `dbPassword`, `apitoken`, `user_pin` or `tokens`, but
-    /// not `tokenizer`, `keyboard` or `bypass`. A plural `s` after the secret word counts.
+    /// not `spinner`, `keyboard` or `bypass`. A plural `s` after the secret word counts.
     var namesSecret: Bool { secretEnd != nil }
 
     /// The number of letters up to the end of the first secret word, its plural `s` included; nil

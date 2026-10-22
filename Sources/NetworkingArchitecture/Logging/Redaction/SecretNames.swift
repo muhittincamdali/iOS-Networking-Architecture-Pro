@@ -8,8 +8,8 @@ enum SecretNames {
     enum Placement {
         /// Anywhere, also inside a longer word: `dbpassword`, `userapikey`.
         case anywhere
-        /// As a word of the key (`user_pin`, `X-Auth-Key`) or at the end of the key (`apitoken`,
-        /// `licensekey`).
+        /// As a word of the key (`user_pin`, `X-Auth-Key`) or at the end of the key (`userpin`,
+        /// `licensekey`): the words of four letters or fewer.
         case wordOrEnd
         /// As a word of the key only: `DB_PASS` but not `bypass` or `passport`.
         case word
@@ -29,15 +29,17 @@ enum SecretNames {
     /// library's extensions: `sig` (the signature of an Azure shared access signature URL) as a
     /// word, and `jwt` and `code` (an OAuth authorization code) as whole keys and words.
     static let entries: [Entry] = {
-        // `session` counts anywhere, as in the header rule: `session_data` and `XSession2` hold a
-        // session as often as `laravel_session` does, and `session_start` is hidden with them.
+        // Every word of five or more letters counts anywhere, as the header rule reads `token`,
+        // `secret` and `session`: `secretanswer`, `tokenvalue` and `session_data` hold a secret
+        // as often as `mysecret` does, and `secretary`, `tokenizer` and `session_start` are
+        // hidden with them. Only the words of four letters or fewer need a word boundary.
         let anywhere = [
             "authorization", "clientsecret", "refreshtoken", "accesstoken", "accesskey", "authkey", "privatekey",
-            "secretkey", "session", "sessid", "passphrase", "password", "passcode", "passwd", "idtoken",
+            "secretkey", "secret", "token", "session", "sessid", "passphrase", "password", "passcode", "passwd", "idtoken",
             "apikey", "credential", "signature", "cookie", "pincode", "otpcode", "securitycode", "verificationcode",
             "authcode", "cardnumber",
         ]
-        let wordOrEnd = ["token", "secret", "pwd", "key", "pin", "otp", "cvv", "cvc", "ssn", "iban", "card", "auth"]
+        let wordOrEnd = ["pwd", "key", "pin", "otp", "cvv", "cvc", "ssn", "iban", "card", "auth"]
         return anywhere.map { Entry(letters: Array($0.utf8), placement: .anywhere) }
             + wordOrEnd.map { Entry(letters: Array($0.utf8), placement: .wordOrEnd) }
             + ["pass", "sid", "pw", "sig"].map { Entry(letters: Array($0.utf8), placement: .word) }

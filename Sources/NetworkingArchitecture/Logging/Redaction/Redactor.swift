@@ -97,8 +97,9 @@ public struct Redactor: Sendable, Hashable {
     /// library's extensions (`passphrase`, `passcode`, `credential`, `cvc`, `sessid`, `pincode`,
     /// `verificationcode`, `cardnumber`, `pass`, `pw`, `sig`, `jwt`, `code`, …).
     ///
-    /// The long words count anywhere in a key (`dbPassword`, `session_data`, also `session_start`),
-    /// the short ones as a word of the key or at its end (`user_pin`, `X-Auth-Key`, `apitoken`),
+    /// The words of five or more letters count anywhere in a key (`dbPassword`, `secretAnswer`,
+    /// `tokenValue`, `session_data`, also `secretary`, `tokenizer` and `session_start`), the
+    /// shorter ones as a word of the key or at its end (`user_pin`, `X-Auth-Key`, `licensekey`),
     /// `pass`, `pw`, `sid` and `sig` only as a word (`DB_PASS`, but not `bypass`, `inside` or
     /// `signal`), and `jwt` and `code` only as the whole key or word (an OAuth authorization code,
     /// but not `status_code`; in free text, `error code 7` is hidden from `code` on). A plural `s`

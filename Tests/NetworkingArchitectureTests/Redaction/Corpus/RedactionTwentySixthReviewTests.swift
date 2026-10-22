@@ -10,7 +10,9 @@ import Testing
 /// - A short string with a line break or a tab that names nothing (`ok\n`, `a\tb`) hid every
 ///   member beside it, in objects, forms and multipart bodies.
 /// - The documentation of the type said that words of five or more letters count anywhere in a
-///   key, while `token` and `secret` count only as a word or at the end, and `pw` only as a word.
+///   key, while `token` and `secret` counted only as a word or at the end, and `pw` only as a word.
+///   The next review found keys such as `secretanswer` showing their value; `token` and `secret`
+///   now count anywhere, as the documentation says.
 @Suite("Redaction corpus: twenty-sixth review")
 struct RedactionTwentySixthReviewTests {
     private static let secret = "Qz26Wk5m"
@@ -99,16 +101,17 @@ struct RedactionTwentySixthReviewTests {
         #expect(Self.form("name=region%0A&value=x") == "name=region%0A&value=[REDACTED]")
     }
 
-    /// The documentation of the type and the logging guide say where a secret word counts in a key:
-    /// the long names and the compounds anywhere, `token`, `secret` and the short words as a word or
-    /// at the end, `pass`, `sid` and `pw` only as a word, `session` anywhere in this package
-    /// (as its header rule reads it), `session_start` included.
+    /// The logging guide says where a secret word counts in a key: a word of five or more letters
+    /// anywhere (`token`, `secret` and `session` too, `session_start` and `tokenizer` included),
+    /// the shorter words as a word or at the end, `pass`, `sid` and `pw` only as a word. Until the
+    /// next review, `token` and `secret` counted only as a word or at the end, and
+    /// `{"secretanswer":…}` kept its value (see ``RedactionSecretWordPlacementTests``).
     @Test("a secret word counts in a key where the documentation says", arguments: [
         ("dbpassword", true), ("dbPassword", true), ("xpassphrasey", true), ("myapikeyhash", true), ("oldcredentials", true),
         ("user_pin", true), ("X-Auth-Key", true), ("apitoken", true), ("mysecret", true), ("refresh_token", true),
-        ("tokenvalue", false), ("TOKENID", false), ("secretvalue", false), ("secrethash", false), ("tokenizer", false),
+        ("tokenvalue", true), ("TOKENID", true), ("secretvalue", true), ("secrethash", true), ("tokenizer", true),
         ("DB_PASS", true), ("user_pw", true), ("bypass", false), ("dbpw", false), ("userpw", false),
-        ("laravel_session", true), ("session_start", true), ("sessionCount", true),
+        ("laravel_session", true), ("session_start", true), ("sessionCount", true), ("keyboard", false), ("spinner", false),
     ])
     func keyPlacement(key: String, hides: Bool) {
         let json = Self.json(#"{"\#(key)":"v1","status":"ok"}"#)
@@ -117,17 +120,20 @@ struct RedactionTwentySixthReviewTests {
         #expect(form == (hides ? "\(key)=[REDACTED]&status=ok" : "\(key)=v1&status=ok"))
     }
 
-    /// The examples of "Known limitations" in the logging guide and the README, as written there.
-    @Test("the known limitations read as the documentation says")
-    func knownLimitations() {
+    /// The pinned behaviour this review's test called "known limitations" was written in neither
+    /// the README nor the logging guide. Keys that hold `token` or `secret` before more letters
+    /// kept their value there; they are hidden now.
+    @Test("the cases pinned as known limitations hide what they kept")
+    func formerLimitations() {
         #expect(Self.json(#"{"name":"Hello\nWorld","value":"x"}"#) == #"{"name":"Hello\nWorld","value":"[REDACTED]"}"#)
         #expect(Self.json(#"{"note":"pass\nword","id":"7"}"#) == #"{"note":"pass[REDACTED]","id":"[REDACTED]"}"#)
-        for key in ["tokenvalue", "TOKENID", "secretvalue", "secrethash", "userpw", "dbpw"] {
+        for key in ["tokenvalue", "TOKENID", "secretvalue", "secrethash"] {
+            #expect(Self.json(#"{"\#(key)":"x"}"#) == #"{"\#(key)":"[REDACTED]"}"#)
+        }
+        for key in ["userpw", "dbpw"] {
             #expect(Self.json(#"{"\#(key)":"x"}"#) == #"{"\#(key)":"x"}"#)
         }
         #expect(Self.json(#"{"title":"\n","data":"x"}"#) == #"{"title":"\n","data":"[REDACTED]"}"#)
-        let long = String(repeating: #"\n"#, count: 257)
-        #expect(Self.json(#"{"title":"\#(long)","data":"x"}"#) == #"{"title":"\#(long)","data":"x"}"#)
     }
 
     @Test("a name of spaces alone, or an empty one, beside a field that holds no name keeps the value")

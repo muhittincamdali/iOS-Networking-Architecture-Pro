@@ -84,7 +84,7 @@ struct RedactionAllowlistPropertyTests {
     /// Plain ASCII names that hold no secret word as a word.
     static let keptNames = [
         "user", "username", "name", "id", "user_id", "requestId", "X-Request-Id", "Content-Type", "status", "region", "lang", "page",
-        "limit", "city", "order-id", "retry_after", "tokenizer", "secretary", "bypass", "compass", "passport",
+        "limit", "city", "order-id", "retry_after", "keynote", "authority", "bypass", "compass", "passport",
         "keyboard", "spinner", "author", "description", "app.version", "first name",
     ]
     static let keptValues = ["bob", "42", "eu-west-1", "ok", "Istanbul", "v2"]

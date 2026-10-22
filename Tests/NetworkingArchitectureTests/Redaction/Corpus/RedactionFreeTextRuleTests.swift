@@ -168,7 +168,7 @@ struct RedactionFreeTextRuleTests {
 
     @Test("text without a trigger stays as it is", arguments: [
         "Merhaba Kullanıcı giriş yaptı", "Straße naïve café", "заказ отправлен", "東京 ログイン成功", "iPhoneで決済しました",
-        "say \"hi\" now", "[INFO] started in 12 ms", "keyboard layout changed", "tokenizer ready", "bypass mode",
+        "say \"hi\" now", "[INFO] started in 12 ms", "keyboard layout changed", "keynote ready", "bypass mode",
         "user logged in at 12:30 from 10.0.0.1", "status=200 method=GET path=/api/items",
     ])
     func unchanged(input: String) {

@@ -85,7 +85,7 @@ struct RedactionNameTests {
     // Short secret words count as a word or at the end of a name, not inside a longer word.
     @Test("names that only hold the letters of a secret word keep their value in structured input", arguments: [
         "keyboard", "pinned", "spinner", "author", "authenticated", "inside", "president",
-        "sidebar", "description", "bypass", "passport", "tokenizer", "secretary", "discard_count",
+        "sidebar", "description", "bypass", "passport", "keynote", "authority", "discard_count",
     ])
     func lettersOfSecretWords(name: String) {
         #expect(json("{\"\(name)\":\"bob\"}") == "{\"\(name)\":\"bob\"}")
