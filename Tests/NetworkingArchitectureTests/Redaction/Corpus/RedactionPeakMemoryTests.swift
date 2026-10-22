@@ -46,6 +46,7 @@ struct RedactionPeakMemoryTests {
         + URLInTextShapes.text + QuotedKeyShapes.text + MarkupQuoteShapes.text + DenseFindingShapes.text
         + DenseFindingShapes.bodies(size: bodySize, redactor: redactor) + deepArrayShapes + DistinctScalarShapes.text
         + DistinctScalarShapes.bodies(size: bodySize, redactor: redactor) + [DistinctScalarShapes.large]
+        + LongLabelShapes.bodies(size: bodySize, redactor: redactor)
 
     static let deepArrayShapes = DeepArrayShapes.bodies(size: bodySize, redactor: redactor)
 

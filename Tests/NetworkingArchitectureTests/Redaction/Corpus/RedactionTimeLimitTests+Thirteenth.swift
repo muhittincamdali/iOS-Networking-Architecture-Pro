@@ -28,6 +28,7 @@ extension RedactionTimeLimitTests {
         all += CollidingScalarShapes.text
         all += DetectorScanShapes.shapes(size: size, bodies: largeBodies)
         all += sentenceLabels
+        all += LongLabelShapes.bodies(size: size, redactor: largeBodies)
         return all
     }()
 }
