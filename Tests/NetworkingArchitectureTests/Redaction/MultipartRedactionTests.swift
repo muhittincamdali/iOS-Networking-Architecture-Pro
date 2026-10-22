@@ -49,7 +49,7 @@ struct MultipartRedactionTests {
         let body = multipart([
             ("Content-Disposition: form-data; name=\"meta\"\r\nContent-Type: application/json", #"{"token":"t","title":"x"}"#),
             ("Content-Disposition: form-data; name=\"form\"\r\nContent-Type: application/x-www-form-urlencoded", "token;x=hunter2"),
-            ("Content-Disposition: form-data; name=\"note\"", "a\r\npassword: hunter2"),
+            ("Content-Disposition: form-data; name=\"note\"", "a\r\npassword=hunter2"),
             ("Content-Disposition: form-data; name=\"xml\"\r\nContent-Type: application/xml", "<a/>"),
         ])
         let (data, outcome) = policy.redact(body: body, contentType: contentType)
@@ -57,7 +57,7 @@ struct MultipartRedactionTests {
         #expect(data == multipart([
             ("Content-Disposition: form-data; name=\"meta\"\r\nContent-Type: application/json", #"{"token":"[REDACTED]","title":"x"}"#),
             ("Content-Disposition: form-data; name=\"form\"\r\nContent-Type: application/x-www-form-urlencoded", "[body omitted: 15 bytes, application/x-www-form-urlencoded]"),
-            ("Content-Disposition: form-data; name=\"note\"", "a\r\npassword: \(redacted)"),
+            ("Content-Disposition: form-data; name=\"note\"", "a\r\npassword=\(redacted)"),
             ("Content-Disposition: form-data; name=\"xml\"\r\nContent-Type: application/xml", "[body omitted: 4 bytes, application/xml]"),
         ]))
         // Only `multipart/form-data` names its fields, so other multipart types are omitted.

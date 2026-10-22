@@ -82,7 +82,7 @@ extension FreeTextScanner {
     }
 
     /// The runs of `text` between white space and line breaks.
-    private static func words(of text: NormalizedText) -> [Range<Int>] {
+    static func words(of text: NormalizedText) -> [Range<Int>] {
         var words: [Range<Int>] = []
         var k = 0
         while k < text.count {
@@ -239,6 +239,14 @@ struct LooseReading {
             letters += 1
         }
         return letters
+    }
+
+    /// The byte after the last letter of the first secret word whose end `accepts` takes: that
+    /// byte is passed.
+    func firstSecretEnd(where accepts: (Int) -> Bool) -> Int? {
+        var ends: [Int] = []
+        for k in bytes.indices where ASCII.isAlphanumeric(bytes[k]) { ends.append(origins[k] + 1) }
+        return name.firstSecret { accepts(ends[$0.upperBound - 1]) }.map { ends[$0.upperBound - 1] }
     }
 
     /// The byte after the last letter of the first secret word that `accepts` takes.

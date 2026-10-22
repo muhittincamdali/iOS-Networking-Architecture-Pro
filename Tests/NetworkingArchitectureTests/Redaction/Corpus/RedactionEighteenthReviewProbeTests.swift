@@ -50,8 +50,10 @@ struct RedactionEighteenthReviewProbeTests {
     /// (`a-18#932`, `a-18#933`) hidden too.
     static let hiddenControls: Set<String> = ["a-18#932", "a-18#933", "a-18#937", "a-18#938", "a-18#942", "a-18#943"]
 
-    /// The limitations the review named that are found: a JSON object written as a form body.
-    static let fixed: Set<String> = ["a-18#698"]
+    /// The limitations the review named that are found: a JSON object written as a form body, and
+    /// GraphQL variables beside a query that names `pw:` as a label (`login(pw:$p)`), as a
+    /// sentence with a secret word and no value after it names a secret.
+    static let fixed: Set<String> = ["a-18#639", "a-18#698"]
 
     @Test("the resource holds every probe of the eighteenth review")
     func counts() {

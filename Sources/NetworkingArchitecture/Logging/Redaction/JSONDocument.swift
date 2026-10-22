@@ -110,6 +110,15 @@ struct JSONDocument {
         self.nesting = nesting
     }
 
+    /// Whether `scalars` are one JSON object or array, as the reader reads them. It tells a JSON
+    /// document written into a string from a name (see
+    /// ``WrittenName/writtenName(in:compatibility:)``); nothing is redacted on what it reads, so
+    /// `JSONSerialization` is not asked.
+    static func isContainer(_ scalars: [Unicode.Scalar]) -> Bool {
+        var reader = Reader(scalars: scalars, depthLimit: Nesting.maximumDepth)
+        return reader.document()?.isContainer == true
+    }
+
     /// The text of a string, with its escapes decoded.
     func text(of token: StringToken) -> [Unicode.Scalar] {
         token.decoded ?? Array(scalars[token.content])

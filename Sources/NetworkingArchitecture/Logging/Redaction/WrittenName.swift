@@ -18,9 +18,9 @@ enum WrittenName {
     enum Place {
         /// The value of the field `field` of an object, a form, a URL query or a multipart body.
         /// When the field holds a name (see ``holdsName(_:)``), the value is read by the key rule;
-        /// otherwise it names a secret only when it is a name (see ``isName(_:compatibility:)``)
-        /// whose words name a secret or cannot be read, or when it is control characters and
-        /// white space alone (see ``isBlankWithControl(_:)``).
+        /// otherwise it names a secret when it is a name or a label (see ``shape(of:compatibility:)``)
+        /// whose words name a secret or cannot be read, or when it is control characters and white
+        /// space alone (see ``isBlankWithControl(_:)``).
         case field([Unicode.Scalar])
         /// The first element of a two-element array, as fetch headers and `URLSearchParams`
         /// entries are written: read by the key rule.
@@ -40,7 +40,15 @@ enum WrittenName {
             // A name of control characters and spaces alone has no letter or digit, so it is no
             // name to `isName`; it cannot be read, and what it stands for cannot be told.
             if isBlankWithControl(value) { return true }
-            return isName(value, compatibility: compatibility) && nameNamesSecret(value, byKeyRule: false, compatibility: compatibility)
+            switch shape(of: value, compatibility: compatibility) {
+            case nil: return false
+            case .plain: return nameNamesSecret(value, byKeyRule: false, compatibility: compatibility)
+            case .sentence:
+                // A label without those marks (`PIN` of `PIN: required`) is read as a name is.
+                let label = Array(labelPart(of: value))
+                let readsAsLabel = shape(of: label, compatibility: compatibility) != .plain
+                return nameNamesSecret(label, byKeyRule: false, readsAsLabel: readsAsLabel, compatibility: compatibility)
+            }
         case .pairName:
             return heldNameNamesSecret(value, field: nil, compatibility: compatibility)
         case .element:
@@ -61,14 +69,20 @@ enum WrittenName {
     /// (`DbPassword\n`, `\r\npin`, `Db\nPassword`, `pa\nssword`), and either reading counts. So a
     /// name with a line break or a tab that names nothing either way (`Hello\nWorld`, `ok\n`,
     /// `a\tb`) keeps what is beside it.
-    static func nameNamesSecret(_ value: [Unicode.Scalar], byKeyRule: Bool, compatibility: CompatibilityText) -> Bool {
+    ///
+    /// With `readsAsLabel`, the name is a sentence (see ``Shape/sentence``), and a secret word in
+    /// it counts only when no value is written after it (see
+    /// ``FreeTextScanner/labelNamesSecret(_:compatibility:)``).
+    static func nameNamesSecret(
+        _ value: [Unicode.Scalar], byKeyRule: Bool, readsAsLabel: Bool = false, compatibility: CompatibilityText
+    ) -> Bool {
         if byKeyRule, FieldName.hidesValue(value) { return true }
-        guard value.contains(where: isControl) else { return FreeTextScanner.nameNamesSecret(value, compatibility: compatibility) }
+        let reads = readsAsLabel ? FreeTextScanner.labelNamesSecret : FreeTextScanner.nameNamesSecret
+        guard value.contains(where: isControl) else { return reads(value, compatibility) }
         if byKeyRule { return true }
         let dropped = value.filter { !isControl($0) }
         let split = value.map { isControl($0) ? " " : $0 }
-        return FreeTextScanner.nameNamesSecret(dropped, compatibility: compatibility)
-            || FreeTextScanner.nameNamesSecret(split, compatibility: compatibility)
+        return reads(dropped, compatibility) || reads(split, compatibility)
     }
 
     /// The control characters, U+0000 to U+001F and U+007F to U+009F: the general category Cc.
@@ -143,48 +157,6 @@ enum WrittenName {
         var parts = path.split(separator: "/", omittingEmptySubsequences: false)
         if path.first == "/" { parts.removeFirst() }
         return parts.contains { part in !(part.count == 1 && part.first == "-") && FieldName.hidesValue(part) }
-    }
-
-    // MARK: Names in other fields
-
-    /// Whether a string is a name rather than a sentence or a document: at most
-    /// ``PlainName/maximumKeyLength`` scalars with a letter or digit, and once the punctuation,
-    /// spaces and line breaks around it are left out, without `:`, `=`, `,`, `;`, quotes or
-    /// brackets, which pair a key with a value or hold one (`Error: token expired`,
-    /// `{"password":…}`). A symbol whose compatibility form is a letter or digit (`ⓟ`, `🄿`, `①`)
-    /// counts as one, so a name written only in such symbols is a name. The `;` that ends a
-    /// character reference (`p&#97;ssword`, `&#x63;ard`, `&amp;#xauth`) pairs nothing: it is part
-    /// of the escape, which the name is read through (see ``FreeTextScanner/nameNamesSecret(_:compatibility:)``).
-    /// A line break does not keep a string from being a name: a name with one in it
-    /// (`DbPassword\n`, `Db\nPassword`) names a secret by the one decision of
-    /// ``nameNamesSecret(_:byKeyRule:compatibility:)``.
-    static func isName(_ scalars: [Unicode.Scalar], compatibility: CompatibilityText) -> Bool {
-        guard scalars.count <= PlainName.maximumKeyLength else { return false }
-        let isLetterOrDigit = { (scalar: Unicode.Scalar) in Self.isLetterOrDigit(scalar, compatibility: compatibility) }
-        guard let first = scalars.firstIndex(where: isLetterOrDigit), let last = scalars.lastIndex(where: isLetterOrDigit) else { return false }
-        return !(first...last).contains { i in
-            notInNames.contains(scalars[i]) && !(scalars[i] == ";" && endsReference(scalars, at: i))
-        }
-    }
-
-    /// Whether the `;` at `i` ends a character reference: `&`, then ASCII letters, digits, `#` and
-    /// the `;` of references before it (`&amp;`, `&#97;`, `&#x61;`, `&amp;#x63;`). Reading more as
-    /// a name only ever hides more: the name still has to name a secret.
-    private static func endsReference(_ scalars: [Unicode.Scalar], at i: Int) -> Bool {
-        var j = i - 1
-        while j >= 0, scalars[j].isASCII, ASCII.isAlphanumeric(UInt8(scalars[j].value)) || scalars[j] == "#" || scalars[j] == ";" { j -= 1 }
-        return j >= 0 && j < i - 1 && scalars[j] == "&"
-    }
-
-    private static let notInNames = Set(":=,;\"'()[]{}<>".unicodeScalars)
-
-    /// A letter, mark or number of any script, or a symbol whose compatibility form is ASCII
-    /// letters and digits.
-    private static func isLetterOrDigit(_ scalar: Unicode.Scalar, compatibility: CompatibilityText) -> Bool {
-        if scalar.isASCII { return ASCII.isAlphanumeric(UInt8(scalar.value)) }
-        if ScalarClass.isLetterOrNumber(scalar) { return true }
-        let reading = compatibility.ascii(scalar)
-        return !reading.isEmpty && reading.allSatisfy(ASCII.isAlphanumeric)
     }
 }
 

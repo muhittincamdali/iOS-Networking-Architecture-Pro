@@ -9,7 +9,7 @@ struct CurlCommandTests {
         request.httpMethod = "POST"
         request.setValue("Bearer secret", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = Data(#"{"user":"ada","password":"p'w"}"#.utf8)
+        request.httpBody = Data(#"{"user":"ada","password":"it's"}"#.utf8)
         return request
     }
 
@@ -24,7 +24,7 @@ struct CurlCommandTests {
 
     @Test func quotesSingleQuotes() {
         #expect(URLRequest.quoted("it's") == #"'it'\''s'"#)
-        #expect(request().curlCommand(redactor: nil).contains(#""password":"p'\''w""#))
+        #expect(request().curlCommand(redactor: nil).contains(#""password":"it'\''s""#))
     }
 
     @Test func binaryBodiesAreNotPrinted() {
