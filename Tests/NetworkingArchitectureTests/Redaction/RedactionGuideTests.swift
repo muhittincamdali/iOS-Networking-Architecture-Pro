@@ -121,6 +121,12 @@ struct RedactionGuideTests {
         // Beside a `name` that is not plain ASCII, every other value is hidden, on purpose.
         #expect(String(decoding: policy.redact(body: Data(#"{"name":"Şifre","x":"hunter2"}"#.utf8), contentType: "application/json").body, as: UTF8.self)
             == #"{"name":"Şifre","x":"[REDACTED]"}"#)
+        // A label in another language without a separator, or before a dash, in a member that
+        // holds no name, is read by its words; with `:` the value beside it is hidden.
+        let json = { (body: String) in String(decoding: policy.redact(body: Data(body.utf8), contentType: "application/json").body, as: UTF8.self) }
+        #expect(json(#"{"title":"Пароль","value":"1234"}"#) == #"{"title":"Пароль","value":"1234"}"#)
+        #expect(json(#"{"title":"Пароль — ","value":"1234"}"#).hasSuffix(#""value":"1234"}"#))
+        #expect(json(#"{"title":"Пароль:","value":"1234"}"#) == #"{"title":"Пароль:","value":"[REDACTED]"}"#)
     }
 
     @Test("Bodies, URLs and headers")
