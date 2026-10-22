@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@58402df49de6ec0f9a265c2d45a050833bf0bf47 status=reviewed -->
+<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg" alt="Networking Architecture: Typisierte Endpunkte, Wiederholungen, Token-Erneuerung, Caching und Streaming auf URLSession, ohne Abhängigkeiten."></picture></p>
@@ -46,8 +46,8 @@ Eine Netzwerkschicht für Apps auf iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ und 
   Ursprung werden zurückgegeben statt verfolgt, Logs und `curl`-Ausgabe zeigen nur, was
   der Redactor versteht, und es gibt Grenzen für Antwortgröße, gepufferte Nachrichten und
   Wartezeiten.
-- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 919
-  Swift-Testing-Tests des Pakets laufen auf macOS, 914 davon auch in einem iPhone-Simulator,
+- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 932
+  Swift-Testing-Tests des Pakets laufen auf macOS, 927 davon auch in einem iPhone-Simulator,
   darunter Tests gegen einen lokalen HTTP-, TLS- und WebSocket-Server.
 
 ### Was enthalten ist
@@ -260,6 +260,10 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Schlüssel, die kein reines ASCII sind** (`pаssword` mit kyrillischem `а`, `pass\u200Bword`,
   `şifre`), haben standardmäßig verborgene Werte. Ebenso die Werte neben einem Feld, das einen
   solchen Namen enthält: `{"name":"Ayşe","id":42}` wird als `{"name":"Ayşe","id":"[REDACTED]"}` protokolliert.
+- **Als Werte geschriebene Bezeichnungen** verbergen den Wert daneben, auch als Satz:
+  `{"question":"What's your PIN?","answer":"1234"}` und
+  `{"title":"PIN (4 digits)","value":"1234"}` werden mit verborgener Antwort und verborgenem
+  Wert protokolliert.
 - **Werte anderer Felder** und Freitext werden nach JWTs, `Bearer`-Anmeldedaten, Hex- oder
   Base64-Strings ab 32 Zeichen, Kartennummern, IBANs und E-Mail-Adressen durchsucht. Eine
   JSON-Zahl wird als die Dezimalzahl gelesen, für die sie steht: `{"amount":4.111111111111111E15}`,
@@ -291,9 +295,10 @@ versehentlich geloggt werden: Strukturierte Eingaben werden geparst, und was der
 vollständig versteht, wird verborgen; Freitext ist ein Bestmöglich-Versuch. Ein geheimer Name
 ohne `=` oder `:`, bei dem zwei oder mehr Buchstaben durch ähnlich aussehende ersetzt sind
 (`pɑsswoʀd hunter2`), ein Geheimnis ohne Bezeichnung (`login -p hunter2`), ein kurzes
-Geheimnis in einem Pfadsegment (`/reset/abc123`) und eine Kartennummer, die in Text oder in
-einem JSON-String mit Exponent geschrieben ist (`"4111111111111111e0"`), werden nicht garantiert
-gefunden. Halte
+Geheimnis in einem Pfadsegment (`/reset/abc123`), eine Kartennummer, die in Text oder in
+einem JSON-String mit Exponent geschrieben ist (`"4111111111111111e0"`), und der Wert neben einem
+Satz, der nach einem geheimen Wort seinen eigenen Wert trägt
+(`{"error":"Error: PIN expired","answer":"1234"}`), werden nicht garantiert gefunden. Halte
 Geheimnisse von vornherein aus den Anfragen heraus, die du loggst. Jedes Geheimnis, das frühere
 Entwicklungsstände des Redactors übersehen haben, ist als Test erhalten; der Artikel
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)

@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@58402df49de6ec0f9a265c2d45a050833bf0bf47 status=reviewed -->
+<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg" alt="Networking Architecture: URLSession 上の型付きエンドポイント、リトライ、トークン更新、キャッシュ、ストリーミング。依存関係なし。"></picture></p>
@@ -45,7 +45,7 @@ iOS 16+、macOS 13+、tvOS 16+、watchOS 9+、visionOS 1+ のアプリ向けの�
   たどらずに返す動作、redactor が理解できる部分だけを表示するログと `curl` 出力、
   レスポンスサイズ・バッファするメッセージ数・待ち時間の上限。
 - **テストしやすい** — `MockTransport` が用意したレスポンスでリクエストに応答します。
-  パッケージ自体の 919 個の Swift Testing テストは macOS で実行され、そのうち 914 個は
+  パッケージ自体の 932 個の Swift Testing テストは macOS で実行され、そのうち 927 個は
   iPhone シミュレータでも実行されます。ローカルの HTTP、TLS、WebSocket サーバーに対するテストも含まれます。
 
 ### 含まれるもの
@@ -254,6 +254,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **プレーンな ASCII ではないキー**（キリル文字の `а` を使った `pаssword`、`pass\u200Bword`、
   `şifre`）の値は、デフォルトで隠されます。そのような名前を持つフィールドの隣の値も隠され、
   `{"name":"Ayşe","id":42}` は `{"name":"Ayşe","id":"[REDACTED]"}` として記録されます。
+- **値として書かれたラベル**は、文として書かれていても隣の値を隠します。
+  `{"question":"What's your PIN?","answer":"1234"}` と `{"title":"PIN (4 digits)","value":"1234"}`
+  は、回答と値を隠して記録されます。
 - **その他のフィールドの値**と自由テキストからは、JWT、`Bearer` 資格情報、32 文字以上の 16 進数
   または Base64 の文字列、カード番号、IBAN、メールアドレスを探します。JSON の数値は、それが表す
   10 進数として読まれます。Jackson や Gson が `double` を書き出す形の
@@ -283,7 +286,8 @@ func makeLoggingClient() -> NetworkClient {
 ベストエフォートです。`=` や `:` なしで書かれ、2 文字以上を似た文字に置き換えた秘密の名前
 （`pɑsswoʀd hunter2`）、ラベルのない秘密（`login -p hunter2`）、パスのセグメントにある短い秘密
 （`/reset/abc123`）、テキストや JSON 文字列の中に指数付きで書かれたカード番号
-（`"4111111111111111e0"`）は、必ず見つかるとは限りません。そもそもログに書くリクエストに秘密情報を
+（`"4111111111111111e0"`）、秘密の単語の後に自分の値を持つ文の隣の値
+（`{"error":"Error: PIN expired","answer":"1234"}`）は、必ず見つかるとは限りません。そもそもログに書くリクエストに秘密情報を
 入れないでください。redactor の以前の開発版が見逃した秘密はすべてテストとして残しています。
 すべてのルールは
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)

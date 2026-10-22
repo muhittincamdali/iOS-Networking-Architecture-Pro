@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@58402df49de6ec0f9a265c2d45a050833bf0bf47 status=reviewed -->
+<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg" alt="Networking Architecture: Endpoints tipados, novas tentativas, renovação de token, cache e streaming sobre URLSession, sem dependências."></picture></p>
@@ -45,8 +45,8 @@ Uma camada de rede para apps no iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ e visio
 - **Seguro por padrão** — public key pinning, redirecionamentos para outra origem
   devolvidos em vez de seguidos, logs e saída do `curl` que mostram só o que o redactor entende, e limites para
   o tamanho das respostas, as mensagens em buffer e os tempos de espera.
-- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 919
-  testes de Swift Testing do próprio pacote rodam no macOS e 914 deles também em um simulador de
+- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 932
+  testes de Swift Testing do próprio pacote rodam no macOS e 927 deles também em um simulador de
   iPhone, incluindo testes contra um servidor local HTTP, TLS e WebSocket.
 
 ### O que está incluído
@@ -258,6 +258,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Chaves que não são ASCII simples** (`pаssword` com um `а` cirílico, `pass\u200Bword`,
   `şifre`) têm seus valores ocultados por padrão. O mesmo vale para os valores ao lado de um
   campo que contém um nome assim: `{"name":"Ayşe","id":42}` é registrado como `{"name":"Ayşe","id":"[REDACTED]"}`.
+- **Rótulos escritos como valores** ocultam o valor ao lado, também quando são frases:
+  `{"question":"What's your PIN?","answer":"1234"}` e
+  `{"title":"PIN (4 digits)","value":"1234"}` são registrados com a resposta e o valor ocultos.
 - **Valores de outros campos** e texto livre são examinados em busca de JWTs, credenciais
   `Bearer`, strings hexadecimais ou Base64 de 32 caracteres ou mais, números de cartão, IBANs e
   endereços de e-mail. Um número JSON é lido como o decimal que representa:
@@ -288,9 +291,10 @@ Ocultar dados é uma rede de segurança, não uma garantia. Foi feito para segre
 acidente: a entrada estruturada é analisada, e tudo o que o analisador não entende por completo é
 ocultado; o texto livre é tratado da melhor forma possível. Um nome secreto escrito sem `=` ou
 `:` e disfarçado com duas ou mais letras parecidas (`pɑsswoʀd hunter2`), um segredo sem rótulo
-(`login -p hunter2`), um segredo curto em um segmento de caminho (`/reset/abc123`) e um número
-de cartão escrito com expoente em texto ou em uma string JSON (`"4111111111111111e0"`) não têm
-garantia de ser encontrados. Mantenha segredos fora das requisições que você registra desde o
+(`login -p hunter2`), um segredo curto em um segmento de caminho (`/reset/abc123`), um número
+de cartão escrito com expoente em texto ou em uma string JSON (`"4111111111111111e0"`) e o
+valor ao lado de uma frase que traz o próprio valor depois de uma palavra secreta
+(`{"error":"Error: PIN expired","answer":"1234"}`) não têm garantia de ser encontrados. Mantenha segredos fora das requisições que você registra desde o
 início. Cada segredo que versões de desenvolvimento anteriores do redactor deixaram passar está
 guardado como teste; o artigo
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)

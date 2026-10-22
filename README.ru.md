@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@58402df49de6ec0f9a265c2d45a050833bf0bf47 status=reviewed -->
+<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg" alt="Networking Architecture: Типизированные эндпоинты, повторы, обновление токенов, кэш и стриминг на URLSession, без зависимостей."></picture></p>
@@ -45,7 +45,7 @@
   возвращаются, а не выполняются, логи и вывод `curl`, в которых видно только то, что понимает
   redactor, а также ограничения на размер ответа, число буферизуемых сообщений и время ожидания.
 - **Удобство тестирования** — `MockTransport` отвечает на запросы заранее заготовленными ответами;
-  собственные 919 тестов пакета на Swift Testing запускаются на macOS, а 914 из них — ещё и на
+  собственные 932 теста пакета на Swift Testing запускаются на macOS, а 927 из них — ещё и на
   симуляторе iPhone, включая тесты с локальным HTTP-, TLS- и WebSocket-сервером.
 
 ### Что входит в пакет
@@ -257,6 +257,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **Ключи не из чистого ASCII** (`pаssword` с кириллической `а`, `pass\u200Bword`, `şifre`) по
   умолчанию скрывают свои значения. Так же скрываются значения рядом с полем, которое содержит
   такое имя: `{"name":"Ayşe","id":42}` записывается как `{"name":"Ayşe","id":"[REDACTED]"}`.
+- **Метки, записанные как значения**, скрывают значение рядом с собой, даже если это фраза:
+  `{"question":"What's your PIN?","answer":"1234"}` и
+  `{"title":"PIN (4 digits)","value":"1234"}` записываются со скрытыми ответом и значением.
 - **Значения других полей** и свободный текст проверяются на JWT, учётные данные `Bearer`,
   шестнадцатеричные строки и строки Base64 длиной от 32 символов, номера карт, IBAN и адреса
   электронной почты. Число JSON читается как десятичное число, которое оно обозначает:
@@ -287,9 +290,10 @@ func makeLoggingClient() -> NetworkClient {
 случайно: структурированный ввод разбирается парсером, и всё, что парсер не понимает полностью,
 скрывается; свободный текст обрабатывается по мере возможности. Секретное имя без `=` или `:`,
 замаскированное двумя или более похожими буквами (`pɑsswoʀd hunter2`), секрет без метки
-(`login -p hunter2`), короткий секрет в сегменте пути (`/reset/abc123`) и номер карты,
-записанный с экспонентой в тексте или в строке JSON (`"4111111111111111e0"`), не обязательно
-будут найдены. С самого начала не включайте секреты в запросы, которые пишете в лог. Каждый секрет,
+(`login -p hunter2`), короткий секрет в сегменте пути (`/reset/abc123`), номер карты,
+записанный с экспонентой в тексте или в строке JSON (`"4111111111111111e0"`), и значение рядом
+с фразой, которая несёт собственное значение после секретного слова
+(`{"error":"Error: PIN expired","answer":"1234"}`), не обязательно будут найдены. С самого начала не включайте секреты в запросы, которые пишете в лог. Каждый секрет,
 который пропускали прежние версии redactor в разработке, сохранён как тест; все правила
 перечислены в статье
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata).

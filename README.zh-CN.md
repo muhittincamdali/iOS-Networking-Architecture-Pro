@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@58402df49de6ec0f9a265c2d45a050833bf0bf47 status=reviewed -->
+<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-zh-CN-light.svg" alt="Networking Architecture: 基于 URLSession：类型化端点、重试、令牌刷新、缓存和流式传输，无依赖。"></picture></p>
@@ -41,8 +41,8 @@
   并通过 ping 保持连接的 WebSocket。
 - **默认安全**：公钥固定（public key pinning）、不跟随跨源重定向而是将其返回、
   日志和 `curl` 输出只显示 redactor 能理解的部分，并对响应大小、缓冲消息数量和等待时间设置上限。
-- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 919 个
-  Swift Testing 测试都在 macOS 上运行，其中 914 个也在 iPhone 模拟器上运行，
+- **易于测试**：`MockTransport` 用预设的响应来应答请求；本软件包自带的 932 个
+  Swift Testing 测试都在 macOS 上运行，其中 927 个也在 iPhone 模拟器上运行，
   包括针对本地 HTTP、TLS 和 WebSocket 服务器的测试。
 
 ### 包含的内容
@@ -249,6 +249,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **不是纯 ASCII 的键**（含西里尔字母 `а` 的 `pаssword`、`pass\u200Bword`、`şifre`）的值
   默认会被隐藏。含有这类名称的字段旁边的值也会被隐藏：`{"name":"Ayşe","id":42}`
   会记录为 `{"name":"Ayşe","id":"[REDACTED]"}`。
+- **作为值写出的标签**即使写成句子，也会隐藏旁边的值：
+  `{"question":"What's your PIN?","answer":"1234"}` 和 `{"title":"PIN (4 digits)","value":"1234"}`
+  记录时回答和值都会被隐藏。
 - **其他字段的值**和自由文本会被扫描，查找 JWT、`Bearer` 凭据、32 个字符及以上的十六进制或
   Base64 字符串、银行卡号、IBAN 和电子邮件地址。JSON 数字按它所表示的十进制数读取：Jackson 和
   Gson 写出 `double` 时的 `{"amount":4.111111111111111E15}` 会记录为 `{"amount":"[REDACTED]"}`。
@@ -274,8 +277,9 @@ func makeLoggingClient() -> NetworkClient {
 脱敏是一张安全网，而不是保证。它针对的是不小心写进日志的敏感信息：结构化输入会用解析器读取，
 解析器不能完全理解的内容都会被隐藏；自由文本只能尽力而为。不带 `=` 或 `:`、并用两个或更多
 形近字母伪装的敏感名称（`pɑsswoʀd hunter2`），没有标签的敏感值（`login -p hunter2`），路径段
-中的短敏感值（`/reset/abc123`），以及在文本或 JSON 字符串中用指数写出的银行卡号
-（`"4111111111111111e0"`），都不保证能被找到。请从一开始就不要把敏感信息放进要记录的
+中的短敏感值（`/reset/abc123`），在文本或 JSON 字符串中用指数写出的银行卡号
+（`"4111111111111111e0"`），以及在敏感词之后自带取值的句子旁边的值
+（`{"error":"Error: PIN expired","answer":"1234"}`），都不保证能被找到。请从一开始就不要把敏感信息放进要记录的
 请求里。redactor 早期开发版本漏掉的每个敏感值都保留为测试；所有规则见
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
 一文。

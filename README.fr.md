@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@58402df49de6ec0f9a265c2d45a050833bf0bf47 status=reviewed -->
+<!-- i18n-source: README.md@4c584de42c92c99bdb97b7b8b27e1168293ce6f9 status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg" alt="Networking Architecture: Endpoints typés, relances, renouvellement de jeton, cache et streaming sur URLSession, sans dépendance."></picture></p>
@@ -47,8 +47,8 @@ Une couche réseau pour les apps sur iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ et
   autre origine renvoyées au lieu d’être suivies, journaux et sortie de `curl` qui ne
   montrent que ce que le redactor comprend, et limites sur la taille des réponses, les messages
   mis en tampon et les délais d’attente.
-- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 919 tests
-  Swift Testing du paquet s’exécutent sur macOS, dont 914 aussi sur un simulateur d’iPhone, y
+- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 932 tests
+  Swift Testing du paquet s’exécutent sur macOS, dont 927 aussi sur un simulateur d’iPhone, y
   compris des tests contre un serveur local HTTP, TLS et WebSocket.
 
 ### Ce qui est inclus
@@ -262,6 +262,10 @@ un `Redactor`, qui masque tout ce qu’il ne comprend pas entièrement.
   `pass\u200Bword`, `şifre`) ont leurs valeurs masquées par défaut. Les valeurs voisines d’un
   champ qui contient un tel nom le sont aussi : `{"name":"Ayşe","id":42}` est journalisé comme
   `{"name":"Ayşe","id":"[REDACTED]"}`.
+- **Les étiquettes écrites comme valeurs** masquent la valeur voisine, même écrites comme des
+  phrases : `{"question":"What's your PIN?","answer":"1234"}` et
+  `{"title":"PIN (4 digits)","value":"1234"}` sont journalisés avec la réponse et la valeur
+  masquées.
 - **Les valeurs des autres champs** et le texte libre sont examinés à la recherche de JWT,
   d’identifiants `Bearer`, de chaînes hexadécimales ou Base64 de 32 caractères ou plus, de
   numéros de carte, d’IBAN et d’adresses e-mail. Un nombre JSON est lu comme le nombre décimal
@@ -293,8 +297,9 @@ journalisés par accident : les entrées structurées sont analysées, et tout c
 comprend pas entièrement est masqué ; le texte libre est traité au mieux. Un nom secret écrit
 sans `=` ni `:` et déguisé par deux lettres ressemblantes ou plus (`pɑsswoʀd hunter2`), un secret
 sans étiquette (`login -p hunter2`), un secret court dans un segment de chemin
-(`/reset/abc123`) et un numéro de carte écrit avec un exposant dans du texte ou dans une chaîne
-JSON (`"4111111111111111e0"`) ne sont pas trouvés à coup sûr. Gardez les secrets hors des requêtes que vous
+(`/reset/abc123`), un numéro de carte écrit avec un exposant dans du texte ou dans une chaîne
+JSON (`"4111111111111111e0"`) et la valeur voisine d’une phrase qui porte sa propre valeur après
+un mot secret (`{"error":"Error: PIN expired","answer":"1234"}`) ne sont pas trouvés à coup sûr. Gardez les secrets hors des requêtes que vous
 journalisez dès le départ. Chaque secret que les versions de développement précédentes du
 redactor laissaient passer est conservé comme test ; l’article
 [Redacting Sensitive Data](https://muhittincamdali.github.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata)
