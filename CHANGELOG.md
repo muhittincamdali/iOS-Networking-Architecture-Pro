@@ -105,7 +105,9 @@ for this package rather than copied.
   allowlist and secret-name extensions (`sig`, `jwt`, `code`). The secrets that the rules used
   during development missed — values holding URLs, forms or JSON, `+` read as a space,
   `;jsessionid`, percent-encoded path segments, a value after a bracket that does not close,
-  `&#` before a value, an address before a vertical tab — are kept as tests, with the review
+  `&#` before a value, an address before a vertical tab, a card number written as a JSON
+  number with an exponent (`4.111111111111111E15`, as Jackson writes a `double`), which is now
+  read as the decimal it stands for — are kept as tests, with the review
   probes of iOSSecurityTools, iOSDevelopmentTools and this package. Redaction is a safety net,
   not a guarantee: a secret name in free text disguised with look-alike letters and no
   separator, a secret with no label and a short secret in a path segment are not guaranteed to
