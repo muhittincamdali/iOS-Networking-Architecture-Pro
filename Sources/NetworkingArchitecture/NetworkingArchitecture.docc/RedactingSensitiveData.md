@@ -61,7 +61,7 @@ not built to stop someone who writes a request on purpose to get a secret past i
 
 | Part | Recorded | Never recorded |
 | --- | --- | --- |
-| URL | Scheme, host, port, path, query parameter names, values of allowlisted query parameters | User info (`user:password@`), the fragment (`#…`), other query values, path segments that look like identifiers or secrets (shown as `:id`), the segment after one that names a secret or is not plain ASCII (`/caf%C3%A9/menu` is recorded as `/caf%C3%A9/:id`), a host that is not a name of ASCII labels or an address or in which a value detector finds something, and the path and query after a host that names a secret (`myapp://pin/4831` is recorded as `myapp://pin`) |
+| URL | Scheme, host, port, path, query parameter names, values of allowlisted query parameters | User info (`user:password@`), the fragment (`#…`), other query values, path segments that look like identifiers or secrets (shown as `:id`), the segment after one that names a secret or is not plain ASCII (`/caf%C3%A9/menu` is recorded as `/caf%C3%A9/:id`), a host that is not a name of ASCII labels or an address or in which a value detector finds something, and a host that names a secret, with its port, path and query (`myapp://pin/4831` is recorded as `myapp://[REDACTED]`) |
 | Headers | Names; values of the allowlisted headers, after the free-text rule | Values of every other header, and always the values of `Authorization`, `Proxy-Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, any header whose name contains `token`, `secret`, `key`, `auth`, `session` or `signature`, and values that start with an authentication scheme (`Bearer …`, `Basic …`, `Token …`) |
 | JSON, form and multipart bodies | Keys and member names, and values, as sent, with hidden values replaced | Values of secret keys and of keys that are not plain ASCII; values beside a field that holds a secret name or a name that is not plain ASCII; file parts and file names of multipart bodies |
 | Other bodies | `text/plain` after the free-text rule; a note for everything else | Bodies with an unknown or missing content type (XML, property lists, HTML), bodies that do not parse, bodies that servers could split into fields differently, and bodies larger than ``Redactor/maximumBodySize`` (256 KiB by default) |
@@ -241,14 +241,18 @@ port only. `URL.standardized` and servers read `/pin/./4831` and `/pin/x/../4831
 (RFC 3986 §5.2.4), and a `;` starts parameters for some servers but is part of the segment for
 others, so the value after the name could not be told from the text. Parameters after a `;`
 (matrix parameters) are never parsed. With `urlDetail: .hostOnly` only the scheme, host and port
-are written. A host that is neither a name of ASCII letters, digits and hyphens nor an IP
-address, or in which a value detector finds something, is not written either:
-`https://password=hunter2.example/x` is recorded as `https://[REDACTED]`. A host that names a
-secret, by the key rule or as a word, is recorded with the scheme and port only, as the path
-after it is its value: with a scheme of the app's own `URLComponents` reads the first part after
-`//` as the host, so `myapp://pin/4831` is recorded as `myapp://pin`. A host such as
-`auth.example.com` names `auth` too and hides its whole path and query, which over-hides on
-purpose. A URL that `URLComponents` cannot parse, or that has no scheme and host
+are written, and the host follows the rules below.
+
+The host is a key of the URL. A host that is neither a name of ASCII letters, digits and hyphens
+nor an IP address, or in which a value detector finds something, is not written:
+`https://password=hunter2.example/x` is recorded as `https://[REDACTED]`. Nor is a host that
+names a secret, by the key rule or as a word, and nothing after it is written either, as its value
+may be in the host itself (`myapp://password.hunter2`, `https://pin-4831.example.com`), in the
+port (`myapp://pin:4831`) or in the path: with a scheme of the app's own `URLComponents` reads the
+first part after `//` as the host, so `myapp://pin/4831` has the host `pin`. Each of them is
+recorded as the scheme and `[REDACTED]` (`myapp://[REDACTED]`). A host such as
+`auth.example.com` names `auth` too and is hidden the same way, which over-hides on purpose. A
+URL that `URLComponents` cannot parse, or that has no scheme and host
 (`mailto:ada@example.com`), is recorded as ``Redactor/unparsedURL``.
 
 ```swift
@@ -258,7 +262,9 @@ Redactor.default.redact(url: url)
 Redactor(allowedQueryParameters: ["page"]).redact(url: url)
 // https://api.example.com/users/:id/reset?code=[REDACTED]&page=2
 Redactor.default.redact(url: URL(string: "myapp://pin/4831")!)
-// myapp://pin
+// myapp://[REDACTED]
+Redactor.default.redact(url: URL(string: "myapp://password.hunter2")!)
+// myapp://[REDACTED]
 ```
 
 ### Free text: one cut point
@@ -469,6 +475,8 @@ Use ``Redactor/disabled`` only with test servers and test accounts, or pass `nil
 - A short secret in a path segment, such as `/reset/abc123`; only identifiers, tokens of the shapes
   listed above and segments in which a rule finds something become `:id`. In free text the same
   holds for a clean URL (`see https://x.example/reset/abc123`).
+- A secret in a URL host that names no secret, unless a detector finds it:
+  `https://hunter2.example.com/a` keeps its host. A host that names one is hidden whole.
 - A secret in the name of a JSON member (`{"password hunter2":…}`): structured member names are
   shown.
 
@@ -478,8 +486,9 @@ below included (`Payment failed: card declined` keeps only `Payment failed:`, an
 Array<Item> in 3 ms` keeps only `Loaded Array`), the rest of a text after a quote that does not
 close on its line or a bracket that does not close, the rest of a text after a URL that is not
 clean, the rest of a text from the start of a word with a backslash or an `&` before a letter
-(`R&D team` keeps nothing), the values beside a name that is not plain ASCII, and the value of a
-name that only describes a secret (`token_type`).
+(`R&D team` keeps nothing), the values beside a name that is not plain ASCII, the value of a
+name that only describes a secret (`token_type`), and a URL host that names a secret with all
+that follows it (`https://auth.example.com/login` is recorded as `https://[REDACTED]`).
 
 ## See Also
 
