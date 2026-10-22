@@ -54,6 +54,7 @@ remap = [
   '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/streamingevents$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/StreamingEvents.md',
   '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/securingtraffic$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/SecuringTraffic.md',
   '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/testingyourapilayer$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/TestingYourAPILayer.md',
+  '^https://muhittincamdali\.github\.io/iOS-Networking-Architecture-Pro/documentation/networkingarchitecture/redactingsensitivedata$ file:///home/runner/work/iOS-Networking-Architecture-Pro/iOS-Networking-Architecture-Pro/Sources/NetworkingArchitecture/NetworkingArchitecture.docc/RedactingSensitiveData.md',
 ]
 
 exclude_path = [
