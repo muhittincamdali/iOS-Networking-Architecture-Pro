@@ -63,7 +63,7 @@ not built to stop someone who writes a request on purpose to get a secret past i
 | --- | --- | --- |
 | URL | Scheme, host, port, path, query parameter names, values of allowlisted query parameters | User info (`user:password@`), the fragment (`#…`), other query values, path segments that look like identifiers or secrets (shown as `:id`), the segment after one that names a secret or is not plain ASCII (`/caf%C3%A9/menu` is recorded as `/caf%C3%A9/:id`), a host that is not a name of ASCII labels or an address or in which a value detector finds something, and a host that names a secret, with its port, path and query (`myapp://pin/4831` is recorded as `myapp://[REDACTED]`) |
 | Headers | Names; values of the allowlisted headers, after the free-text rule | Values of every other header, and always the values of `Authorization`, `Proxy-Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key`, any header whose name contains `token`, `secret`, `key`, `auth`, `session` or `signature`, and values that start with an authentication scheme (`Bearer …`, `Basic …`, `Token …`) |
-| JSON, form and multipart bodies | Keys and member names, and values, as sent, with hidden values replaced | Values of secret keys and of keys that are not plain ASCII; values beside a field that holds a secret name or a name that is not plain ASCII; file parts and file names of multipart bodies |
+| JSON, form and multipart bodies | Keys and member names, and values, as sent, with hidden values replaced | Values of secret keys and of keys that are not plain ASCII; values beside a field that holds a secret name or a name that is not plain ASCII, and beside a label that names a secret or is written outside ASCII (`{"title":"ΡΙΝ:","value":…}`); file parts and file names of multipart bodies |
 | Other bodies | `text/plain` after the free-text rule; a note for everything else | Bodies with an unknown or missing content type (XML, property lists, HTML), bodies that do not parse, bodies that servers could split into fields differently, and bodies larger than ``Redactor/maximumBodySize`` (256 KiB by default) |
 | Free text (kept header values, `text/plain` bodies, strings in JSON and forms) | The text up to its first trigger, after the value detectors | Everything from the first trigger to the end of the text, and what the value detectors find |
 | Errors | The kind of error and its code (`URLError -1009`, `status 401`) | The error's description and the URL and body it may hold |
@@ -99,15 +99,18 @@ written as values described below.
 | `şifre` | not plain ASCII | hidden |
 | `created_at` | `createdat` | kept |
 
-A secret word of five or more letters counts anywhere in a key (`dbPassword`, `session_data`,
-also `session_start`). A shorter one (`key`, `pin`, `otp`, `card`, `auth`, `token`) counts as a
-word of the key or at its end (`api-key`, `userPin`, `X-Auth-Key`, `apitoken`), so `keyboard`,
-`spinner` and `author` keep their values; `pass`, `pw`, `sid` and `sig` count only as a word
-(`DB_PASS`, but not `bypass`, `inside` or `signal`), and `jwt` and `code` (an OAuth
-authorization code) only as the whole key or word (`code`, but not `status_code`). A plural `s`
-counts too (`tokens`). Words start after a separator, between letters and digits and at a
-camel-case hump. A name that only describes a secret, such as `token_type` or `passwordHint`, is
-hidden as well: telling the two apart would take a list of exceptions.
+A secret word of five or more letters counts anywhere in a key: `token`, `secret` and `session`
+as well as the longer ones (`dbPassword`, `apitoken`, `secretanswer`, `tokenValue`,
+`session_data`), so `secretary`, `tokenizer` and `session_start` are hidden too. A shorter one
+(`key`, `pin`, `otp`, `cvv`, `card`, `auth`, `iban`) counts as a word of the key or at its end
+(`api-key`, `userPin`, `X-Auth-Key`, `licensekey`), so `keyboard`, `spinner` and `author` keep
+their values; `pass`, `pw`, `sid` and `sig` count only as a word (`DB_PASS`, but not `bypass`,
+`inside`, `userpw` or `signal`), and `jwt` and `code` (an OAuth authorization code) only as the
+whole key or word (`code`, but not `status_code`). A plural `s` counts too (`tokens`). Words
+start after a separator, between letters and digits and at a camel-case hump. A name that only
+describes a secret, such as `token_type` or `passwordHint`, is hidden as well: telling the two
+apart would take a list of exceptions. The allowlists follow the same rule: a name that holds a
+secret word where it counts (`secretanswer`) is never allowed.
 
 Every repetition of a key is read: in `{"token":"a","token":"b"}` both values are hidden.
 
@@ -148,6 +151,22 @@ and a word, is the key of a value the sentence carries itself (`pin=1234`, `Erro
 `login with api_key=abc123`): the free-text rule hides that value in the string, and the members
 beside it stay. A JSON object or array written into a string is read as a document of its own,
 not as a name.
+
+A label is a key written as a value, so a label written outside printable ASCII hides the value
+beside it whatever it says, as a key that is not plain ASCII does: words with a character outside
+printable ASCII in them, then a `:` or an `=` (also as written in another form, `：`, `﹕`, `＝`)
+or a punctuation mark or a math or modifier symbol with no ASCII form (`꞉`, `∶`, `·`, `→`), and
+then white space, a line break or the end of the string. `{"title":"ΡΙΝ:","value":…}`,
+`{"prompt":"Enter your pɑsswoʀd:","answer":…}`, `{"title":"Şifre: zorunlu","value":…}` and
+`["note","Пароль:","…"]` hide the value, in forms, multipart bodies and allowed query parameters
+too. This hides on purpose: `{"title":"Цена: 100","id":7}` is stored with `id` hidden. A
+sentence end (`。`), a dash and `…` are not separators, and a string with no such label keeps
+what is beside it (`{"title":"Ayşe Yılmaz","id":7}`, `{"title":"Name: Ayşe","id":7}`).
+
+A string is read at any length, in one pass, its words longer than 256 characters too: the label
+at the end of a long description (`{"question":"<a paragraph> What is your PIN?","answer":…}`)
+hides the value beside it, and so does a secret word glued to a long word (`…xxxxPIN:`). A string
+of control characters and white space alone hides it at any length.
 
 ### Values
 
@@ -464,6 +483,11 @@ Use ``Redactor/disabled`` only with test servers and test accounts, or pass `nil
   replaced by letters that have no ASCII form: `pɑsswoʀd hunter2` is stored as it is. With a
   separator (`pɑsswoʀd=hunter2`) the value is hidden. A secret word in another language, such as
   `пароль hunter2`, is not one either.
+- A label in another language without a `:`, an `=` or another separator, in a member that does
+  not hold a name: `{"title":"Пароль","value":…}` and `{"title":"Пароль — ","value":…}` keep the
+  value, as `пароль hunter2` does in free text; a dash is not a separator. With one
+  (`{"title":"Пароль:","value":…}`), or in a member that holds a name
+  (`{"label":"Пароль","value":…}`), the value is hidden.
 - A value written before its name, with no key before it: `hunter2 is my password` is stored as
   it is.
 - A card number grouped with `+` or `.` (`4111+1111+1111+1111`), and a card number or an IBAN
