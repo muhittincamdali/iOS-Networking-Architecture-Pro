@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2026-10-15
+## [2.0.0] - 2026-10-22
 
 A rebuilt package. The 1.0.0 release did not build: `iOS-Networking-Architecture-Pro.swift`
 had syntax errors and `MainFramework.swift` imported UIKit in a package that also targets
@@ -134,6 +134,15 @@ for this package rather than copied.
 - Pinning failures surface as `URLError.serverCertificateUntrusted` instead of a
   cancellation, system certificate validation always runs before the pins are checked, and
   a host name with a trailing dot (`api.example.com.`) gets the same pins as without it.
+
+### Known limitations
+
+- A label whose separator is followed directly by a letter or a digit does not end, so the
+  value beside it is stored as it is: `{"title":"「パスワード」を入力","value":…}`. Reading the
+  words after the separator needs a design of its own (Japanese and Chinese have no word
+  boundaries). Tracked in [#24](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/issues/24).
+  The other cases that redaction does not find are listed in the DocC article
+  "Redacting sensitive data".
 
 ## [1.0.0] - 2026-02-02
 
