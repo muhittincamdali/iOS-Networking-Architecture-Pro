@@ -14,6 +14,11 @@ public struct HTTPHeaders: Hashable, Sendable, Sequence, ExpressibleByDictionary
     /// The fields in the order they were added, with the names as they were written.
     public private(set) var fields: [(name: String, value: String)] = []
 
+    /// The index in ``fields`` of the field with each name, by ``lookupKey(_:)``. A field is found
+    /// and replaced without reading the others, so headers of many fields, such as a response
+    /// from a hostile server, are read and redacted in time linear in their number.
+    private var indexes: [String: Int] = [:]
+
     /// Creates an empty set of headers.
     public init() {}
 
@@ -34,17 +39,30 @@ public struct HTTPHeaders: Hashable, Sendable, Sequence, ExpressibleByDictionary
     /// Setting `nil` removes the field.
     public subscript(name: String) -> String? {
         get {
-            fields.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.value
+            indexes[Self.lookupKey(name)].map { fields[$0].value }
         }
         set {
-            let index = fields.firstIndex { $0.name.caseInsensitiveCompare(name) == .orderedSame }
-            switch (index, newValue) {
-            case (let index?, let value?): fields[index] = (name, value)
-            case (let index?, nil): fields.remove(at: index)
-            case (nil, let value?): fields.append((name, value))
-            case (nil, nil): break
+            let key = Self.lookupKey(name)
+            switch (indexes[key], newValue) {
+            case (let index?, let value?):
+                fields[index] = (name, value)
+            case (let index?, nil):
+                fields.remove(at: index)
+                indexes[key] = nil
+                for later in index..<fields.count { indexes[Self.lookupKey(fields[later].name)] = later }
+            case (nil, let value?):
+                indexes[key] = fields.count
+                fields.append((name, value))
+            case (nil, nil):
+                break
             }
         }
+    }
+
+    /// The key a name is looked up by: the name case-folded, so names that differ only in case
+    /// are one field. Header names are ASCII tokens, which are only lowercased.
+    private static func lookupKey(_ name: String) -> String {
+        name.utf8.allSatisfy { $0 < 0x80 } ? name.lowercased() : name.folding(options: .caseInsensitive, locale: nil)
     }
 
     /// The number of fields.
@@ -78,7 +96,7 @@ public struct HTTPHeaders: Hashable, Sendable, Sequence, ExpressibleByDictionary
     }
 
     private var normalized: [(name: String, value: String)] {
-        fields.map { ($0.name.lowercased(), $0.value) }.sorted { $0.name < $1.name }
+        fields.map { (Self.lookupKey($0.name), $0.value) }.sorted { $0.name < $1.name }
     }
 
     /// Reads the header fields of a response.
