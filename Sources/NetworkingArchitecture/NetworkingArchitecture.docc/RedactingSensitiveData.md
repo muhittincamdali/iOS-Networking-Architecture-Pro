@@ -135,9 +135,19 @@ everything.
 The second element of a two-element array whose first is such a name is hidden whole
 (`[["Authorization","…"]]`), and so is every element of an array after a string that names a
 secret (`["password","…"]`). Form fields, query parameters and multipart parts follow the same
-rule. In a member that does not hold a name (`setting`, `ParameterKey`), a string names a secret
-when its words name one (`{"ParameterKey":"DbPassword","ParameterValue":…}`), also with its line
-breaks read as spaces or its character references decoded.
+rule. In a member that does not hold a name (`question`, `prompt`, `title`, `setting`,
+`ParameterKey`, `Tag`), a string names a secret when its words name one
+(`{"ParameterKey":"DbPassword","ParameterValue":…}`), also with its line breaks read as spaces or
+its character references decoded. An apostrophe between letters is part of a word, as it is in
+free text (`What's your PIN?`, `Kartın CVV'si`). A string with a `:`, `=`, `,`, `;`, a quote or a
+bracket in it is a sentence, and a secret word in it names a secret when no value is written after
+it, as in a label: `{"question":"Enter PIN (4 digits)","answer":…}`, `PIN, 4 digits`,
+`PIN: required`, `"Password" field`, `{"Tag":"aws:secret-access-key","Value":…}` and
+`api_token[0]` hide the value beside them. A secret word with `=` right after it, or white space
+and a word, is the key of a value the sentence carries itself (`pin=1234`, `Error: token expired`,
+`login with api_key=abc123`): the free-text rule hides that value in the string, and the members
+beside it stay. A JSON object or array written into a string is read as a document of its own,
+not as a name.
 
 ### Values
 
@@ -177,7 +187,8 @@ rule.
   names are shown and the values under them hidden, so a secret written into the name of a member
   (`{"password hunter2":…}`) shows; in free text such a name is cut where it starts. UTF-16 and
   UTF-32 bodies are stored as UTF-8; a body whose bytes are in another encoding than its `charset`
-  names is omitted.
+  names is omitted. A byte order mark at the start of a body is left out before it is read, the
+  same way on every OS version, and a JSON body with a second one is omitted, as JSON allows none.
 - **Forms** (`application/x-www-form-urlencoded`) are split on `&` and `=` and decoded with the
   platform's percent decoding. A form is read only when every server splits it the same way: no
   `;`, no `%` that does not start an escape, and no name spelled two ways (`a.b` and `a_b`,
@@ -390,12 +401,16 @@ and the time that logging a request can use:
 - A URL whose path has more than ``Redactor/maximumPathSegments`` (64) segments, or whose
   query has more than ``Redactor/maximumQueryParameters`` (128) parameters, is recorded
   with its scheme, host and port only. A multipart body has at most 1,000 parts.
+- Header fields are read from a response, redacted and logged in time linear in their number:
+  ``HTTPHeaders`` finds a field by an index of its case-folded name. A server can send tens of
+  thousands of them, and `URLSession` accepts them.
 
 JSON past a limit is not read: a body is omitted, and a string or other text inside a document that
 holds such JSON is hidden whole. Free text is read in one pass that keeps a fixed number of
 positions. The package's tests run every limit on a thread with 512 KiB of stack, and in a release
 build (`swift test -c release`) they check that a megabyte of text, nested input or a body in any
-shape takes less than a second, and, on macOS, that a megabyte of free text takes less than 16 MB
+shape takes less than a second, that 32,000 response header fields take less than a second per
+megabyte, and, on macOS, that a megabyte of free text takes less than 16 MB
 of memory beyond the input, also when it is dense with findings or every character of it is a
 different one outside ASCII.
 
@@ -432,6 +447,10 @@ Use ``Redactor/disabled`` only with test servers and test accounts, or pass `nil
   value. With a separator, a key that is not on the allowed text keys hides its value in free text
   (`creds=hunter2` is stored as `creds=[REDACTED]`). In a body, a plain ASCII key that is not a
   secret name keeps its value (`{"creds":"hunter2"}`); add the name with `additionalSecretNames`.
+- A secret word followed by a value in a sentence written into a member that does not hold a
+  name: `{"error":"Error: PIN expired","answer":"1234"}` keeps `answer`, as `PIN expired` is read
+  as the value the sentence carries; the free-text rule hides it in the string. Labels written as
+  labels (`PIN`, `PIN (4 digits)`, `PIN: required`) hide the value beside them.
 - An added name written as the value of a field (`{"name":"license_number","value":…}`) or in
   free text without a separator (`license_number 12345`): added names are compared with keys only.
 - The value of an allowed key: `status=hunter2` keeps `hunter2`.
