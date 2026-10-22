@@ -17,4 +17,6 @@ jobs:
     with:
       platforms: '["iOS","macOS","tvOS","watchOS","visionOS"]'
       test-on-simulator: true
-      swift-test-flags: --no-parallel
+      # The memory and large-probe suites run in release-tests.yml: with them, a serial debug run
+      # takes about 35 minutes on a hosted runner, and this job stops after 30.
+      swift-test-flags: --no-parallel --skip RedactionPeakMemoryTests --skip RedactionReviewProbeSetTests
