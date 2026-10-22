@@ -2,16 +2,6 @@ import Foundation
 import Testing
 @testable import NetworkingArchitecture
 
-/// Whether the tests run in an optimized build: a debug build runs the same code many times
-/// slower, so the limit is only checked with `swift test -c release`.
-private var isOptimized: Bool {
-    #if DEBUG
-    false
-    #else
-    true
-    #endif
-}
-
 /// What a 512 KiB thread did with a response of many header fields.
 private struct HeaderRun: Sendable {
     let seconds: Double

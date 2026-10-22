@@ -16,16 +16,6 @@ private func body(_ contentType: String) -> @Sendable (String) -> String {
     { RedactionTimeLimitTests.largeBodies.redact(body: Data($0.utf8), contentType: contentType) }
 }
 
-/// Whether the tests run in an optimized build: a debug build runs the same code many times
-/// slower, so the limit is only checked with `swift test -c release`.
-private var isOptimized: Bool {
-    #if DEBUG
-    false
-    #else
-    true
-    #endif
-}
-
 @Suite("Redaction corpus: time limit", .serialized, .enabled(if: isOptimized, "time limits are checked in a release build: swift test -c release"))
 struct RedactionTimeLimitTests {
     static let size = 1_000_000
