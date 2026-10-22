@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
+<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-tr-light.svg" alt="Networking Architecture: URLSession üzerinde tipli uç noktalar, yeniden deneme, token yenileme, önbellek ve akış; bağımlılık yok."></picture></p>
@@ -45,8 +45,8 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ ve visionOS 1+ uygulamaları için, `UR
   izlenmeyip geri döndürülmesi, günlüklerde ve `curl` çıktısında yalnızca redactor'ın
   anladığı kısmın gösterilmesi; ayrıca yanıt boyutu, arabelleğe alınan mesajlar ve bekleme
   süreleri için sınırlar.
-- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 932
-  Swift Testing testi macOS'ta çalışır, bunların 927'si ayrıca bir iPhone simülatöründe de
+- **Test edilebilir** — `MockTransport` istekleri hazır yanıtlarla karşılar; paketin kendi 936
+  Swift Testing testi macOS'ta çalışır, bunların 931'i ayrıca bir iPhone simülatöründe de
   çalışır. Bunlara yerel bir HTTP, TLS ve WebSocket sunucusuna karşı yazılmış testler de dahildir.
 
 ### Neler var
@@ -255,8 +255,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   değerleri (varsayılan olarak hiçbiri izinli değildir), diğer bütün başlıkların değerleri
   (`Authorization`, `Cookie`, `X-API-Key` ve adında `token`, `key` ya da `auth` geçenler izin
   listesinde olsalar bile), `password`, `token` ya da `api_key` gibi gizli adların altındaki
-  değerlerin tamamı, kimliğe benzeyen yol parçaları (`:id` olarak yazılır), multipart
-  gövdelerindeki dosya parçaları ve hata açıklamaları.
+  değerlerin tamamı, kimliğe benzeyen yol parçaları (`:id` olarak yazılır), gizli bir ad
+  taşıyan URL host'u ile portu, yolu ve sorgusu (`myapp://pin/4831`, `myapp://[REDACTED]`
+  olarak yazılır), multipart gövdelerindeki dosya parçaları ve hata açıklamaları.
 - **Düz ASCII olmayan anahtarların** (Kiril `а` harfli `pаssword`, `pass\u200Bword`, `şifre`)
   değerleri varsayılan olarak gizlenir. Böyle bir ad taşıyan alanın yanındaki değerler de
   gizlenir: `{"name":"Ayşe","id":42}`, `{"name":"Ayşe","id":"[REDACTED]"}` olarak kaydedilir.

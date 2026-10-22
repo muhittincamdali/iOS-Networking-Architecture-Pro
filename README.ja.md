@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
+<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ja-light.svg" alt="Networking Architecture: URLSession 上の型付きエンドポイント、リトライ、トークン更新、キャッシュ、ストリーミング。依存関係なし。"></picture></p>
@@ -45,7 +45,7 @@ iOS 16+、macOS 13+、tvOS 16+、watchOS 9+、visionOS 1+ のアプリ向けの�
   たどらずに返す動作、redactor が理解できる部分だけを表示するログと `curl` 出力、
   レスポンスサイズ・バッファするメッセージ数・待ち時間の上限。
 - **テストしやすい** — `MockTransport` が用意したレスポンスでリクエストに応答します。
-  パッケージ自体の 932 個の Swift Testing テストは macOS で実行され、そのうち 927 個は
+  パッケージ自体の 936 個の Swift Testing テストは macOS で実行され、そのうち 931 個は
   iPhone シミュレータでも実行されます。ローカルの HTTP、TLS、WebSocket サーバーに対するテストも含まれます。
 
 ### 含まれるもの
@@ -250,7 +250,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   （デフォルトではすべて）、その他すべてのヘッダーの値（`Authorization`、`Cookie`、
   `X-API-Key`、名前に `token`・`key`・`auth` を含むものは許可リストにあっても隠されます）、
   `password`・`token`・`api_key` などの秘密の名前の下にある値全体、識別子に見えるパスの
-  セグメント（`:id` と書かれます）、multipart ボディのファイル部分、エラーの説明。
+  セグメント（`:id` と書かれます）、秘密の名前を示す URL のホストとそのポート・パス・クエリ
+  （`myapp://pin/4831` は `myapp://[REDACTED]` とログに書かれます）、multipart ボディのファイル
+  部分、エラーの説明。
 - **プレーンな ASCII ではないキー**（キリル文字の `а` を使った `pаssword`、`pass\u200Bword`、
   `şifre`）の値は、デフォルトで隠されます。そのような名前を持つフィールドの隣の値も隠され、
   `{"name":"Ayşe","id":42}` は `{"name":"Ayşe","id":"[REDACTED]"}` として記録されます。

@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
+<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ko-light.svg" alt="Networking Architecture: URLSession 기반 타입 엔드포인트, 재시도, 토큰 갱신, 캐싱, 스트리밍. 의존성 없음."></picture></p>
@@ -44,7 +44,7 @@ iOS 16+, macOS 13+, tvOS 16+, watchOS 9+, visionOS 1+ 앱을 위한 네트워킹
   redactor가 이해하는 부분만 보여 주는 로그와 `curl` 출력, 응답 크기·버퍼링되는 메시지 수·대기
   시간에 대한 제한.
 - **테스트하기 쉬움** — `MockTransport`가 미리 준비한 응답으로 요청에 답합니다. 패키지 자체의
-  932개 Swift Testing 테스트가 macOS에서 실행되며, 그중 927개는 iPhone 시뮬레이터에서도 실행됩니다.
+  936개 Swift Testing 테스트가 macOS에서 실행되며, 그중 931개는 iPhone 시뮬레이터에서도 실행됩니다.
   로컬 HTTP, TLS, WebSocket 서버를 대상으로 한 테스트도 포함됩니다.
 
 ### 포함된 기능
@@ -247,8 +247,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
 - **절대 기록되지 않는 것:** URL의 사용자 정보와 프래그먼트, 허용 목록에 없는 쿼리 값(기본적으로
   모두), 그 밖의 모든 헤더 값(`Authorization`, `Cookie`, `X-API-Key`, 그리고 이름에 `token`,
   `key`, `auth`가 들어간 헤더는 허용 목록에 있어도 숨김), `password`, `token`, `api_key` 같은
-  비밀 이름 아래의 값 전체, 식별자처럼 보이는 경로 세그먼트(`:id`로 기록), multipart 본문의 파일
-  부분, 오류 설명.
+  비밀 이름 아래의 값 전체, 식별자처럼 보이는 경로 세그먼트(`:id`로 기록), 비밀 이름을 담은 URL
+  호스트와 그 포트, 경로, 쿼리(`myapp://pin/4831`은 `myapp://[REDACTED]`로 기록), multipart
+  본문의 파일 부분, 오류 설명.
 - **순수 ASCII가 아닌 키**(키릴 문자 `а`가 들어간 `pаssword`, `pass\u200Bword`, `şifre`)의 값은
   기본적으로 숨겨집니다. 그런 이름을 담은 필드 옆의 값도 숨겨지므로 `{"name":"Ayşe","id":42}`는
   `{"name":"Ayşe","id":"[REDACTED]"}`로 기록됩니다.

@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
+<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-es-light.svg" alt="Networking Architecture: Endpoints tipados, reintentos, renovación de tokens, caché y streaming sobre URLSession, sin dependencias."></picture></p>
@@ -47,7 +47,7 @@ Una capa de red para apps en iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ y visionOS
   entiende, y límites para el tamaño de las respuestas, los mensajes en búfer y los tiempos de
   espera.
 - **Fácil de probar** — `MockTransport` responde a las peticiones con respuestas predefinidas; las
-  932 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 927 de ellas también en
+  936 pruebas de Swift Testing del propio paquete se ejecutan en macOS y 931 de ellas también en
   un simulador de iPhone, incluidas pruebas contra un servidor local HTTP, TLS y WebSocket.
 
 ### Qué incluye
@@ -255,7 +255,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   cabeceras (`Authorization`, `Cookie`, `X-API-Key` y los nombres con `token`, `key` o `auth`,
   aunque estén en la lista), los valores completos bajo nombres secretos como `password`,
   `token` o `api_key`, los segmentos de ruta que parecen identificadores (escritos como `:id`),
-  las partes de archivo de los cuerpos multipart y las descripciones de error.
+  un host de URL que nombra un secreto junto con su puerto, su ruta y su query
+  (`myapp://pin/4831` se registra como `myapp://[REDACTED]`), las partes de archivo de los
+  cuerpos multipart y las descripciones de error.
 - **Las claves que no son ASCII simple** (`pаssword` con una `а` cirílica, `pass\u200Bword`,
   `şifre`) tienen sus valores ocultos por defecto. También los valores junto a un campo que
   contiene un nombre así: `{"name":"Ayşe","id":42}` se registra como `{"name":"Ayşe","id":"[REDACTED]"}`.

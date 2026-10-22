@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
+<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-fr-light.svg" alt="Networking Architecture: Endpoints typés, relances, renouvellement de jeton, cache et streaming sur URLSession, sans dépendance."></picture></p>
@@ -47,8 +47,8 @@ Une couche réseau pour les apps sur iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ et
   autre origine renvoyées au lieu d’être suivies, journaux et sortie de `curl` qui ne
   montrent que ce que le redactor comprend, et limites sur la taille des réponses, les messages
   mis en tampon et les délais d’attente.
-- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 932 tests
-  Swift Testing du paquet s’exécutent sur macOS, dont 927 aussi sur un simulateur d’iPhone, y
+- **Testable** — `MockTransport` répond aux requêtes avec des réponses préparées ; les 936 tests
+  Swift Testing du paquet s’exécutent sur macOS, dont 931 aussi sur un simulateur d’iPhone, y
   compris des tests contre un serveur local HTTP, TLS et WebSocket.
 
 ### Ce qui est inclus
@@ -257,7 +257,9 @@ un `Redactor`, qui masque tout ce qu’il ne comprend pas entièrement.
   en-têtes (`Authorization`, `Cookie`, `X-API-Key` et les noms contenant `token`, `key` ou
   `auth`, même s’ils sont autorisés), les valeurs entières sous des noms secrets comme
   `password`, `token` ou `api_key`, les segments de chemin qui ressemblent à des identifiants
-  (écrits `:id`), les parties fichier des corps multipart et les descriptions d’erreur.
+  (écrits `:id`), un hôte d’URL qui nomme un secret avec son port, son chemin et sa query
+  (`myapp://pin/4831` est journalisé comme `myapp://[REDACTED]`), les parties fichier des corps
+  multipart et les descriptions d’erreur.
 - **Les clés qui ne sont pas en ASCII simple** (`pаssword` avec un `а` cyrillique,
   `pass\u200Bword`, `şifre`) ont leurs valeurs masquées par défaut. Les valeurs voisines d’un
   champ qui contient un tel nom le sont aussi : `{"name":"Ayşe","id":42}` est journalisé comme

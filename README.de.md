@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
+<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-de-light.svg" alt="Networking Architecture: Typisierte Endpunkte, Wiederholungen, Token-Erneuerung, Caching und Streaming auf URLSession, ohne Abhängigkeiten."></picture></p>
@@ -46,8 +46,8 @@ Eine Netzwerkschicht für Apps auf iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ und 
   Ursprung werden zurückgegeben statt verfolgt, Logs und `curl`-Ausgabe zeigen nur, was
   der Redactor versteht, und es gibt Grenzen für Antwortgröße, gepufferte Nachrichten und
   Wartezeiten.
-- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 932
-  Swift-Testing-Tests des Pakets laufen auf macOS, 927 davon auch in einem iPhone-Simulator,
+- **Testbar** — `MockTransport` beantwortet Anfragen mit vorbereiteten Antworten; die 936
+  Swift-Testing-Tests des Pakets laufen auf macOS, 931 davon auch in einem iPhone-Simulator,
   darunter Tests gegen einen lokalen HTTP-, TLS- und WebSocket-Server.
 
 ### Was enthalten ist
@@ -255,8 +255,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   Allowlist stehen (standardmäßig keiner), die Werte aller anderen Header (`Authorization`,
   `Cookie`, `X-API-Key` und Namen mit `token`, `key` oder `auth` auch dann, wenn sie auf der
   Allowlist stehen), ganze Werte unter geheimen Namen wie `password`, `token` oder `api_key`,
-  Pfadsegmente, die wie Kennungen aussehen (geschrieben als `:id`), Dateiteile von
-  Multipart-Bodys und Fehlerbeschreibungen.
+  Pfadsegmente, die wie Kennungen aussehen (geschrieben als `:id`), ein URL-Host, der ein
+  Geheimnis nennt, samt Port, Pfad und Query (`myapp://pin/4831` wird als `myapp://[REDACTED]`
+  geloggt), Dateiteile von Multipart-Bodys und Fehlerbeschreibungen.
 - **Schlüssel, die kein reines ASCII sind** (`pаssword` mit kyrillischem `а`, `pass\u200Bword`,
   `şifre`), haben standardmäßig verborgene Werte. Ebenso die Werte neben einem Feld, das einen
   solchen Namen enthält: `{"name":"Ayşe","id":42}` wird als `{"name":"Ayşe","id":"[REDACTED]"}` protokolliert.

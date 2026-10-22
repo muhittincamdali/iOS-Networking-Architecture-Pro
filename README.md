@@ -44,7 +44,7 @@ streaming are settings of that client instead of code you write around every req
   followed, logs and `curl` output that show only what the redactor understands, and limits
   on response size, buffered messages and wait times.
 - **Testable** — `MockTransport` answers requests from canned responses; the package's own
-  932 Swift Testing tests run on macOS, 927 of them also on an iPhone simulator, including
+  936 Swift Testing tests run on macOS, 931 of them also on an iPhone simulator, including
   tests against a local HTTP, TLS and WebSocket server.
 
 ### What's included
@@ -250,7 +250,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   are by default), the values of all other headers (`Authorization`, `Cookie`, `X-API-Key` and
   names with `token`, `key` or `auth` even when allowlisted), whole values under secret names
   such as `password`, `token` or `api_key`, path segments that look like identifiers (written
-  `:id`), file parts of multipart bodies, and error descriptions.
+  `:id`), a URL host that names a secret together with its port, path and query
+  (`myapp://pin/4831` is logged as `myapp://[REDACTED]`), file parts of multipart bodies, and
+  error descriptions.
 - **Keys that are not plain ASCII** (`pаssword` with a Cyrillic `а`, `pass​word`, `şifre`)
   have their values hidden by default. So are the values beside a field that holds a name
   written that way: `{"name":"Ayşe","id":42}` is logged as `{"name":"Ayşe","id":"[REDACTED]"}`.

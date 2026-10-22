@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
+<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-pt-BR-light.svg" alt="Networking Architecture: Endpoints tipados, novas tentativas, renovação de token, cache e streaming sobre URLSession, sem dependências."></picture></p>
@@ -45,8 +45,8 @@ Uma camada de rede para apps no iOS 16+, macOS 13+, tvOS 16+, watchOS 9+ e visio
 - **Seguro por padrão** — public key pinning, redirecionamentos para outra origem
   devolvidos em vez de seguidos, logs e saída do `curl` que mostram só o que o redactor entende, e limites para
   o tamanho das respostas, as mensagens em buffer e os tempos de espera.
-- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 932
-  testes de Swift Testing do próprio pacote rodam no macOS e 927 deles também em um simulador de
+- **Fácil de testar** — o `MockTransport` responde às requisições com respostas prontas; os 936
+  testes de Swift Testing do próprio pacote rodam no macOS e 931 deles também em um simulador de
   iPhone, incluindo testes contra um servidor local HTTP, TLS e WebSocket.
 
 ### O que está incluído
@@ -253,8 +253,10 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   estão na lista permitida (nenhum, por padrão), os valores de todos os outros cabeçalhos
   (`Authorization`, `Cookie`, `X-API-Key` e nomes com `token`, `key` ou `auth`, mesmo quando
   permitidos), valores inteiros sob nomes secretos como `password`, `token` ou `api_key`,
-  segmentos de caminho que parecem identificadores (escritos como `:id`), partes de arquivo de
-  corpos multipart e descrições de erro.
+  segmentos de caminho que parecem identificadores (escritos como `:id`), um host de URL que
+  nomeia um segredo junto com sua porta, seu caminho e sua query (`myapp://pin/4831` é
+  registrado como `myapp://[REDACTED]`), partes de arquivo de corpos multipart e descrições de
+  erro.
 - **Chaves que não são ASCII simples** (`pаssword` com um `а` cirílico, `pass\u200Bword`,
   `şifre`) têm seus valores ocultados por padrão. O mesmo vale para os valores ao lado de um
   campo que contém um nome assim: `{"name":"Ayşe","id":42}` é registrado como `{"name":"Ayşe","id":"[REDACTED]"}`.

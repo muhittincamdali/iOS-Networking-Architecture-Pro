@@ -1,4 +1,4 @@
-<!-- i18n-source: README.md@c671cc6ff7a608f863ac18c7f83a709081eeffec status=reviewed -->
+<!-- i18n-source: README.md@77b23d7d87811b8f5b9b998152b5d0904585341a status=reviewed -->
 <!-- brand:start -->
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg"><img src="https://raw.githubusercontent.com/muhittincamdali/iOS-Networking-Architecture-Pro/master/.github/brand/banner-ru-light.svg" alt="Networking Architecture: Типизированные эндпоинты, повторы, обновление токенов, кэш и стриминг на URLSession, без зависимостей."></picture></p>
@@ -45,7 +45,7 @@
   возвращаются, а не выполняются, логи и вывод `curl`, в которых видно только то, что понимает
   redactor, а также ограничения на размер ответа, число буферизуемых сообщений и время ожидания.
 - **Удобство тестирования** — `MockTransport` отвечает на запросы заранее заготовленными ответами;
-  собственные 932 теста пакета на Swift Testing запускаются на macOS, а 927 из них — ещё и на
+  собственные 936 тестов пакета на Swift Testing запускаются на macOS, а 931 из них — ещё и на
   симуляторе iPhone, включая тесты с локальным HTTP-, TLS- и WebSocket-сервером.
 
 ### Что входит в пакет
@@ -252,8 +252,9 @@ func loadUsers(with client: NetworkClient) async -> LoadState {
   списка разрешённых (по умолчанию разрешённых нет), значения всех остальных заголовков
   (`Authorization`, `Cookie`, `X-API-Key` и имена с `token`, `key` или `auth`, даже если они в
   списке), значения целиком под секретными именами вроде `password`, `token` или `api_key`,
-  сегменты пути, похожие на идентификаторы (пишутся как `:id`), файловые части тел multipart и
-  описания ошибок.
+  сегменты пути, похожие на идентификаторы (пишутся как `:id`), хост URL, который называет
+  секрет, вместе с его портом, путём и query (`myapp://pin/4831` пишется в лог как
+  `myapp://[REDACTED]`), файловые части тел multipart и описания ошибок.
 - **Ключи не из чистого ASCII** (`pаssword` с кириллической `а`, `pass\u200Bword`, `şifre`) по
   умолчанию скрывают свои значения. Так же скрываются значения рядом с полем, которое содержит
   такое имя: `{"name":"Ayşe","id":42}` записывается как `{"name":"Ayşe","id":"[REDACTED]"}`.
