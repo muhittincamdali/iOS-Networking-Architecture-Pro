@@ -8,14 +8,16 @@ extension Redactor {
     /// - The user name and password (`user:password@`) and the fragment (`#…`) are never written.
     /// - **Host:** the host is a key of the URL. It is written only when it is a name of ASCII
     ///   letters, digits and `-` in labels separated by `.`, an IPv4 address or an IPv6 address in
-    ///   brackets, and the value detectors find nothing in it (a card number, a run of 32 hex
-    ///   digits, a token). Any other host — one with `=`, `;`, `%`, `_` or letters outside ASCII,
-    ///   such as `password=hunter2` in `myapp://password=hunter2` — is written as `[REDACTED]`
-    ///   after the scheme, with nothing after it. A host that names a secret, by the key rule or as
-    ///   a word, is written with the scheme and port only, as the path after it is its value: with
-    ///   a scheme of the app's own `URLComponents` reads the first part after `//` as the host, so
-    ///   `myapp://pin/4831` has the host `pin` and is written as `myapp://pin`. A host such as
-    ///   `auth.example.com` names `auth` and hides its whole path too, which over-hides on purpose.
+    ///   brackets, the value detectors find nothing in it (a card number, a run of 32 hex digits, a
+    ///   token), and it names no secret, by the key rule or as a word. Any other host is written as
+    ///   `[REDACTED]` after the scheme, with nothing after it: no port, path or query. That covers
+    ///   a host with `=`, `;`, `%`, `_` or letters outside ASCII (`myapp://password=hunter2`), and
+    ///   a host that names a secret, whose value may be written in the host itself
+    ///   (`myapp://password.hunter2`, `https://pin-4831.example.com`), in the port
+    ///   (`myapp://pin:4831`) or in the path after it: with a scheme of the app's own
+    ///   `URLComponents` reads the first part after `//` as the host, so `myapp://pin/4831` has the
+    ///   host `pin` and is written as `myapp://[REDACTED]`. A host such as `auth.example.com`
+    ///   names `auth` and is hidden whole too, which over-hides on purpose.
     /// - **Query:** a parameter keeps its value only when its name, decoded, is plain ASCII and on
     ///   ``allowedQueryParameters``, which is empty by default; any other value is `[REDACTED]`,
     ///   and so is a parameter without `=` that is not on the list. A name that is not plain
@@ -38,7 +40,8 @@ extension Redactor {
     ///   depends on the server (RFC 3986 §5.2.4). Parameters after a `;` are not read at all.
     /// - A path of more than ``maximumPathSegments`` segments, or a query of more than
     ///   ``maximumQueryParameters`` parameters, is not read: only the scheme, host and port are
-    ///   written. So is every URL with ``URLDetail/hostOnly``.
+    ///   written. So is every URL with ``URLDetail/hostOnly``, whose host follows the host rule
+    ///   above as well.
     ///
     /// A URL that `URLComponents` cannot parse, or that has no scheme or no host, is written as
     /// ``unparsedURL``.
@@ -65,12 +68,15 @@ extension Redactor {
     /// The URL; one readings table serves its host, every path segment and every parameter.
     private func redacted(_ components: URLComponents, nesting: Nesting, compatibility: CompatibilityText) -> String {
         guard let scheme = components.scheme, let host = components.percentEncodedHost else { return Self.unparsedURL }
-        guard showsHost(host, compatibility: compatibility) else { return scheme + "://" + Self.replacement }
+        // A host that names a secret is a key, and its value may be in the host, the port or the
+        // path: none of them is written (`myapp://password.hunter2`, `myapp://pin:4831`).
+        guard showsHost(host, compatibility: compatibility), !Self.hostNamesSecret(host, compatibility: compatibility) else {
+            return scheme + "://" + Self.replacement
+        }
         var result = scheme + "://" + host
         if let port = components.port { result += ":\(port)" }
         let path = components.percentEncodedPath
         guard urlDetail == .full, !Self.exceedsLimits(components), !Self.resolvesDifferently(path: path) else { return result }
-        if Self.hostNamesSecret(host, compatibility: compatibility) { return result }
         result += redacted(path: path, nesting: nesting, compatibility: compatibility)
         if let query = components.percentEncodedQuery, !Self.isStrictForm(query) { return result + "?" + Self.replacement }
         if let items = components.percentEncodedQueryItems {
@@ -99,8 +105,9 @@ extension Redactor {
     /// Whether a host names a secret, by the key rule (``FieldName/hidesValue(_:)``) or as a word
     /// that makes the path segment after it a value (``FreeTextScanner/mentionsSecret(_:compatibility:)``).
     /// In `myapp://pin/4831` `URLComponents` reads `pin` as the host, so the path after it is
-    /// the value a segment `pin` would label: only the scheme, host and port are written. An
-    /// IPv4 or IPv6 address names nothing.
+    /// the value a segment `pin` would label; in `myapp://password.hunter2` and
+    /// `https://pin-4831.example.com` the value is in the host itself. Such a host is not
+    /// written. An IPv4 or IPv6 address names nothing.
     static func hostNamesSecret(_ host: String, compatibility: CompatibilityText) -> Bool {
         let bytes = Array(host.utf8)
         guard !bytes.isEmpty, !isIPv4Address(bytes), !isIPv6Literal(bytes) else { return false }

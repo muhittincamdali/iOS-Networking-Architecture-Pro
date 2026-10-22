@@ -33,7 +33,6 @@ struct RedactionEighteenthReviewProbeTests {
              (366...378).map { "a-18#\($0)" } + ["a-18#400"]),
             ("a path segment written without a scheme, before a query cut at its value", ["a-18#471"]),
             ("a key of structured input, which is shown", ["a-18#700"]),
-            ("the host of a URL passed to redact(url:), in which the detectors find nothing", ["a-18#751"]),
             ("the value of a key that names no secret, in structured input", ["a-18#788"]),
             ("text after JSON or a value that no trigger comes before", ["a-18#906"] + c18([409])),
             ("text without a trigger: `->` is no separator", ["a-18#959"]),

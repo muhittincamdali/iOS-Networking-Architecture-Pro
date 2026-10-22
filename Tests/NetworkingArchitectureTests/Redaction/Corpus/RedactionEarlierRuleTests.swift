@@ -15,18 +15,18 @@ struct RedactionEarlierRuleTests {
     private func json(_ text: String) -> String { redactor.redact(body: Data(text.utf8), contentType: "application/json") }
 
 
-    /// The URLs the review measured, each with what is recorded.
+    /// The URLs the review measured, each with what is recorded: a host that names a secret is
+    /// hidden with everything after it.
     static let measured = [
-        ("myapp://pin/4831", "myapp://pin"), ("myapp://password/hunter2", "myapp://password"), ("myapp://token/abc123", "myapp://token"),
-        ("myapp://session/s3cr3t", "myapp://session"), ("https://pin/4831", "https://pin"),
-        ("https://auth.example.com/x/4831", "https://auth.example.com"),
+        ("myapp://pin/4831", "myapp://[REDACTED]"), ("myapp://password/hunter2", "myapp://[REDACTED]"),
+        ("myapp://token/abc123", "myapp://[REDACTED]"), ("myapp://session/s3cr3t", "myapp://[REDACTED]"),
+        ("https://pin/4831", "https://[REDACTED]"), ("https://auth.example.com/x/4831", "https://[REDACTED]"),
     ]
 
-    /// The scheme, host and port of a URL as `URLComponents` reads them.
-    static func hostOnly(_ text: String) throws -> String {
-        let components = try #require(URLComponents(string: text))
-        let host = try #require(components.scheme) + "://" + (components.percentEncodedHost ?? "")
-        return components.port.map { host + ":\($0)" } ?? host
+    /// What is recorded for a URL whose host is hidden: the scheme as `URLComponents` reads it
+    /// and ``Redactor/replacement``.
+    static func hiddenHost(_ text: String) throws -> String {
+        try #require(URLComponents(string: text)?.scheme) + "://" + Redactor.replacement
     }
 
     /// The value of a probe.
@@ -186,11 +186,11 @@ struct RedactionEarlierRuleTests {
         let value = try Self.value(in: text)
         let url = try #require(URL(string: text))
         let logged = LoggedOutput.request(URLRequest(url: url))
-        #expect(logged.contains(" GET \(try Self.hostOnly(text))\n"), "\(logged)")
+        #expect(logged.contains(" GET \(try Self.hiddenHost(text))\n"), "\(logged)")
         #expect(!logged.contains(value), "\(logged)")
     }
 
-    @Test("the review's URLs record the scheme and host only", arguments: measured)
+    @Test("the review's URLs record the scheme only", arguments: measured)
     func measuredURLs(text: String, expected: String) throws {
         let url = try #require(URL(string: text))
         #expect(redactor.redact(url: url) == expected)

@@ -141,9 +141,9 @@ struct RedactionGuideTests {
         #expect(policy.redact(url: try #require(URL(string: "https://api.example.com/t%CD%A6ken/4831"))) == "https://api.example.com/t%CD%A6ken/:id")
         #expect(policy.redact(url: try #require(URL(string: "https://api.example.com/%C5%9Eifre/4831"))) == "https://api.example.com/%C5%9Eifre/:id")
         #expect(policy.redact(url: try #require(URL(string: "https://api.example.com/a+b/c"))) == "https://api.example.com/a+b/:id")
-        // A host that names a secret is recorded as the scheme and host only.
-        #expect(policy.redact(url: try #require(URL(string: "myapp://pin/4831"))) == "myapp://pin")
-        #expect(policy.redact(url: try #require(URL(string: "https://auth.example.com/x/4831"))) == "https://auth.example.com")
+        // A host that names a secret is hidden with everything after it.
+        #expect(policy.redact(url: try #require(URL(string: "myapp://pin/4831"))) == "myapp://[REDACTED]")
+        #expect(policy.redact(url: try #require(URL(string: "https://auth.example.com/x/4831"))) == "https://[REDACTED]")
         #expect(policy.redact(url: try #require(URL(string: "myapp://callback/x"))) == "myapp://callback/x")
         let headers = Redactor(allowedHeaders: Redactor.defaultAllowedHeaders + ["X-Request-ID"]).redact(headers: [
             HTTPHeader(name: "Content-Type", value: "application/json; charset=utf-8"), HTTPHeader(name: "X-Request-ID", value: "42"),

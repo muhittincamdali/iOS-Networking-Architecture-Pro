@@ -5,8 +5,10 @@ import Testing
 /// The twenty-second review's URL probes: in a URL with a scheme of the app's own, `URLComponents`
 /// reads the first part after `//` as the host, so in `myapp://pin/4831` the host is `pin` and the
 /// path `/4831`. The path was read as if nothing came before it, and the segment after the host
-/// showed, while free text, JSON, forms and multipart bodies hid it. A host that names a secret now
-/// records the scheme, host and port only, as a path that servers resolve differently does.
+/// showed, while free text, JSON, forms and multipart bodies hid it. A later review found the value
+/// in the host itself (`myapp://password.Qz057Wk5m`, `https://pin-Qz864Wk5m.x.example`) and in the
+/// port (`myapp://pin:4831`), which were written with the host. A host that names a secret is now
+/// recorded as the scheme and `[REDACTED]`, with nothing after it.
 @Suite("Redaction corpus: URL hosts that name a secret")
 struct RedactionURLHostNameTests {
     let redactor = CorpusRedactor()
@@ -40,10 +42,10 @@ struct RedactionURLHostNameTests {
         return String(text[range])
     }
 
-    @Test("each probe records the scheme, host and port only, also with allowed query parameters", arguments: probes)
+    @Test("each probe records the scheme only, also with allowed query parameters", arguments: probes)
     func probe(text: String) throws {
         let url = try #require(URL(string: text))
-        let expected = try RedactionURLSemicolonTests.hostOnly(text)
+        let expected = try RedactionEarlierRuleTests.hiddenHost(text)
         #expect(redactor.redact(url: url) == expected)
         #expect(CorpusRedactor(allowedQueryParameters: ["page", "source"]).redact(url: url) == expected)
         #expect(CorpusRedactor(urlDetail: .hostOnly).redact(url: url) == expected)
@@ -107,7 +109,8 @@ struct RedactionURLHostNameTests {
         }
         #expect(redactor.redact(url: try #require(URL(string: "https://api.example.com/users/12345678/reset"))) == "https://api.example.com/users/:id/reset")
         #expect(redactor.redact(url: try #require(URL(string: "myapp://open/pin/4831"))) == "myapp://open/pin/:id")
-        // A host that names a secret hides the whole path, by design: `auth` is a secret name.
-        #expect(redactor.redact(url: try #require(URL(string: "https://auth.example.com/oauth/authorize?client_id=x"))) == "https://auth.example.com")
+        #expect(redactor.redact(url: try #require(URL(string: "https://api.example.com:8443/v1/items"))) == "https://api.example.com:8443/v1/items")
+        // A host that names a secret is hidden whole, by design: `auth` is a secret name.
+        #expect(redactor.redact(url: try #require(URL(string: "https://auth.example.com/oauth/authorize?client_id=x"))) == "https://[REDACTED]")
     }
 }
