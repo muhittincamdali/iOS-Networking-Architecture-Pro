@@ -1,0 +1,37 @@
+# Repository-specific: runs the redaction tests in an optimized build. The time limits, the peak
+# memory of the corpus and the 105 large review probes are only checked there: in a debug build
+# they take minutes each (about 35 minutes for the whole serial run on a hosted runner, which
+# the shared SwiftPM job of ci.yml cannot fit into its 30 and the simulator job into its 40).
+name: Release tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release-tests-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  redaction:
+    name: Redaction (release build)
+    runs-on: macos-26
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Test
+        run: swift test -c release --no-parallel --filter Redaction

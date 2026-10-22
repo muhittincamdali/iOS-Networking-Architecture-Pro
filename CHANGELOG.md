@@ -1,196 +1,154 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2024-01-15
+## [Unreleased]
+
+## [2.0.0] - 2026-10-22
+
+A rebuilt package. The 1.0.0 release did not build: `iOS-Networking-Architecture-Pro.swift`
+had syntax errors and `MainFramework.swift` imported UIKit in a package that also targets
+macOS. The sources that followed it depended on four Apple packages, one of which
+(swift-async-algorithms 1.1.1) does not compile with Swift 6.4, and several of their APIs
+were stubs. This release replaces them with a dependency-free networking layer. Code from two
+of the author's packages that are being archived, SwiftNetwork and SwiftCache, was rewritten
+for this package rather than copied.
 
 ### Added
-- Initial release of iOS Networking Architecture Pro
-- Core NetworkManager with advanced request handling
-- Multi-level caching system with memory and disk storage
-- Real-time synchronization with WebSocket support
-- Request/Response interceptors for dynamic modification
-- Comprehensive network analytics and monitoring
-- Certificate pinning and security features
-- Offline-first architecture with conflict resolution
-- Performance optimization with connection pooling
-- Complete test suite with 100% coverage
 
-### Features
-- Advanced caching with LRU, LFU, and custom policies
-- Delta synchronization for efficient data sync
-- Authentication token management
-- Rate limiting and throttling
-- Background processing capabilities
-- Real-time health monitoring
-- Custom event tracking
-- Privacy compliance (GDPR, CCPA)
-
-## [0.9.0] - 2023-12-20
-
-### Added
-- Beta release with core networking functionality
-- Basic caching implementation
-- WebSocket integration
-- Request interceptors framework
-- Initial security features
+- Requests: `NetworkClient` and `Endpoint<Response>` with JSON, `Data` and `Void` responses;
+  `RequestBody` with JSON, text, data, `URLEncodedForm` (also built from `Encodable` values)
+  and `MultipartFormData` bodies; `HTTPHeaders`, `HTTPMethod` and `PathSegment`;
+  `urlRequest(for:)`, `upload(_:file:progress:)` and `download(_:to:resumingFrom:progress:)`,
+  which continues an interrupted download instead of starting again. Form and multipart
+  bodies are based on SwiftNetwork's.
+- Transport: `HTTPTransport` and `URLSessionTransport`, which streams bodies (pausing the
+  transfer while a slow reader catches up), reports upload and download progress and stops
+  reading a body over `Configuration.maximumResponseSize`.
+- Failures: `NetworkError`, `RetryPolicy` with exponential backoff, jitter and `Retry-After`,
+  and `CircuitBreaker` (based on SwiftNetwork's).
+- Authentication: `BearerTokenAuthenticator` with single-flight refresh, one retry per
+  request and an allow-list of hosts.
+- Caching: `CachePolicy` (`cacheFirst`, `networkFirst`, `revalidate`), `LRUCache`,
+  `MemoryResponseCache`, `DiskResponseCache` and `HybridResponseCache`, based on SwiftCache's
+  LRU, disk and hybrid caches.
+- Streaming: server-sent events with `events(_:options:)` and `ServerSentEventParser`, and
+  `WebSocketConnection` with reconnection and pings (based on SwiftNetwork's WebSocket
+  client).
+- GraphQL: `GraphQLOperation`, `GraphQLResponse`, `GraphQLError` and `graphQL(_:path:)`.
+- Security: `PublicKeyPinning` and `PinningSessionDelegate` with OpenSSL-compatible pins
+  (based on SwiftNetwork's), `RedirectPolicy`, and `Redactor` with `RedactionOutcome`.
+- Observability: `NetworkLogger`, `NetworkEventMonitor`, `ClosureEventMonitor` and
+  `URLRequest.curlCommand(redactor:)`; `NetworkMonitor` for connectivity.
+- Testing: the `NetworkingArchitectureTesting` library with `MockTransport` and
+  `MockResponse`, based on SwiftNetwork's mocks.
+- DocC catalog with seven articles, the NetworkPlayground example app for iOS and macOS,
+  screenshots taken from it, and `.spi.yml`.
 
 ### Changed
-- Improved error handling and retry logic
-- Enhanced performance monitoring
-- Better memory management
 
-## [0.8.0] - 2023-11-15
+- The package requires Swift 6.2 tools, builds in the Swift 6 language mode, supports iOS 16,
+  macOS 13, tvOS 16, watchOS 9 and visionOS 1, and has no dependencies.
 
-### Added
-- Alpha release with fundamental networking components
-- Basic request/response handling
-- Simple caching mechanism
-- Initial test framework
+### Removed
 
-### Changed
-- Refactored architecture for better modularity
-- Improved documentation and examples
+- The 1.x API (`NetworkManager`, `APIRequest`, `CacheManager`) and the sources that followed
+  it, including `ZeroCopyDecoder`, which returned an empty stream, an `OfflineQueue` that was
+  never used, and upload and download methods that ignored their progress closures.
+- The `NetworkingREST`, `NetworkingGraphQL`, `NetworkingWebSocket`, `NetworkingSSE`,
+  `NetworkingGRPC` and `NetworkingArchitectureFull` products. The gRPC module had no gRPC
+  implementation behind it; everything else is in `NetworkingArchitecture`.
+- The CocoaPods podspec and the documentation written for the 1.x API.
 
-## [0.7.0] - 2023-10-10
+### Security
 
-### Added
-- Early access release
-- Core networking infrastructure
-- Basic API request handling
-- Initial documentation
+- Values that come from a server or from settings cannot crash the app: `Retry-After`
+  numbers too large for `Int`, server-sent `retry:` values and retry delays from
+  interceptors are clamped before any wait, since `Task.sleep(for:)` traps on durations near
+  `Int64.max` seconds; NaN, infinite and negative backoff settings are handled. An event
+  stream waits at least `minimumRetry` (1 second by default) between connections, so a
+  server that sends `retry: 0` cannot make the client reconnect in a tight loop.
+- Memory is bounded: response bodies by `maximumResponseSize`, one server-sent event by
+  `maximumEventSize`, one WebSocket message by `maximumMessageSize`, unread events and
+  messages by `maximumBufferedEvents` and `maximumBufferedMessages`, and the caches by their
+  byte and count limits. A request is sent at most 10 times whatever an interceptor asks for.
+- Credentials stay where they belong: the bearer token is only sent to allowed hosts and
+  only over `https` or `wss`. `RedirectPolicy.followSameOrigin` (the default) follows a
+  redirect only when it keeps the scheme, host and port of the request it answers, and
+  returns any other redirect to the caller; `RedirectPolicy.followSafely` follows redirects to
+  other origins without the body and without credential headers (names that `Redactor` always
+  hides, and values that start with an authentication scheme or that its free-text rule would
+  cut). Both refuse https-to-http redirects and a `Location` with a user name or password.
+  Cache keys include a hash of the same credential headers so two users of one client never
+  share a cached response.
+- Input cannot change the structure of a request: header names and values with line breaks
+  are rejected, multipart field and file names are escaped, `PathSegment` keeps user input
+  in one path segment, and query values encode `+`.
+- Logs and `curl` output pass through `Redactor`, which hides what it does not fully
+  understand. Header values are kept only for an allowlist (`Accept`, `Content-Type`,
+  `User-Agent`, …; never `Authorization`, `Cookie` or a name with `token`, `key` or
+  `auth`), query values only for parameters the app allows (none by default); URLs lose their
+  user info and fragment, path segments that look like identifiers become `:id`, a path with a
+  dot segment or a `;` keeps only the scheme and host, and a host that names a secret is hidden
+  with its port, path and query (`myapp://pin:4831` and `myapp://password.hunter2` are both
+  logged as `myapp://[REDACTED]`). JSON, form and multipart bodies
+  are parsed: the whole value under a secret name, or under a key that is not plain ASCII, is
+  hidden (a secret word of five or more letters, `token` and `secret` included, counts anywhere
+  in a key: `secretAnswer`, `tokenValue`), and a body that cannot be parsed, has an unknown content type or is larger than
+  256 KiB is left out with a note. Free text (kept header values, `text/plain` bodies,
+  strings in JSON and forms) is hidden from its first trigger to its end. A field that holds a
+  name (`name`, `label`, `type`, `id`, …) that names a secret or is not plain ASCII hides the
+  values beside it, a Turkish `name` of a record included, and so does a label written as a
+  sentence in any other member (`{"question":"What's your PIN?","answer":…}`,
+  `PIN (4 digits)`, `aws:secret-access-key`) unless its secret word is followed by a value the
+  sentence carries (`Error: token expired`, `pin=1234`), a label written outside ASCII and
+  ended by `:`, `=`, a bracket or a quote mark (`{"title":"ΡΙΝ:","value":…}`, `Şifre: zorunlu`,
+  `«Пароль»`, `Пароль:*`), whatever it says, and a
+  label at the end of a string of any length. A byte order mark before a body is
+  left out the same way on every OS version. Depth, nesting, reading and time are bounded,
+  also for a response with tens of thousands of header fields. The design, the rules and their test corpus are those of iOSSecurityTools 2.1.0
+  (one function classifies every name; separate readers for names, free text and JSON; one
+  cumulative depth and reading budget; shared static tables), with this package's header
+  allowlist and secret-name extensions (`sig`, `jwt`, `code`). The secrets that the rules used
+  during development missed — values holding URLs, forms or JSON, `+` read as a space,
+  `;jsessionid`, percent-encoded path segments, a value after a bracket that does not close,
+  `&#` before a value, an address before a vertical tab, a card number written as a JSON
+  number with an exponent (`4.111111111111111E15`, as Jackson writes a `double`), which is now
+  read as the decimal it stands for, a label written as a sentence with an apostrophe, a
+  bracket, a comma or a colon (`What's your PIN?`, `PIN (4 digits)`, `PIN: required`), a value
+  written in a URL host that names a secret or in its port (`https://pin-4831.example.com`), a
+  key with `secret` or `token` before more letters (`secretanswer`, `tokenvalue`), a label in
+  one script outside ASCII ended by a separator (`ΡΙΝ:`, `Пароль:`, `비밀번호:`), by a bracket or
+  a quote mark (`【暗証番号】`, `«Пароль»`, `ΡΙΝ⩴`) or by a separator and a mark (`Пароль:*`,
+  `ΡΙΝ:)`) and a label
+  after 256 characters of a string (`… What is your PIN?`) — are
+  kept as tests, with the review
+  probes of iOSSecurityTools, iOSDevelopmentTools and this package. Redaction is a safety net,
+  not a guarantee: a secret name in free text disguised with look-alike letters and no
+  separator, a secret with no label, a label in another language without `:` or `=`
+  (`{"title":"Пароль","value":…}`) and a short secret in a path segment are not guaranteed to
+  be found.
+- Pinning failures surface as `URLError.serverCertificateUntrusted` instead of a
+  cancellation, system certificate validation always runs before the pins are checked, and
+  a host name with a trailing dot (`api.example.com.`) gets the same pins as without it.
 
-### Changed
-- Architecture improvements based on feedback
-- Performance optimizations
+### Known limitations
 
-## [0.6.0] - 2023-09-05
+- A label whose separator is followed directly by a letter or a digit does not end, so the
+  value beside it is stored as it is: `{"title":"「パスワード」を入力","value":…}`. Reading the
+  words after the separator needs a design of its own (Japanese and Chinese have no word
+  boundaries). Tracked in [#24](https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/issues/24).
+  The other cases that redaction does not find are listed in the DocC article
+  "Redacting sensitive data".
 
-### Added
-- Prototype release
-- Basic networking functionality
-- Simple caching system
-- Initial examples
+## [1.0.0] - 2026-02-02
 
-### Changed
-- Improved error handling
-- Better code organization
+First release. It could not be built: one source file had syntax errors and another imported
+UIKit in a package that also targets macOS.
 
-## [0.5.0] - 2023-08-01
-
-### Added
-- Initial development release
-- Core networking classes
-- Basic request handling
-- Simple test framework
-
-### Changed
-- Architecture refinements
-- Documentation improvements
-
-## [0.4.0] - 2023-07-15
-
-### Added
-- Early development version
-- Basic network manager
-- Simple request/response handling
-- Initial documentation
-
-### Changed
-- Code structure improvements
-- Better error handling
-
-## [0.3.0] - 2023-06-20
-
-### Added
-- Development milestone
-- Core networking components
-- Basic caching implementation
-- Initial test suite
-
-### Changed
-- Architecture improvements
-- Performance optimizations
-
-## [0.2.0] - 2023-05-10
-
-### Added
-- Early development version
-- Basic networking functionality
-- Simple request handling
-- Initial examples
-
-### Changed
-- Improved code structure
-- Better documentation
-
-## [0.1.0] - 2023-04-01
-
-### Added
-- Initial project setup
-- Basic networking infrastructure
-- Core architecture design
-- Foundation classes
-
-### Changed
-- Project structure improvements
-- Documentation updates # iOS-Networking-Architecture-Pro - Update 1
-# iOS-Networking-Architecture-Pro - Update 2
-# iOS-Networking-Architecture-Pro - Update 3
-# iOS-Networking-Architecture-Pro - Update 4
-# iOS-Networking-Architecture-Pro - Update 5
-# iOS-Networking-Architecture-Pro - Update 6
-# iOS-Networking-Architecture-Pro - Update 7
-# iOS-Networking-Architecture-Pro - Update 8
-# iOS-Networking-Architecture-Pro - Update 9
-# iOS-Networking-Architecture-Pro - Update 10
-# iOS-Networking-Architecture-Pro - Update 11
-# iOS-Networking-Architecture-Pro - Update 12
-# iOS-Networking-Architecture-Pro - Update 13
-# iOS-Networking-Architecture-Pro - Update 14
-# iOS-Networking-Architecture-Pro - Update 15
-# iOS-Networking-Architecture-Pro - Update 16
-# iOS-Networking-Architecture-Pro - Update 17
-# iOS-Networking-Architecture-Pro - Update 18
-# iOS-Networking-Architecture-Pro - Update 19
-# iOS-Networking-Architecture-Pro - Update 20
-# iOS-Networking-Architecture-Pro - Update 21
-# iOS-Networking-Architecture-Pro - Update 22
-# iOS-Networking-Architecture-Pro - Update 23
-# iOS-Networking-Architecture-Pro - Update 24
-# iOS-Networking-Architecture-Pro - Update 25
-# iOS-Networking-Architecture-Pro - Update 26
-# iOS-Networking-Architecture-Pro - Update 27
-# iOS-Networking-Architecture-Pro - Update 28
-# iOS-Networking-Architecture-Pro - Update 29
-# iOS-Networking-Architecture-Pro - Update 30
-# iOS-Networking-Architecture-Pro - Update 31
-# iOS-Networking-Architecture-Pro - Update 32
-# iOS-Networking-Architecture-Pro - Update 33
-# iOS-Networking-Architecture-Pro - Update 34
-# iOS-Networking-Architecture-Pro - Update 35
-# iOS-Networking-Architecture-Pro - Update 36
-# iOS-Networking-Architecture-Pro - Update 37
-# iOS-Networking-Architecture-Pro - Update 38
-# iOS-Networking-Architecture-Pro - Update 39
-# iOS-Networking-Architecture-Pro - Update 40
-# iOS-Networking-Architecture-Pro - Update 41
-# iOS-Networking-Architecture-Pro - Update 42
-# iOS-Networking-Architecture-Pro - Update 43
-# iOS-Networking-Architecture-Pro - Update 44
-# iOS-Networking-Architecture-Pro - Update 45
-# iOS-Networking-Architecture-Pro - Update 46
-# iOS-Networking-Architecture-Pro - Update 47
-# iOS-Networking-Architecture-Pro - Update 48
-# iOS-Networking-Architecture-Pro - Update 49
-# iOS-Networking-Architecture-Pro - Update 50
-# iOS-Networking-Architecture-Pro - Update 51
-# iOS-Networking-Architecture-Pro - Update 52
-# iOS-Networking-Architecture-Pro - Update 53
-# iOS-Networking-Architecture-Pro - Update 54
-# iOS-Networking-Architecture-Pro - Update 55
-# iOS-Networking-Architecture-Pro - Update 56
-# iOS-Networking-Architecture-Pro - Update 57
+[Unreleased]: https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/compare/v1.0.0...v2.0.0
+[1.0.0]: https://github.com/muhittincamdali/iOS-Networking-Architecture-Pro/releases/tag/v1.0.0

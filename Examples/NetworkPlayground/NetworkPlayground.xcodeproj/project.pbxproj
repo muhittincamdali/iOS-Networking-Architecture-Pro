@@ -1,0 +1,395 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0847E611857603BD0E62D577 /* RetryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BEBD4E0B2A5941E6B4170D0 /* RetryScreen.swift */; };
+		183F848571A527DD6795B121 /* LogScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CEBFA504855FCFF7EBB8519 /* LogScreen.swift */; };
+		1C9BA0EA9D8B330B76343D4B /* NetworkingArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 11ECAB1D21A88CE91A60D800 /* NetworkingArchitecture */; };
+		354D47C66897D0D8725234F6 /* PricesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A792B983CA8BDA5A131F44A /* PricesScreen.swift */; };
+		464E0D06C992A3E58AD92719 /* UsersScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6708282378D6606105868445 /* UsersScreen.swift */; };
+		97878E05376B785464ACC5A7 /* NetworkPlaygroundApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74F64D21B09A7DBE46730DC1 /* NetworkPlaygroundApp.swift */; };
+		9EC5CA0A9BB1049FD5EFDB11 /* NetworkingArchitectureTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 5F6ED3E3A56D2282F3F37302 /* NetworkingArchitectureTesting */; };
+		CA93C007082063EA6CB19C46 /* PlaygroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C4E35E6098DA49202ACA044 /* PlaygroundView.swift */; };
+		D5D59951849688A957008EAA /* ReadmeSamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97A30D0FC40FFB1F6AB441CA /* ReadmeSamples.swift */; };
+		DA202287CEE7E45FFAD6BEF3 /* AuthScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFEF9B244DF6C4CE73BD471 /* AuthScreen.swift */; };
+		E4BFFAC540CDB6AA7593B8D2 /* DemoServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E75206C32A159A057333BB48 /* DemoServer.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1C4E35E6098DA49202ACA044 /* PlaygroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaygroundView.swift; sourceTree = "<group>"; };
+		2FFEF9B244DF6C4CE73BD471 /* AuthScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthScreen.swift; sourceTree = "<group>"; };
+		4CEBFA504855FCFF7EBB8519 /* LogScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogScreen.swift; sourceTree = "<group>"; };
+		5BEBD4E0B2A5941E6B4170D0 /* RetryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetryScreen.swift; sourceTree = "<group>"; };
+		6708282378D6606105868445 /* UsersScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsersScreen.swift; sourceTree = "<group>"; };
+		74F64D21B09A7DBE46730DC1 /* NetworkPlaygroundApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkPlaygroundApp.swift; sourceTree = "<group>"; };
+		7A792B983CA8BDA5A131F44A /* PricesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PricesScreen.swift; sourceTree = "<group>"; };
+		97A30D0FC40FFB1F6AB441CA /* ReadmeSamples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadmeSamples.swift; sourceTree = "<group>"; };
+		CC744CB433E866E7C50571DC /* NetworkPlayground.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NetworkPlayground.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E75206C32A159A057333BB48 /* DemoServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoServer.swift; sourceTree = "<group>"; };
+		EBF17FEC284FDE5A73241CDE /* iOS-Networking-Architecture-Pro */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "iOS-Networking-Architecture-Pro"; path = ../..; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E100F02BA99EE82502454FFB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1C9BA0EA9D8B330B76343D4B /* NetworkingArchitecture in Frameworks */,
+				9EC5CA0A9BB1049FD5EFDB11 /* NetworkingArchitectureTesting in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		75AD9A3848CDE9E83650406A = {
+			isa = PBXGroup;
+			children = (
+				7D4D1D93D94835B06A4208F7 /* NetworkPlayground */,
+				BC3B7AED343AB859BBF0532D /* Packages */,
+				85193A907595760BF7FB329F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7D4D1D93D94835B06A4208F7 /* NetworkPlayground */ = {
+			isa = PBXGroup;
+			children = (
+				2FFEF9B244DF6C4CE73BD471 /* AuthScreen.swift */,
+				E75206C32A159A057333BB48 /* DemoServer.swift */,
+				4CEBFA504855FCFF7EBB8519 /* LogScreen.swift */,
+				74F64D21B09A7DBE46730DC1 /* NetworkPlaygroundApp.swift */,
+				1C4E35E6098DA49202ACA044 /* PlaygroundView.swift */,
+				7A792B983CA8BDA5A131F44A /* PricesScreen.swift */,
+				97A30D0FC40FFB1F6AB441CA /* ReadmeSamples.swift */,
+				5BEBD4E0B2A5941E6B4170D0 /* RetryScreen.swift */,
+				6708282378D6606105868445 /* UsersScreen.swift */,
+			);
+			path = NetworkPlayground;
+			sourceTree = "<group>";
+		};
+		85193A907595760BF7FB329F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CC744CB433E866E7C50571DC /* NetworkPlayground.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BC3B7AED343AB859BBF0532D /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				EBF17FEC284FDE5A73241CDE /* iOS-Networking-Architecture-Pro */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1FEE99AAE98D4CDD4B7F3012 /* NetworkPlayground */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E465A38BE051E16D469B75F2 /* Build configuration list for PBXNativeTarget "NetworkPlayground" */;
+			buildPhases = (
+				67A998D685C421AEBD6BDE7A /* Sources */,
+				E100F02BA99EE82502454FFB /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NetworkPlayground;
+			packageProductDependencies = (
+				11ECAB1D21A88CE91A60D800 /* NetworkingArchitecture */,
+				5F6ED3E3A56D2282F3F37302 /* NetworkingArchitectureTesting */,
+			);
+			productName = NetworkPlayground;
+			productReference = CC744CB433E866E7C50571DC /* NetworkPlayground.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4660813E76042A477170CFD1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					1FEE99AAE98D4CDD4B7F3012 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = D7D5AB03E07D5396EB503F73 /* Build configuration list for PBXProject "NetworkPlayground" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 75AD9A3848CDE9E83650406A;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CD7FDEBEC8C0BC091A001E10 /* XCLocalSwiftPackageReference "../.." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 85193A907595760BF7FB329F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1FEE99AAE98D4CDD4B7F3012 /* NetworkPlayground */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		67A998D685C421AEBD6BDE7A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DA202287CEE7E45FFAD6BEF3 /* AuthScreen.swift in Sources */,
+				E4BFFAC540CDB6AA7593B8D2 /* DemoServer.swift in Sources */,
+				183F848571A527DD6795B121 /* LogScreen.swift in Sources */,
+				97878E05376B785464ACC5A7 /* NetworkPlaygroundApp.swift in Sources */,
+				CA93C007082063EA6CB19C46 /* PlaygroundView.swift in Sources */,
+				354D47C66897D0D8725234F6 /* PricesScreen.swift in Sources */,
+				D5D59951849688A957008EAA /* ReadmeSamples.swift in Sources */,
+				0847E611857603BD0E62D577 /* RetryScreen.swift in Sources */,
+				464E0D06C992A3E58AD92719 /* UsersScreen.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		D9B2C8D3EBFD943FCEFDE5CB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Network Playground";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.muhittincamdali.NetworkPlayground;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E92A16CD6D14BD7B0A19DB36 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		F56407D3B90E81EE4F21A25A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FF16816D3BB080AF3D0BA6C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Network Playground";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.muhittincamdali.NetworkPlayground;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D7D5AB03E07D5396EB503F73 /* Build configuration list for PBXProject "NetworkPlayground" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F56407D3B90E81EE4F21A25A /* Debug */,
+				E92A16CD6D14BD7B0A19DB36 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E465A38BE051E16D469B75F2 /* Build configuration list for PBXNativeTarget "NetworkPlayground" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF16816D3BB080AF3D0BA6C5 /* Debug */,
+				D9B2C8D3EBFD943FCEFDE5CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		CD7FDEBEC8C0BC091A001E10 /* XCLocalSwiftPackageReference "../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		11ECAB1D21A88CE91A60D800 /* NetworkingArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkingArchitecture;
+		};
+		5F6ED3E3A56D2282F3F37302 /* NetworkingArchitectureTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkingArchitectureTesting;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 4660813E76042A477170CFD1 /* Project object */;
+}
