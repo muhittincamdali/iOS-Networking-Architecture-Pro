@@ -91,8 +91,10 @@ for this package rather than copied.
   understand. Header values are kept only for an allowlist (`Accept`, `Content-Type`,
   `User-Agent`, …; never `Authorization`, `Cookie` or a name with `token`, `key` or
   `auth`), query values only for parameters the app allows (none by default); URLs lose their
-  user info and fragment, path segments that look like identifiers become `:id`, and a path
-  with a dot segment or a `;` keeps only the scheme and host. JSON, form and multipart bodies
+  user info and fragment, path segments that look like identifiers become `:id`, a path with a
+  dot segment or a `;` keeps only the scheme and host, and a host that names a secret is hidden
+  with its port, path and query (`myapp://pin:4831` and `myapp://password.hunter2` are both
+  logged as `myapp://[REDACTED]`). JSON, form and multipart bodies
   are parsed: the whole value under a secret name, or under a key that is not plain ASCII, is
   hidden, and a body that cannot be parsed, has an unknown content type or is larger than
   256 KiB is left out with a note. Free text (kept header values, `text/plain` bodies,
@@ -112,8 +114,9 @@ for this package rather than copied.
   `&#` before a value, an address before a vertical tab, a card number written as a JSON
   number with an exponent (`4.111111111111111E15`, as Jackson writes a `double`), which is now
   read as the decimal it stands for, a label written as a sentence with an apostrophe, a
-  bracket, a comma or a colon (`What's your PIN?`, `PIN (4 digits)`, `PIN: required`) — are kept
-  as tests, with the review
+  bracket, a comma or a colon (`What's your PIN?`, `PIN (4 digits)`, `PIN: required`), a value
+  written in a URL host that names a secret or in its port (`https://pin-4831.example.com`) — are
+  kept as tests, with the review
   probes of iOSSecurityTools, iOSDevelopmentTools and this package. Redaction is a safety net,
   not a guarantee: a secret name in free text disguised with look-alike letters and no
   separator, a secret with no label and a short secret in a path segment are not guaranteed to
